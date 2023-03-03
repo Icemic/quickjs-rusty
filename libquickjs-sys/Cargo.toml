@@ -7,7 +7,7 @@ readme = "README.md"
 documentation = "https://docs.rs/quickjs-sys"
 repository = "https://github.com/theduke/quickjs-rs"
 license = "MIT"
-authors = ["Christoph Herzog <chris@theduke.at>"]
+authors = ["Christoph Herzog <chris@theduke.at>", "Icemic J <bingfeng.web@gmail.com>"]
 categories = ["external-ffi-bindings"]
 keywords = ["quickjs"]
 
@@ -21,6 +21,6 @@ default = ["bundled"]
 system = ["bindgen"]
 
 [build-dependencies]
-bindgen = { version = "0.57.0", optional = true }
+bindgen = { version = "0.64.0", optional = true }
 cc = { version = "1.0.66", optional = true }
 copy_dir = { version = "0.1.2", optional = true }

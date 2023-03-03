@@ -9,6 +9,18 @@ int JS_ValueGetTag_real(JSValue v) {
     return JS_VALUE_GET_TAG(v);
 }
 
+// used to generate following values:
+// JS_NULL
+// JS_UNDEFINED
+// JS_FALSE
+// JS_TRUE
+// JS_EXCEPTION
+// JS_UNINITIALIZED
+JSValue JS_NewSpecialValue_real(int64_t tag, uint32_t val)
+{
+    return JS_MKVAL(tag, val);
+}
+
 void JS_FreeValue_real(JSContext *ctx, JSValue v) {
     JS_FreeValue(ctx, v);
 }
@@ -43,6 +55,18 @@ JS_BOOL JS_VALUE_IS_NAN_real(JSValue v) {
 
 double JS_VALUE_GET_FLOAT64_real(JSValue v) {
     return JS_VALUE_GET_FLOAT64(v);
+}
+
+int JS_VALUE_GET_INT_real(JSValue v) {
+    return JS_VALUE_GET_INT(v);
+}
+
+int JS_VALUE_GET_BOOL_real(JSValue v) {
+    return JS_VALUE_GET_BOOL(v);
+}
+
+uintptr_t JS_VALUE_GET_PTR_real(JSValue v) {
+    return JS_VALUE_GET_PTR(v);
 }
 
 int JS_VALUE_GET_NORM_TAG_real(JSValue v) {

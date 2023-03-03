@@ -1,8 +1,8 @@
 /*
  * QuickJS stand alone interpreter
  * 
- * Copyright (c) 2017-2021 Fabrice Bellard
- * Copyright (c) 2017-2021 Charlie Gordon
+ * Copyright (c) 2017-2020 Fabrice Bellard
+ * Copyright (c) 2017-2020 Charlie Gordon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,18 +28,23 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <time.h>
 #if defined(__APPLE__)
 #include <malloc/malloc.h>
+#include <unistd.h>
 #elif defined(__linux__)
 #include <malloc.h>
+#include <unistd.h>
 #endif
 
 #include "cutils.h"
 #include "quickjs-libc.h"
+#ifdef CONFIG_STORAGE
+#include "storage/quickjs-storage.h"
+#endif
+#include "quickjs-version.h"
 
 extern const uint8_t qjsc_repl[];
 extern const uint32_t qjsc_repl_size;
@@ -120,6 +125,9 @@ static JSContext *JS_NewCustomContext(JSRuntime *rt)
     /* system modules */
     js_init_module_std(ctx, "std");
     js_init_module_os(ctx, "os");
+#ifdef CONFIG_STORAGE
+    js_init_module_storage(ctx, "storage");
+#endif
     return ctx;
 }
 
@@ -156,13 +164,7 @@ static inline size_t js_trace_malloc_usable_size(void *ptr)
 #endif
 }
 
-static void
-#ifdef _WIN32
-/* mingw printf is used */
-__attribute__((format(gnu_printf, 2, 3)))
-#else
-__attribute__((format(printf, 2, 3)))
-#endif
+static void __attribute__((format(printf, 2, 3)))
     js_trace_malloc_printf(JSMallocState *s, const char *fmt, ...)
 {
     va_list ap;
@@ -282,7 +284,7 @@ static const JSMallocFunctions trace_mf = {
 
 void help(void)
 {
-    printf("QuickJS version " CONFIG_VERSION "\n"
+    printf("QuickJS version " QUICKJS_VERSION "\n"
            "usage: " PROG_NAME " [options] [file [args]]\n"
            "-h  --help         list options\n"
            "-e  --eval EXPR    evaluate EXPR\n"

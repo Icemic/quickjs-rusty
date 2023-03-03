@@ -39,14 +39,23 @@ fn main() {
     };
 
     // Instruct cargo to statically link quickjs.
+    println!("cargo:rustc-link-search=native=D:\\Workspace\\quickjspp\\.bin\\Release\\x64\\");
     println!("cargo:rustc-link-search=native={}", lib);
     println!("cargo:rustc-link-lib=static={}", LIB_NAME);
+
+    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let embed_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("embed");
+    std::fs::copy(embed_path.join("bindings.rs"), out_path.join("bindings.rs"))
+        .expect("Could not copy bindings.rs");
 }
 
 #[cfg(feature = "bundled")]
 fn main() {
     let embed_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("embed");
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+
+    println!("cargo:rustc-env=VSLANG=1033");
+    println!("cargo:rerun-if-changed=embed");
 
     let code_dir = out_path.join("quickjs");
     if exists(&code_dir) {
@@ -81,13 +90,19 @@ fn main() {
             .iter()
             .map(|f| code_dir.join(f)),
         )
-        .define("_GNU_SOURCE", None)
+        .static_flag(true)
+        // .define("_GNU_SOURCE", None)
         .define(
             "CONFIG_VERSION",
             format!("\"{}\"", quickjs_version.trim()).as_str(),
         )
+        // .define("NDEBUG", None)
+        .define("_CRT_SECURE_NO_WARNINGS", None)
+        .define("JS_STRICT_NAN_BOXING", None)
         .define("CONFIG_BIGNUM", None)
+        .flag_if_supported("/std:c++latest")
         // The below flags are used by the official Makefile.
+        .flag_if_supported("-fno-exceptions")
         .flag_if_supported("-Wchar-subscripts")
         .flag_if_supported("-Wno-array-bounds")
         .flag_if_supported("-Wno-format-truncation")

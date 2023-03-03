@@ -33,22 +33,22 @@ mod tests {
             let value = JS_Eval(
                 ctx,
                 code.as_ptr(),
-                (code_str.len() - 1) as u64,
+                code_str.len() - 1,
                 script.as_ptr(),
                 JS_EVAL_TYPE_GLOBAL as i32,
             );
-            assert_eq!(value.tag, 0);
-            assert_eq!(value.u.int32, 2);
+            assert_eq!(JS_ValueGetTag(value), JS_TAG_INT);
+            assert_eq!(JS_VALUE_GET_INT(value), 2);
 
             JS_DupValue(ctx, value);
             JS_FreeValue(ctx, value);
 
             let ival = JS_NewInt32(ctx, 12);
-            assert_eq!(ival.tag, 0);
+            assert_eq!(JS_ValueGetTag(ival), JS_TAG_INT);
             let fval = JS_NewFloat64(ctx, f64::MAX);
-            assert_eq!(fval.tag, 7);
+            assert_eq!(JS_ValueGetTag(fval), JS_TAG_FLOAT64);
             let bval = JS_NewBool(ctx, true);
-            assert_eq!(bval.tag, 1);
+            assert_eq!(JS_ValueGetTag(bval), JS_TAG_BOOL);
         }
     }
 }

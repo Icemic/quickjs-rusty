@@ -30,5 +30,12 @@ They are used if the `embedded` feature is enabled.
 To updat the bindings, follow these steps:
 
 * (Install [just](https://github.com/casey/just))
+* (Install [bindgen-cli](https://rust-lang.github.io/rust-bindgen/command-line-usage.html))
 * Update the download URL in ./justfile
 * run `just update-quickjs`
+
+Tips:
+
+You may encounter problems in generating bindings.rs like "`FP_SUBNORMAL` redefined here".
+[That's the solution](https://github.com/rust-lang/rust-bindgen/issues/687#issuecomment-450750547),
+but due that we execute `bindgen` in cli, we have to resolve them by hand.
