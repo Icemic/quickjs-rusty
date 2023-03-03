@@ -5,7 +5,7 @@ use crate::{ExecutionError, JsValue, ValueError};
 use super::make_cstring;
 use crate::bindings::ContextWrapper;
 
-#[repr(i32)]
+#[repr(u32)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum JsTag {
     // Used by C code as a marker.
@@ -58,7 +58,7 @@ impl JsTag {
         }
     }
 
-    pub(super) fn to_c(self) -> i32 {
+    pub(super) fn to_c(self) -> u32 {
         // TODO: figure out why this is needed
         // Just casting with `as` does not work correctly
         match self {
@@ -349,10 +349,11 @@ impl<'a> OwnedJsValue<'a> {
 
     #[cfg(test)]
     pub(crate) fn get_ref_count(&self) -> i32 {
-        if self.value.tag < 0 {
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        if tag >= 8 {
             // This transmute is OK since if tag < 0, the union will be a refcount
             // pointer.
-            let ptr = unsafe { self.value.u.ptr as *mut q::JSRefCountHeader };
+            let ptr = unsafe { q::JS_VALUE_GET_PTR(self.value) as *mut q::JSRefCountHeader };
             let pref: &mut q::JSRefCountHeader = &mut unsafe { *ptr };
             pref.ref_count
         } else {
@@ -519,10 +520,7 @@ impl<'a> JsFunction<'a> {
             q::JS_Call(
                 self.value.context.context,
                 self.value.value,
-                q::JSValue {
-                    u: q::JSValueUnion { int32: 0 },
-                    tag: JsTag::Null as i64,
-                },
+                q::JS_NewSpecialValue(q::JS_TAG_NULL, 0),
                 qargs.len() as i32,
                 qargs.as_mut_ptr(),
             )

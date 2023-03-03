@@ -24,16 +24,16 @@ pub use value::{JsCompiledFunction, OwnedJsValue};
 // JS_TAG_* constants from quickjs.
 // For some reason bindgen does not pick them up.
 #[cfg(feature = "bigint")]
-const TAG_BIG_INT: i64 = -10;
-const TAG_STRING: i64 = -7;
-const TAG_FUNCTION_BYTECODE: i64 = -2;
-const TAG_OBJECT: i64 = -1;
-const TAG_INT: i64 = 0;
-const TAG_BOOL: i64 = 1;
-const TAG_NULL: i64 = 2;
-const TAG_UNDEFINED: i64 = 3;
-const TAG_EXCEPTION: i64 = 6;
-const TAG_FLOAT64: i64 = 7;
+const TAG_BIG_INT: u32 = q::JS_TAG_BIG_INT;
+const TAG_STRING: u32 = q::JS_TAG_STRING;
+const TAG_FUNCTION_BYTECODE: u32 = q::JS_TAG_FUNCTION_BYTECODE;
+const TAG_OBJECT: u32 = q::JS_TAG_OBJECT;
+const TAG_INT: u32 = q::JS_TAG_INT;
+const TAG_BOOL: u32 = q::JS_TAG_BOOL;
+const TAG_NULL: u32 = q::JS_TAG_NULL;
+const TAG_UNDEFINED: u32 = q::JS_TAG_UNDEFINED;
+const TAG_EXCEPTION: u32 = q::JS_TAG_EXCEPTION;
+const TAG_FLOAT64: u32 = q::JS_TAG_FLOAT64;
 
 /// Helper for creating CStrings.
 fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
@@ -66,19 +66,17 @@ where
     where
         F: Fn(c_int, *mut q::JSValue) -> q::JSValue,
     {
-        let closure_ptr = (*data).u.ptr;
+        let closure_ptr = q::JS_VALUE_GET_PTR(*data);
         let closure: &mut F = &mut *(closure_ptr as *mut F);
         (*closure)(argc, argv)
     }
 
     let boxed_f = Box::new(closure);
 
-    let data = Box::new(q::JSValue {
-        u: q::JSValueUnion {
-            ptr: (&*boxed_f) as *const F as *mut c_void,
-        },
-        tag: TAG_NULL,
-    });
+    let data = Box::new(q::JS_NewPointer(
+        TAG_NULL,
+        (&*boxed_f) as *const F as *mut c_void,
+    ));
 
     ((boxed_f, data), Some(trampoline::<F>))
 }
@@ -106,7 +104,8 @@ impl<'a> Clone for OwnedValueRef<'a> {
 
 impl<'a> std::fmt::Debug for OwnedValueRef<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self.value.tag {
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        match tag {
             TAG_EXCEPTION => write!(f, "Exception(?)"),
             TAG_NULL => write!(f, "NULL"),
             TAG_UNDEFINED => write!(f, "UNDEFINED"),
@@ -153,27 +152,33 @@ impl<'a> OwnedValueRef<'a> {
     }
 
     pub fn is_null(&self) -> bool {
-        self.value.tag == TAG_NULL
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        tag == TAG_NULL
     }
 
     pub fn is_bool(&self) -> bool {
-        self.value.tag == TAG_BOOL
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        tag == TAG_BOOL
     }
 
     pub fn is_exception(&self) -> bool {
-        self.value.tag == TAG_EXCEPTION
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        tag == TAG_EXCEPTION
     }
 
     pub fn is_object(&self) -> bool {
-        self.value.tag == TAG_OBJECT
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        tag == TAG_OBJECT
     }
 
     pub fn is_string(&self) -> bool {
-        self.value.tag == TAG_STRING
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        tag == TAG_STRING
     }
 
     pub fn is_compiled_function(&self) -> bool {
-        self.value.tag == TAG_FUNCTION_BYTECODE
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        tag == TAG_FUNCTION_BYTECODE
     }
 
     pub fn to_string(&self) -> Result<String, ExecutionError> {
@@ -182,8 +187,8 @@ impl<'a> OwnedValueRef<'a> {
         } else {
             let raw = unsafe { q::JS_ToString(self.context.context, self.value) };
             let value = OwnedValueRef::new(self.context, raw);
-
-            if value.value.tag != TAG_STRING {
+            let tag = unsafe { q::JS_ValueGetTag(value.value) };
+            if tag != TAG_STRING {
                 return Err(ExecutionError::Exception(
                     "Could not convert value to string".into(),
                 ));
@@ -207,10 +212,11 @@ impl<'a> OwnedValueRef<'a> {
 
     #[cfg(test)]
     pub fn get_ref_count(&self) -> i32 {
-        if self.value.tag < 0 {
+        let tag = unsafe { q::JS_ValueGetTag(self.value) };
+        if tag < 0 {
             // This transmute is OK since if tag < 0, the union will be a refcount
             // pointer.
-            let ptr = unsafe { self.value.u.ptr as *mut q::JSRefCountHeader };
+            let ptr = unsafe { q::JS_VALUE_GET_PTR(self.value) as *mut q::JSRefCountHeader };
             let pref: &mut q::JSRefCountHeader = &mut unsafe { *ptr };
             pref.ref_count
         } else {
@@ -227,7 +233,8 @@ pub struct OwnedObjectRef<'a> {
 
 impl<'a> OwnedObjectRef<'a> {
     pub fn new(value: OwnedValueRef<'a>) -> Result<Self, ValueError> {
-        if value.value.tag != TAG_OBJECT {
+        let tag = unsafe { q::JS_ValueGetTag(value.value) };
+        if tag != TAG_OBJECT {
             Err(ValueError::Internal("Expected an object".into()))
         } else {
             Ok(Self { value })
@@ -239,12 +246,12 @@ impl<'a> OwnedObjectRef<'a> {
     }
 
     /// Get the tag of a property.
-    fn property_tag(&self, name: &str) -> Result<i64, ValueError> {
+    fn property_tag(&self, name: &str) -> Result<u32, ValueError> {
         let cname = make_cstring(name)?;
         let raw = unsafe {
             q::JS_GetPropertyStr(self.value.context.context, self.value.value, cname.as_ptr())
         };
-        let t = raw.tag;
+        let t = unsafe { q::JS_ValueGetTag(raw) };
         unsafe {
             q::JS_FreeValue(self.value.context.context, raw);
         }
@@ -266,13 +273,14 @@ impl<'a> OwnedObjectRef<'a> {
         let raw = unsafe {
             q::JS_GetPropertyStr(self.value.context.context, self.value.value, cname.as_ptr())
         };
+        let tag = unsafe { q::JS_ValueGetTag(raw) };
 
-        if raw.tag == TAG_EXCEPTION {
+        if tag == TAG_EXCEPTION {
             Err(ExecutionError::Internal(format!(
                 "Exception while getting property '{}'",
                 name
             )))
-        } else if raw.tag == TAG_UNDEFINED {
+        } else if tag == TAG_UNDEFINED {
             Err(ExecutionError::Internal(format!(
                 "Property '{}' not found",
                 name
@@ -600,7 +608,7 @@ impl ContextWrapper {
             q::JS_Eval(
                 self.context,
                 code_c.as_ptr(),
-                code.len() as _,
+                code.len(),
                 filename_c.as_ptr(),
                 q::JS_EVAL_TYPE_GLOBAL as i32,
             )
@@ -703,10 +711,7 @@ impl ContextWrapper {
                         q::JS_Throw(context, js_exception);
                     }
 
-                    q::JSValue {
-                        u: q::JSValueUnion { int32: 0 },
-                        tag: TAG_EXCEPTION,
-                    }
+                    unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
                 }
             }
         };
