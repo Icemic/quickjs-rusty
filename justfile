@@ -1,12 +1,15 @@
+# use PowerShell instead of sh:
+set windows-shell := ["powershell.exe", "-c"]
+
 embed_dir := "./libquickjs-sys/embed/quickjs"
 
-DOWNLOAD_URL := "https://bellard.org/quickjs/quickjs-2021-03-27.tar.xz"
+DOWNLOAD_URL := "https://github.com/c-smile/quickjspp/archive/refs/heads/master.tar.gz"
 FEATURES := "--all-features"
 
 download-new:
     test -d {{embed_dir}} && rm -r {{embed_dir}} || echo ""
     mkdir {{embed_dir}} && \
-    curl -L {{DOWNLOAD_URL}} | tar xJv -C {{embed_dir}} --strip-components 1
+    curl -L {{DOWNLOAD_URL}} | tar xzv -C {{embed_dir}} --strip-components 1
 
 download-cleanup:
     rm -r "{{embed_dir}}/doc" "{{embed_dir}}/examples" "{{embed_dir}}/tests"
