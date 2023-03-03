@@ -50,7 +50,7 @@ JSValue JS_NewInt32_real(JSContext *ctx, int32_t val) {
     return JS_NewInt32(ctx, val);
 }
 
-JSValue JS_NewBool_real(JSContext *ctx, JS_BOOL val) {
+JSValue JS_NewBool_real(JSContext *ctx, uint8_t val) {
     return JS_NewBool(ctx, val);
 }
 
