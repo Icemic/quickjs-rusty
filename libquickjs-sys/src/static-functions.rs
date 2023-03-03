@@ -1,6 +1,7 @@
 extern "C" {
     fn JS_ValueGetTag_real(v: JSValue) -> u32;
-    fn JS_NewSpecialValue_real(tag: i64, val: i32) -> JSValue;
+    fn JS_NewSpecialValue_real(tag: u32, val: i32) -> JSValue;
+    fn JS_NewPointer_real(tag: u32, ptr: *mut ::std::os::raw::c_void) -> JSValue;
     fn JS_DupValue_real(ctx: *mut JSContext, v: JSValue);
     fn JS_DupValueRT_real(rt: *mut JSRuntime, v: JSValue);
     fn JS_FreeValue_real(ctx: *mut JSContext, v: JSValue);
@@ -53,8 +54,12 @@ pub unsafe fn JS_ValueGetTag(v: JSValue) -> u32 {
     JS_ValueGetTag_real(v)
 }
 
-pub unsafe fn JS_NewSpecialValue(tag: i64, val: i32) -> JSValue {
+pub unsafe fn JS_NewSpecialValue(tag: u32, val: i32) -> JSValue {
     JS_NewSpecialValue_real(tag, val)
+}
+
+pub unsafe fn JS_NewPointer(tag: u32, ptr: *mut ::std::os::raw::c_void) -> JSValue {
+    JS_NewPointer_real(tag, ptr)
 }
 
 /// Increment the refcount of this value
@@ -102,8 +107,8 @@ pub unsafe fn JS_VALUE_GET_FLOAT64(v: JSValue) -> f64 {
     JS_VALUE_GET_FLOAT64_real(v)
 }
 
-/// get a i64 value from a JSValue
-pub unsafe fn JS_VALUE_GET_INT(v: JSValue) -> i64 {
+/// get a i32 value from a JSValue
+pub unsafe fn JS_VALUE_GET_INT(v: JSValue) -> i32 {
     JS_VALUE_GET_INT_real(v).into()
 }
 

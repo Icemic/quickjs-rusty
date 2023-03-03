@@ -16,9 +16,14 @@ int JS_ValueGetTag_real(JSValue v) {
 // JS_TRUE
 // JS_EXCEPTION
 // JS_UNINITIALIZED
-JSValue JS_NewSpecialValue_real(int64_t tag, uint32_t val)
+JSValue JS_NewSpecialValue_real(uint32_t tag, uint32_t val)
 {
     return JS_MKVAL(tag, val);
+}
+
+JSValue JS_NewPointer_real(uint32_t tag, intptr_t ptr)
+{
+    return JS_MKPTR(tag, ptr);
 }
 
 void JS_FreeValue_real(JSContext *ctx, JSValue v) {
@@ -46,7 +51,7 @@ JSValue JS_NewInt32_real(JSContext *ctx, int32_t val) {
 }
 
 JSValue JS_NewBool_real(JSContext *ctx, JS_BOOL val) {
-    return JS_NewBool(ctx, val) ;
+    return JS_NewBool(ctx, val);
 }
 
 JS_BOOL JS_VALUE_IS_NAN_real(JSValue v) {
