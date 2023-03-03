@@ -278,6 +278,9 @@ fn test_callback() {
     c.add_callback("no_arguments", || true).unwrap();
     assert_eq!(c.eval_as::<bool>("no_arguments()").unwrap(), true);
 
+    c.add_callback("no_arguments", || false).unwrap();
+    assert_eq!(c.eval_as::<bool>("no_arguments()").unwrap(), false);
+
     c.add_callback("cb1", |flag: bool| !flag).unwrap();
     assert_eq!(c.eval("cb1(true)").unwrap(), JsValue::Bool(false),);
 
