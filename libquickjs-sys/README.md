@@ -1,8 +1,8 @@
 # libquickjs-sys
 
-FFI Bindings for [quickjs](https://bellard.org/quickjs/), a Javascript engine.
+FFI Bindings for [quickjspp](https://github.com/c-smile/quickjspp), a fork of [quickjs](https://bellard.org/quickjs/), which is a Javascript engine.
 
-See the [quick](https://crates.io/crates/quickjs) crate for a high-level
+See the [quickjspp](https://crates.io/crates/quickjspp) crate for a high-level
 wrapper.
 
 

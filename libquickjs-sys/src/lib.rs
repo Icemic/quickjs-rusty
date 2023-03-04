@@ -1,6 +1,6 @@
-//! FFI Bindings for [quickjs](https://bellard.org/quickjs/),
+//! FFI Bindings for [quickjspp](https://github.com/c-smile/quickjspp),
 //! a Javascript engine.
-//! See the [quickjs](https://crates.io/crates/quickjs) crate for a high-level
+//! See the [quickjspp](https://crates.io/crates/quickjspp) crate for a high-level
 //! wrapper.
 
 #![allow(non_upper_case_globals)]

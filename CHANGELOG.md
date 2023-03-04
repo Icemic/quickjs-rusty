@@ -1,5 +1,11 @@
 # quick-js - Changelog
 
+# v0.1.0 - 2023-03-05
+
+* switch to quickjspp
+
+## Below are the logs from quickjs-rs before fork.
+
 ## Master branch
 
 * Fixed use after free in `set_global` [#105](https://github.com/theduke/quickjs-rs/issues/105)

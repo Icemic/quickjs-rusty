@@ -1,15 +1,15 @@
 [package]
 edition = "2018"
-name = "libquickjs-sys"
-description = "QuickJS Javascript Engine FFI bindings"
-version = "0.9.0"
+name = "libquickjspp-sys"
+description = "QuickJSpp Javascript Engine FFI bindings"
+version = "0.1.0"
 readme = "README.md"
-documentation = "https://docs.rs/quickjs-sys"
-repository = "https://github.com/theduke/quickjs-rs"
+documentation = "https://docs.rs/quickjspp-sys"
+repository = "https://github.com/Icemic/quickjspp-rs"
 license = "MIT"
 authors = ["Christoph Herzog <chris@theduke.at>", "Icemic J <bingfeng.web@gmail.com>"]
 categories = ["external-ffi-bindings"]
-keywords = ["quickjs"]
+keywords = ["quickjs", "quickjspp"]
 
 build = "build.rs"
 

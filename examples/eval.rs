@@ -1,4 +1,4 @@
-use quick_js::Context;
+use quickjspp::Context;
 
 pub fn main() {
     let context = Context::new().unwrap();

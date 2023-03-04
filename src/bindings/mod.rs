@@ -9,7 +9,7 @@ use std::{
     sync::Mutex,
 };
 
-use libquickjs_sys as q;
+use libquickjspp_sys as q;
 
 use crate::{
     callback::{Arguments, Callback},

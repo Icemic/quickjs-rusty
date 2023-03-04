@@ -1,16 +1,12 @@
-//! quick-js is a a Rust wrapper for [QuickJS](https://bellard.org/quickjs/), a new Javascript
+//! quickjspp is a a Rust wrapper for [QuickJSpp](https://github.com/c-smile/quickjspp), a new Javascript
 //! engine by Fabrice Bellard.
 //!
 //! It enables easy and straight-forward execution of modern Javascript from Rust.
 //!
-//! ## Limitations
-//!
-//! * Building on Windows requires the `x86_64-pc-windows-gnu` toolchain
-//!
 //! ## Quickstart:
 //!
 //! ```rust
-//! use quick_js::{Context, JsValue};
+//! use quickjspp::{Context, JsValue};
 //!
 //! let context = Context::new().unwrap();
 //!

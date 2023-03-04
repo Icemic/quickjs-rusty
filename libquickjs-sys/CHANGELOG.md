@@ -1,5 +1,10 @@
 # libquickjs_sys - Changelog
 
+# v0.1.0 - 2023-03-05
+
+* switch to quickjspp
+
+## Below are the logs from quickjs-rs before fork.
 
 ## v0.10.0 - 2021-08-09
 

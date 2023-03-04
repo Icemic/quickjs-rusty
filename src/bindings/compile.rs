@@ -1,7 +1,7 @@
 //! Utils to compile script to bytecode and run script from bytecode
 
 use crate::ExecutionError;
-use libquickjs_sys as q;
+use libquickjspp_sys as q;
 use std::os::raw::c_void;
 
 use super::{make_cstring, value::JsCompiledFunction, ContextWrapper, OwnedJsValue};

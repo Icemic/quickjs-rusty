@@ -1,6 +1,6 @@
 use std::{collections::HashMap, os::raw::c_char};
 
-use libquickjs_sys as q;
+use libquickjspp_sys as q;
 
 use crate::{JsValue, ValueError};
 
