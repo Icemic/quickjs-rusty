@@ -8,7 +8,7 @@ documentation = "https://docs.rs/quickjspp"
 repository = "https://github.com/Icemic/quickjspp-rs"
 license = "MIT"
 authors = ["Christoph Herzog <chris@theduke.at>", "Icemic J <bingfeng.web@gmail.com>"]
-keywords = ["quickjs", "quickjspp", "javascript", "js", "engine", "interpreter"]
+keywords = ["quickjs", "javascript", "js", "engine", "interpreter"]
 
 [package.metadata.docs.rs]
 features = [ "chrono", "bigint", "log" ]
