@@ -44,7 +44,7 @@ impl std::fmt::Display for Level {
 /// A very simple logger that just prints to stderr could look like this:
 ///
 /// ```rust
-/// use quick_js::{Context, JsValue, console::Level};
+/// use quickjspp::{Context, JsValue, console::Level};
 ///
 /// Context::builder()
 ///     .console(|level: Level, args: Vec<JsValue>| {

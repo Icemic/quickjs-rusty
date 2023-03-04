@@ -50,7 +50,7 @@ The crate supports the following features:
   - adds a `JsValue::Date` variant that can be (de)serialized to/from a JS `Date`
 - `bigint`: arbitrary precision integer support via [num-bigint](https://github.com/rust-num/num-bigint)
 - `log`: allows forwarding `console.log` messages to the `log` crate.
-  Note: must be enabled with `ContextBuilder::console(quick_js::console::LogConsole);`
+  Note: must be enabled with `ContextBuilder::console(quickjspp::console::LogConsole);`
 
 - `patched`
   Enabled automatically for some other features, like `bigint`.
