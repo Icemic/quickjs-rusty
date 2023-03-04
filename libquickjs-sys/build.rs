@@ -90,7 +90,6 @@ fn main() {
             .iter()
             .map(|f| code_dir.join(f)),
         )
-        .static_flag(true)
         // .define("_GNU_SOURCE", None)
         .define(
             "CONFIG_VERSION",
