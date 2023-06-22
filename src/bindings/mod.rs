@@ -2,6 +2,7 @@ mod compile;
 mod convert;
 mod droppable_value;
 mod module;
+mod utils;
 mod value;
 
 use std::{
@@ -22,8 +23,12 @@ use value::{JsFunction, OwnedJsObject};
 
 pub use value::{JsCompiledFunction, OwnedJsValue};
 
-use self::module::{js_module_loader, js_module_normalize, ModuleLoader};
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
+use self::{
+    module::{js_module_loader, js_module_normalize, ModuleLoader},
+    utils::{get_exception, to_value},
+};
+pub use self::utils::serialize_value;
 
 // JS_TAG_* constants from quickjs.
 // For some reason bindgen does not pick them up.
@@ -87,26 +92,26 @@ where
 
 /// OwnedValueRef wraps a Javascript value from the quickjs runtime.
 /// It prevents leaks by ensuring that the inner value is deallocated on drop.
-pub struct OwnedValueRef<'a> {
-    context: &'a ContextWrapper,
+pub struct OwnedValueRef {
+    context: *mut q::JSContext,
     value: q::JSValue,
 }
 
-impl<'a> Drop for OwnedValueRef<'a> {
+impl Drop for OwnedValueRef {
     fn drop(&mut self) {
         unsafe {
-            q::JS_FreeValue(self.context.context, self.value);
+            q::JS_FreeValue(self.context, self.value);
         }
     }
 }
 
-impl<'a> Clone for OwnedValueRef<'a> {
+impl Clone for OwnedValueRef {
     fn clone(&self) -> Self {
         Self::new_dup(self.context, self.value)
     }
 }
 
-impl<'a> std::fmt::Debug for OwnedValueRef<'a> {
+impl std::fmt::Debug for OwnedValueRef {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let tag = unsafe { q::JS_ValueGetTag(self.value) };
         match tag {
@@ -124,13 +129,13 @@ impl<'a> std::fmt::Debug for OwnedValueRef<'a> {
     }
 }
 
-impl<'a> OwnedValueRef<'a> {
-    pub fn new(context: &'a ContextWrapper, value: q::JSValue) -> Self {
+impl OwnedValueRef {
+    pub fn new(context: *mut q::JSContext, value: q::JSValue) -> Self {
         Self { context, value }
     }
-    pub fn new_dup(context: &'a ContextWrapper, value: q::JSValue) -> Self {
+    pub fn new_dup(context: *mut q::JSContext, value: q::JSValue) -> Self {
         let ret = Self::new(context, value);
-        unsafe { q::JS_DupValue(ret.context.context, ret.value) };
+        unsafe { q::JS_DupValue(ret.context, ret.value) };
         ret
     }
 
@@ -151,7 +156,7 @@ impl<'a> OwnedValueRef<'a> {
     /// Get the inner JSValue while increasing ref count, this is handy when you pass a JSValue to a new owner like e.g. setProperty
     #[allow(dead_code)]
     pub(crate) fn as_inner_dup(&self) -> &q::JSValue {
-        unsafe { q::JS_DupValue(self.context.context, self.value) };
+        unsafe { q::JS_DupValue(self.context, self.value) };
         &self.value
     }
 
@@ -189,7 +194,7 @@ impl<'a> OwnedValueRef<'a> {
         let value = if self.is_string() {
             self.to_value()?
         } else {
-            let raw = unsafe { q::JS_ToString(self.context.context, self.value) };
+            let raw = unsafe { q::JS_ToString(self.context, self.value) };
             let value = OwnedValueRef::new(self.context, raw);
             let tag = unsafe { q::JS_ValueGetTag(value.value) };
             if tag != TAG_STRING {
@@ -204,7 +209,7 @@ impl<'a> OwnedValueRef<'a> {
     }
 
     pub fn to_value(&self) -> Result<JsValue, ValueError> {
-        self.context.to_value(&self.value)
+        to_value(self.context, &self.value)
     }
 
     pub fn to_bool(&self) -> Result<bool, ValueError> {
@@ -231,12 +236,12 @@ impl<'a> OwnedValueRef<'a> {
 
 /// Wraps an object from the quickjs runtime.
 /// Provides convenience property accessors.
-pub struct OwnedObjectRef<'a> {
-    value: OwnedValueRef<'a>,
+pub struct OwnedObjectRef {
+    value: OwnedValueRef,
 }
 
-impl<'a> OwnedObjectRef<'a> {
-    pub fn new(value: OwnedValueRef<'a>) -> Result<Self, ValueError> {
+impl OwnedObjectRef {
+    pub fn new(value: OwnedValueRef) -> Result<Self, ValueError> {
         let tag = unsafe { q::JS_ValueGetTag(value.value) };
         if tag != TAG_OBJECT {
             Err(ValueError::Internal("Expected an object".into()))
@@ -245,19 +250,18 @@ impl<'a> OwnedObjectRef<'a> {
         }
     }
 
-    fn into_value(self) -> OwnedValueRef<'a> {
+    fn into_value(self) -> OwnedValueRef {
         self.value
     }
 
     /// Get the tag of a property.
     fn property_tag(&self, name: &str) -> Result<u32, ValueError> {
         let cname = make_cstring(name)?;
-        let raw = unsafe {
-            q::JS_GetPropertyStr(self.value.context.context, self.value.value, cname.as_ptr())
-        };
+        let raw =
+            unsafe { q::JS_GetPropertyStr(self.value.context, self.value.value, cname.as_ptr()) };
         let t = unsafe { q::JS_ValueGetTag(raw) };
         unsafe {
-            q::JS_FreeValue(self.value.context.context, raw);
+            q::JS_FreeValue(self.value.context, raw);
         }
         Ok(t)
     }
@@ -272,11 +276,10 @@ impl<'a> OwnedObjectRef<'a> {
         }
     }
 
-    pub fn property(&self, name: &str) -> Result<OwnedValueRef<'a>, ExecutionError> {
+    pub fn property(&self, name: &str) -> Result<OwnedValueRef, ExecutionError> {
         let cname = make_cstring(name)?;
-        let raw = unsafe {
-            q::JS_GetPropertyStr(self.value.context.context, self.value.value, cname.as_ptr())
-        };
+        let raw =
+            unsafe { q::JS_GetPropertyStr(self.value.context, self.value.value, cname.as_ptr()) };
         let tag = unsafe { q::JS_ValueGetTag(raw) };
 
         if tag == TAG_EXCEPTION {
@@ -299,12 +302,7 @@ impl<'a> OwnedObjectRef<'a> {
     // freed later.
     unsafe fn set_property_raw(&self, name: &str, value: q::JSValue) -> Result<(), ExecutionError> {
         let cname = make_cstring(name)?;
-        let ret = q::JS_SetPropertyStr(
-            self.value.context.context,
-            self.value.value,
-            cname.as_ptr(),
-            value,
-        );
+        let ret = q::JS_SetPropertyStr(self.value.context, self.value.value, cname.as_ptr(), value);
         if ret < 0 {
             Err(ExecutionError::Exception("Could not set property".into()))
         } else {
@@ -313,7 +311,7 @@ impl<'a> OwnedObjectRef<'a> {
     }
 
     pub fn set_property(&self, name: &str, value: JsValue) -> Result<(), ExecutionError> {
-        let qval = self.value.context.serialize_value(value)?;
+        let qval = serialize_value(self.value.context, value)?;
         unsafe {
             // set_property_raw takes ownership, so we must prevent a free.
             self.set_property_raw(name, qval.extract())?;
@@ -467,69 +465,19 @@ impl ContextWrapper {
         Ok(s)
     }
 
-    pub fn serialize_value(&self, value: JsValue) -> Result<OwnedJsValue<'_>, ExecutionError> {
-        let serialized = convert::serialize_value(self.context, value)?;
-        Ok(OwnedJsValue::new(self, serialized))
-    }
-
-    // Deserialize a quickjs runtime value into a Rust value.
-    pub(crate) fn to_value(&self, value: &q::JSValue) -> Result<JsValue, ValueError> {
-        convert::deserialize_value(self.context, value)
-    }
-
     /// Get the global object.
-    pub fn global(&self) -> Result<OwnedJsObject<'_>, ExecutionError> {
+    pub fn global(&self) -> Result<OwnedJsObject, ExecutionError> {
         let global_raw = unsafe { q::JS_GetGlobalObject(self.context) };
-        let global_ref = OwnedJsValue::new(self, global_raw);
+        let global_ref = OwnedJsValue::new(self.context, global_raw);
         let global = global_ref.try_into_object()?;
         Ok(global)
     }
 
-    /// Get the last exception from the runtime, and if present, convert it to a ExceptionError.
-    pub(crate) fn get_exception(&self) -> Option<ExecutionError> {
-        let value = unsafe {
-            let raw = q::JS_GetException(self.context);
-            OwnedJsValue::new(self, raw)
-        };
-
-        if value.is_null() {
-            None
-        } else if value.is_exception() {
-            Some(ExecutionError::Internal(
-                "Could get exception from runtime".into(),
-            ))
-        } else {
-            match value.js_to_string() {
-                Ok(strval) => {
-                    if strval.contains("out of memory") {
-                        Some(ExecutionError::OutOfMemory)
-                    } else {
-                        Some(ExecutionError::Exception(JsValue::String(strval)))
-                    }
-                }
-                Err(e) => Some(e),
-            }
-        }
-    }
-
-    /// Returns `Result::Err` when an error ocurred.
-    pub(crate) fn ensure_no_excpetion(&self) -> Result<(), ExecutionError> {
-        if let Some(e) = self.get_exception() {
-            Err(e)
-        } else {
-            Ok(())
-        }
-    }
-
     /// If the given value is a promise, run the event loop until it is
     /// resolved, and return the final value.
-    fn resolve_value<'a>(
-        &'a self,
-        value: OwnedJsValue<'a>,
-    ) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    fn resolve_value(&self, value: OwnedJsValue) -> Result<OwnedJsValue, ExecutionError> {
         if value.is_exception() {
-            let err = self
-                .get_exception()
+            let err = get_exception(self.context)
                 .unwrap_or_else(|| ExecutionError::Exception("Unknown exception".into()));
             Err(err)
         } else if value.is_object() {
@@ -574,7 +522,7 @@ impl ContextWrapper {
                         q::JS_ExecutePendingJob(self.runtime, ctx_mut)
                     };
                     if flag < 0 {
-                        let e = self.get_exception().unwrap_or_else(|| {
+                        let e = get_exception(self.context).unwrap_or_else(|| {
                             ExecutionError::Exception("Unknown exception".into())
                         });
                         return Err(e);
@@ -603,7 +551,7 @@ impl ContextWrapper {
     }
 
     /// Evaluate javascript code.
-    pub fn eval<'a>(&'a self, code: &str) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    pub fn eval(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
         let filename = "script.js";
         let filename_c = make_cstring(filename)?;
         let code_c = make_cstring(code)?;
@@ -617,12 +565,12 @@ impl ContextWrapper {
                 q::JS_EVAL_TYPE_GLOBAL as i32,
             )
         };
-        let value = OwnedJsValue::new(self, value_raw);
+        let value = OwnedJsValue::new(self.context, value_raw);
         self.resolve_value(value)
     }
 
     /// Evaluate javascript module code.
-    pub fn eval_module<'a>(&'a self, code: &str) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    pub fn eval_module(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
         let filename = "module.js";
         let filename_c = make_cstring(filename)?;
         let code_c = make_cstring(code)?;
@@ -636,12 +584,12 @@ impl ContextWrapper {
                 q::JS_EVAL_TYPE_MODULE as i32,
             )
         };
-        let value = OwnedJsValue::new(self, value_raw);
+        let value = OwnedJsValue::new(self.context, value_raw);
         self.resolve_value(value)
     }
 
     /// Evaluate Javascript module
-    pub fn run_module<'a>(&'a self, filename: &str) -> Result<(), ExecutionError> {
+    pub fn run_module(&self, filename: &str) -> Result<(), ExecutionError> {
         let filename_c = make_cstring(filename)?;
 
         let value_raw = unsafe {
@@ -653,8 +601,7 @@ impl ContextWrapper {
         };
 
         if unsafe { q::JS_IsException(value_raw as u64) } {
-            let err = self
-                .get_exception()
+            let err = get_exception(self.context)
                 .unwrap_or_else(|| ExecutionError::Exception("Unknown exception".into()));
             Err(err)
         } else {
@@ -700,11 +647,11 @@ impl ContextWrapper {
 
     /*
     /// Call a constructor function.
-    fn call_constructor<'a>(
-        &'a self,
-        function: OwnedJsValue<'a>,
-        args: Vec<OwnedJsValue<'a>>,
-    ) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    fn call_constructor(
+        & self,
+        function: OwnedJsValue,
+        args: Vec<OwnedJsValue>,
+    ) -> Result<OwnedJsValue, ExecutionError> {
         let mut qargs = args.iter().map(|arg| arg.value).collect::<Vec<_>>();
 
         let value_raw = unsafe {
@@ -728,11 +675,11 @@ impl ContextWrapper {
     */
 
     /// Call a JS function with the given arguments.
-    pub fn call_function<'a>(
-        &'a self,
-        function: JsFunction<'a>,
-        args: Vec<OwnedJsValue<'a>>,
-    ) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    pub fn call_function(
+        &self,
+        function: JsFunction,
+        args: Vec<OwnedJsValue>,
+    ) -> Result<OwnedJsValue, ExecutionError> {
         let ret = function.call(args)?;
         self.resolve_value(ret)
     }
@@ -771,9 +718,9 @@ impl ContextWrapper {
 
     /// Add a global JS function that is backed by a Rust function or closure.
     pub fn create_callback<'a, F>(
-        &'a self,
+        &self,
         callback: impl Callback<F> + 'static,
-    ) -> Result<JsFunction<'a>, ExecutionError> {
+    ) -> Result<JsFunction, ExecutionError> {
         let argcount = callback.argument_count() as i32;
 
         let context = self.context;
@@ -803,7 +750,7 @@ impl ContextWrapper {
 
         let obj = unsafe {
             let f = q::JS_NewCFunctionData(self.context, trampoline, argcount, 0, 1, data);
-            OwnedJsValue::new(self, f)
+            OwnedJsValue::new(self.context, f)
         };
 
         let f = obj.try_into_function()?;
@@ -811,7 +758,7 @@ impl ContextWrapper {
     }
 
     pub fn add_callback<'a, F>(
-        &'a self,
+        &self,
         name: &str,
         callback: impl Callback<F> + 'static,
     ) -> Result<(), ExecutionError> {

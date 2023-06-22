@@ -3,7 +3,7 @@ use libquickjspp_sys as q;
 use crate::{ExecutionError, JsValue, ValueError};
 
 use super::make_cstring;
-use crate::bindings::ContextWrapper;
+use super::utils::to_value;
 
 #[repr(u32)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -162,29 +162,29 @@ impl JsTag {
     }
 }
 
-pub struct OwnedJsAtom<'a> {
-    context: &'a ContextWrapper,
+pub struct OwnedJsAtom {
+    context: *mut q::JSContext,
     value: q::JSAtom,
 }
 
-impl<'a> OwnedJsAtom<'a> {
+impl OwnedJsAtom {
     #[inline]
-    pub fn new(context: &'a ContextWrapper, value: q::JSAtom) -> Self {
+    pub fn new(context: *mut q::JSContext, value: q::JSAtom) -> Self {
         Self { context, value }
     }
 }
 
-impl<'a> Drop for OwnedJsAtom<'a> {
+impl Drop for OwnedJsAtom {
     fn drop(&mut self) {
         unsafe {
-            q::JS_FreeAtom(self.context.context, self.value);
+            q::JS_FreeAtom(self.context, self.value);
         }
     }
 }
 
-impl<'a> Clone for OwnedJsAtom<'a> {
+impl Clone for OwnedJsAtom {
     fn clone(&self) -> Self {
-        unsafe { q::JS_DupAtom(self.context.context, self.value) };
+        unsafe { q::JS_DupAtom(self.context, self.value) };
         Self {
             context: self.context,
             value: self.value,
@@ -202,20 +202,20 @@ impl<'a> Clone for OwnedJsAtom<'a> {
 /// types. `OwnedJsValue`, in contrast, owns the underlying QuickJs runtime
 /// value directly.
 // TODO: provide usage docs.
-pub struct OwnedJsValue<'a> {
-    context: &'a ContextWrapper,
+pub struct OwnedJsValue {
+    context: *mut q::JSContext,
     // FIXME: make private again, just for testing
     pub(crate) value: q::JSValue,
 }
 
-impl<'a> OwnedJsValue<'a> {
+impl OwnedJsValue {
     #[inline]
-    pub(crate) fn context(&self) -> &ContextWrapper {
+    pub(crate) fn context(&self) -> *mut q::JSContext {
         self.context
     }
 
     #[inline]
-    pub(crate) fn new(context: &'a ContextWrapper, value: q::JSValue) -> Self {
+    pub(crate) fn new(context: *mut q::JSContext, value: q::JSValue) -> Self {
         Self { context, value }
     }
 
@@ -273,13 +273,13 @@ impl<'a> OwnedJsValue<'a> {
     /// Check if this value is a Javascript array.
     #[inline]
     pub fn is_array(&self) -> bool {
-        unsafe { q::JS_IsArray(self.context.context, self.value) == 1 }
+        unsafe { q::JS_IsArray(self.context, self.value) == 1 }
     }
 
     /// Check if this value is a Javascript function.
     #[inline]
     pub fn is_function(&self) -> bool {
-        unsafe { q::JS_IsFunction(self.context.context, self.value) == 1 }
+        unsafe { q::JS_IsFunction(self.context, self.value) == 1 }
     }
 
     /// Check if this value is a Javascript module.
@@ -302,7 +302,7 @@ impl<'a> OwnedJsValue<'a> {
 
     /// Serialize this value into a [`JsValue`].
     pub fn to_value(&self) -> Result<JsValue, ValueError> {
-        self.context.to_value(&self.value)
+        to_value(self.context, &self.value)
     }
 
     pub(crate) fn to_bool(&self) -> Result<bool, ValueError> {
@@ -312,19 +312,19 @@ impl<'a> OwnedJsValue<'a> {
         }
     }
 
-    pub(crate) fn try_into_object(self) -> Result<OwnedJsObject<'a>, ValueError> {
+    pub(crate) fn try_into_object(self) -> Result<OwnedJsObject, ValueError> {
         OwnedJsObject::try_from_value(self)
     }
 
-    pub(crate) fn try_into_function(self) -> Result<JsFunction<'a>, ValueError> {
+    pub(crate) fn try_into_function(self) -> Result<JsFunction, ValueError> {
         JsFunction::try_from_value(self)
     }
 
-    pub(crate) fn try_into_compiled_function(self) -> Result<JsCompiledFunction<'a>, ValueError> {
+    pub(crate) fn try_into_compiled_function(self) -> Result<JsCompiledFunction, ValueError> {
         JsCompiledFunction::try_from_value(self)
     }
 
-    pub(crate) fn try_into_module(self) -> Result<JsModule<'a>, ValueError> {
+    pub(crate) fn try_into_module(self) -> Result<JsModule, ValueError> {
         JsModule::try_from_value(self)
     }
 
@@ -333,7 +333,7 @@ impl<'a> OwnedJsValue<'a> {
         let value = if self.is_string() {
             self.to_value()?
         } else {
-            let raw = unsafe { q::JS_ToString(self.context.context, self.value) };
+            let raw = unsafe { q::JS_ToString(self.context, self.value) };
             let value = OwnedJsValue::new(self.context, raw);
 
             if !value.is_string() {
@@ -362,17 +362,17 @@ impl<'a> OwnedJsValue<'a> {
     }
 }
 
-impl<'a> Drop for OwnedJsValue<'a> {
+impl Drop for OwnedJsValue {
     fn drop(&mut self) {
         unsafe {
-            q::JS_FreeValue(self.context.context, self.value);
+            q::JS_FreeValue(self.context, self.value);
         }
     }
 }
 
-impl<'a> Clone for OwnedJsValue<'a> {
+impl Clone for OwnedJsValue {
     fn clone(&self) -> Self {
-        unsafe { q::JS_DupValue(self.context.context, self.value) };
+        unsafe { q::JS_DupValue(self.context, self.value) };
         Self {
             context: self.context,
             value: self.value,
@@ -380,18 +380,18 @@ impl<'a> Clone for OwnedJsValue<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for OwnedJsValue<'a> {
+impl std::fmt::Debug for OwnedJsValue {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}(_)", self.tag())
     }
 }
 
-pub struct OwnedJsArray<'a> {
-    value: OwnedJsValue<'a>,
+pub struct OwnedJsArray {
+    value: OwnedJsValue,
 }
 
-impl<'a> OwnedJsArray<'a> {
-    pub fn new(value: OwnedJsValue<'a>) -> Option<Self> {
+impl OwnedJsArray {
+    pub fn new(value: OwnedJsValue) -> Option<Self> {
         if value.is_array() {
             Some(Self { value })
         } else {
@@ -403,12 +403,12 @@ impl<'a> OwnedJsArray<'a> {
 /// Wraps an object from the QuickJs runtime.
 /// Provides convenience property accessors.
 #[derive(Clone, Debug)]
-pub struct OwnedJsObject<'a> {
-    value: OwnedJsValue<'a>,
+pub struct OwnedJsObject {
+    value: OwnedJsValue,
 }
 
-impl<'a> OwnedJsObject<'a> {
-    pub fn try_from_value(value: OwnedJsValue<'a>) -> Result<Self, ValueError> {
+impl OwnedJsObject {
+    pub fn try_from_value(value: OwnedJsValue) -> Result<Self, ValueError> {
         if !value.is_object() {
             Err(ValueError::Internal("Expected an object".into()))
         } else {
@@ -416,16 +416,16 @@ impl<'a> OwnedJsObject<'a> {
         }
     }
 
-    pub fn into_value(self) -> OwnedJsValue<'a> {
+    pub fn into_value(self) -> OwnedJsValue {
         self.value
     }
 
-    pub fn property(&self, name: &str) -> Result<Option<OwnedJsValue<'a>>, ExecutionError> {
+    pub fn property(&self, name: &str) -> Result<Option<OwnedJsValue>, ExecutionError> {
         // TODO: prevent allocation
         let cname = make_cstring(name)?;
         let value = {
             let raw = unsafe {
-                q::JS_GetPropertyStr(self.value.context.context, self.value.value, cname.as_ptr())
+                q::JS_GetPropertyStr(self.value.context, self.value.value, cname.as_ptr())
             };
             OwnedJsValue::new(self.value.context, raw)
         };
@@ -443,7 +443,7 @@ impl<'a> OwnedJsObject<'a> {
         }
     }
 
-    pub fn property_require(&self, name: &str) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    pub fn property_require(&self, name: &str) -> Result<OwnedJsValue, ExecutionError> {
         self.property(name)?
             .ok_or_else(|| ExecutionError::Internal(format!("Property '{}' not found", name)))
     }
@@ -464,7 +464,7 @@ impl<'a> OwnedJsObject<'a> {
         Ok(false)
     }
 
-    pub fn set_property(&self, name: &str, value: OwnedJsValue<'a>) -> Result<(), ExecutionError> {
+    pub fn set_property(&self, name: &str, value: OwnedJsValue) -> Result<(), ExecutionError> {
         let cname = make_cstring(name)?;
         unsafe {
             // NOTE: SetPropertyStr takes ownership of the value.
@@ -473,7 +473,7 @@ impl<'a> OwnedJsObject<'a> {
             // `mem::forget` is called below only if SetProperty succeeds.
             // This prevents leaks when an error occurs.
             let ret = q::JS_SetPropertyStr(
-                self.value.context.context,
+                self.value.context,
                 self.value.value,
                 cname.as_ptr(),
                 value.value,
@@ -493,12 +493,12 @@ impl<'a> OwnedJsObject<'a> {
 /// Wraps an object from the QuickJs runtime.
 /// Provides convenience property accessors.
 #[derive(Clone, Debug)]
-pub struct JsFunction<'a> {
-    value: OwnedJsValue<'a>,
+pub struct JsFunction {
+    value: OwnedJsValue,
 }
 
-impl<'a> JsFunction<'a> {
-    pub fn try_from_value(value: OwnedJsValue<'a>) -> Result<Self, ValueError> {
+impl JsFunction {
+    pub fn try_from_value(value: OwnedJsValue) -> Result<Self, ValueError> {
         if !value.is_function() {
             Err(ValueError::Internal(format!(
                 "Expected a function, got {:?}",
@@ -509,16 +509,16 @@ impl<'a> JsFunction<'a> {
         }
     }
 
-    pub fn into_value(self) -> OwnedJsValue<'a> {
+    pub fn into_value(self) -> OwnedJsValue {
         self.value
     }
 
-    pub fn call(&self, args: Vec<OwnedJsValue<'a>>) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    pub fn call(&self, args: Vec<OwnedJsValue>) -> Result<OwnedJsValue, ExecutionError> {
         let mut qargs = args.iter().map(|arg| arg.value).collect::<Vec<_>>();
 
         let qres_raw = unsafe {
             q::JS_Call(
-                self.value.context.context,
+                self.value.context,
                 self.value.value,
                 q::JS_NewSpecialValue(q::JS_TAG_NULL, 0),
                 qargs.len() as i32,
@@ -531,12 +531,12 @@ impl<'a> JsFunction<'a> {
 
 /// A bytecode compiled function.
 #[derive(Clone, Debug)]
-pub struct JsCompiledFunction<'a> {
-    value: OwnedJsValue<'a>,
+pub struct JsCompiledFunction {
+    value: OwnedJsValue,
 }
 
-impl<'a> JsCompiledFunction<'a> {
-    pub(crate) fn try_from_value(value: OwnedJsValue<'a>) -> Result<Self, ValueError> {
+impl JsCompiledFunction {
+    pub(crate) fn try_from_value(value: OwnedJsValue) -> Result<Self, ValueError> {
         if !value.is_compiled_function() {
             Err(ValueError::Internal(format!(
                 "Expected a compiled function, got {:?}",
@@ -547,17 +547,17 @@ impl<'a> JsCompiledFunction<'a> {
         }
     }
 
-    pub(crate) fn as_value(&self) -> &OwnedJsValue<'_> {
+    pub(crate) fn as_value(&self) -> &OwnedJsValue {
         &self.value
     }
 
-    pub(crate) fn into_value(self) -> OwnedJsValue<'a> {
+    pub(crate) fn into_value(self) -> OwnedJsValue {
         self.value
     }
 
     /// Evaluate this compiled function and return the resulting value.
     // FIXME: add example
-    pub fn eval(&'a self) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    pub fn eval(&self) -> Result<OwnedJsValue, ExecutionError> {
         super::compile::run_compiled_function(self)
     }
 
@@ -571,12 +571,12 @@ impl<'a> JsCompiledFunction<'a> {
 }
 
 /// A bytecode compiled module.
-pub struct JsModule<'a> {
-    value: OwnedJsValue<'a>,
+pub struct JsModule {
+    value: OwnedJsValue,
 }
 
-impl<'a> JsModule<'a> {
-    pub fn try_from_value(value: OwnedJsValue<'a>) -> Result<Self, ValueError> {
+impl JsModule {
+    pub fn try_from_value(value: OwnedJsValue) -> Result<Self, ValueError> {
         if !value.is_module() {
             Err(ValueError::Internal(format!(
                 "Expected a compiled function, got {:?}",
@@ -587,14 +587,14 @@ impl<'a> JsModule<'a> {
         }
     }
 
-    pub fn into_value(self) -> OwnedJsValue<'a> {
+    pub fn into_value(self) -> OwnedJsValue {
         self.value
     }
 }
 
 /// The result of loading QuickJs bytecode.
 /// Either a function or a module.
-pub enum JsCompiledValue<'a> {
-    Function(JsCompiledFunction<'a>),
-    Module(JsModule<'a>),
+pub enum JsCompiledValue {
+    Function(JsCompiledFunction),
+    Module(JsModule),
 }

@@ -40,7 +40,7 @@ mod tests;
 
 use std::{convert::TryFrom, error, ffi::c_void, fmt};
 
-use bindings::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
+use bindings::{serialize_value, JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
 pub use self::{
     callback::{Arguments, Callback},
@@ -351,7 +351,7 @@ impl Context {
         V: Into<JsValue>,
     {
         let global = self.wrapper.global()?;
-        let v = self.wrapper.serialize_value(value.into())?;
+        let v = serialize_value(self.wrapper.context, value.into())?;
         global.set_property(name, v)?;
         Ok(())
     }
@@ -381,7 +381,7 @@ impl Context {
     ) -> Result<JsValue, ExecutionError> {
         let qargs = args
             .into_iter()
-            .map(|arg| self.wrapper.serialize_value(arg.into()))
+            .map(|arg| serialize_value(self.wrapper.context, arg.into()))
             .collect::<Result<Vec<_>, _>>()?;
 
         let global = self.wrapper.global()?;
