@@ -3,7 +3,7 @@ use std::ptr::null_mut;
 
 use libquickjspp_sys as q;
 
-use super::make_cstring;
+use super::compile::compile_module;
 
 pub type JSModuleLoaderFunc = Box<dyn Fn(&str, *mut c_void) -> String>;
 pub type JSModuleNormalizeFunc = Box<dyn Fn(&str, &str, *mut c_void) -> String>;
@@ -26,36 +26,17 @@ pub unsafe extern "C" fn js_module_loader(
     let module_name = CStr::from_ptr(module_name).to_str().unwrap();
     let module_code = loader(module_name, opaque);
 
-    let module_name_c = match make_cstring(module_name) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!("make cstring error: {:?}", e);
-            return null_mut() as *mut q::JSModuleDef;
+    match compile_module(ctx, &module_code, module_name) {
+        Ok(v) => {
+            let module_def = q::JS_VALUE_GET_PTR(v.value);
+            // q::JS_DupValue(wrapper.context, v.value);
+            module_def as *mut q::JSModuleDef
         }
-    };
-    let module_code_c = match make_cstring(module_code.as_str()) {
-        Ok(v) => v,
         Err(e) => {
-            eprintln!("make cstring error: {:?}", e);
-            return null_mut() as *mut q::JSModuleDef;
+            eprintln!("compile module error: {:?}", e);
+            null_mut() as *mut q::JSModuleDef
         }
-    };
-
-    let value = unsafe {
-        q::JS_Eval(
-            ctx,
-            module_code_c.as_ptr(),
-            module_code.len() as _,
-            module_name_c.as_ptr(),
-            q::JS_EVAL_TYPE_MODULE as i32 | q::JS_EVAL_FLAG_COMPILE_ONLY as i32,
-        )
-    };
-
-    // TODO: exception handling
-
-    let module_def = q::JS_VALUE_GET_PTR(value);
-    // q::JS_DupValue(wrapper.context, v.value);
-    module_def as *mut q::JSModuleDef
+    }
 }
 
 pub unsafe extern "C" fn js_module_normalize(
@@ -68,7 +49,6 @@ pub unsafe extern "C" fn js_module_normalize(
     let opaque = wrapper.opaque;
     let normalize = &wrapper.normalize;
 
-    println!("2");
     let module_base_name = CStr::from_ptr(module_base_name).to_str().unwrap();
     let module_name = CStr::from_ptr(module_name).to_str().unwrap();
 
