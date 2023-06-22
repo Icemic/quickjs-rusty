@@ -22,7 +22,7 @@ use value::{JsFunction, OwnedJsObject};
 
 pub use value::{JsCompiledFunction, OwnedJsValue};
 
-use self::module::{js_module_loader, js_module_normalize};
+use self::module::{js_module_loader, js_module_normalize, ModuleLoader};
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
 // JS_TAG_* constants from quickjs.
@@ -352,9 +352,6 @@ pub struct ContextWrapper {
     /// the closure.
     // A Mutex is used over a RefCell because it needs to be unwind-safe.
     callbacks: Mutex<Vec<(Box<WrappedCallback>, Box<q::JSValue>)>>,
-    module_loader_func: Mutex<Option<JSModuleLoaderFunc>>,
-    module_normalize_func: Mutex<Option<JSModuleNormalizeFunc>>,
-    module_opaque: Mutex<Option<*mut c_void>>,
 }
 
 impl Drop for ContextWrapper {
@@ -395,9 +392,6 @@ impl ContextWrapper {
             runtime,
             context,
             callbacks: Mutex::new(Vec::new()),
-            module_loader_func: Mutex::new(None),
-            module_normalize_func: Mutex::new(None),
-            module_opaque: Mutex::new(None),
         };
 
         Ok(wrapper)
@@ -670,31 +664,38 @@ impl ContextWrapper {
 
     pub fn set_module_loader(
         &self,
-        module_loader: JSModuleLoaderFunc,
+        module_loader_func: JSModuleLoaderFunc,
         module_normalize: Option<JSModuleNormalizeFunc>,
         opaque: *mut c_void,
     ) {
+        let has_module_normalize = module_normalize.is_some();
+
+        let module_loader = ModuleLoader {
+            loader: module_loader_func,
+            normalize: module_normalize,
+            opaque,
+        };
+
+        let module_loader = Box::new(module_loader);
+        let module_loader_ptr = Box::into_raw(module_loader);
+
         unsafe {
-            if module_normalize.is_some() {
+            if has_module_normalize {
                 q::JS_SetModuleLoaderFunc(
                     self.runtime,
                     Some(js_module_normalize),
                     Some(js_module_loader),
-                    self as *const Self as *mut Self as *mut c_void,
+                    module_loader_ptr as *mut c_void,
                 );
             } else {
                 q::JS_SetModuleLoaderFunc(
                     self.runtime,
                     None,
                     Some(js_module_loader),
-                    self as *const Self as *mut Self as *mut c_void,
+                    module_loader_ptr as *mut c_void,
                 );
             }
         }
-
-        *self.module_loader_func.lock().unwrap() = Some(module_loader);
-        *self.module_normalize_func.lock().unwrap() = module_normalize;
-        *self.module_opaque.lock().unwrap() = Some(opaque);
     }
 
     /*

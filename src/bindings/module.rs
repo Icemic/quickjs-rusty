@@ -3,38 +3,59 @@ use std::ptr::null_mut;
 
 use libquickjspp_sys as q;
 
-use super::compile::compile_module;
-use super::ContextWrapper;
+use super::make_cstring;
 
-pub type JSModuleLoaderFunc = Box<dyn FnMut(&str, *mut c_void) -> String>;
-pub type JSModuleNormalizeFunc = Box<dyn FnMut(&str, &str, *mut c_void) -> String>;
+pub type JSModuleLoaderFunc = Box<dyn Fn(&str, *mut c_void) -> String>;
+pub type JSModuleNormalizeFunc = Box<dyn Fn(&str, &str, *mut c_void) -> String>;
+
+pub struct ModuleLoader {
+    pub loader: JSModuleLoaderFunc,
+    pub normalize: Option<JSModuleNormalizeFunc>,
+    pub opaque: *mut c_void,
+}
 
 pub unsafe extern "C" fn js_module_loader(
-    _: *mut q::JSContext,
+    ctx: *mut q::JSContext,
     module_name: *const c_char,
     opaque: *mut c_void,
 ) -> *mut q::JSModuleDef {
-    let wrapper = &*(opaque as *mut ContextWrapper);
-    let opaque = wrapper.module_opaque.lock().unwrap().unwrap_or(null_mut());
-    let module_name = CStr::from_ptr(module_name).to_str().unwrap();
+    let wrapper = &*(opaque as *mut ModuleLoader);
+    let opaque = wrapper.opaque;
+    let loader = &wrapper.loader;
 
-    if let Some(module_loader_func) = wrapper.module_loader_func.lock().unwrap().as_mut() {
-        let module_script = module_loader_func(module_name, opaque);
-        match compile_module(wrapper, &module_script, module_name) {
-            Ok(v) => {
-                let module_def = q::JS_VALUE_GET_PTR(v.value);
-                // q::JS_DupValue(wrapper.context, v.value);
-                module_def as *mut q::JSModuleDef
-            }
-            Err(e) => {
-                eprintln!("compile module error: {:?}", e);
-                null_mut() as *mut q::JSModuleDef
-            }
+    let module_name = CStr::from_ptr(module_name).to_str().unwrap();
+    let module_code = loader(module_name, opaque);
+
+    let module_name_c = match make_cstring(module_name) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("make cstring error: {:?}", e);
+            return null_mut() as *mut q::JSModuleDef;
         }
-    } else {
-        eprintln!("module loader not set");
-        null_mut() as *mut q::JSModuleDef
-    }
+    };
+    let module_code_c = match make_cstring(module_code.as_str()) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("make cstring error: {:?}", e);
+            return null_mut() as *mut q::JSModuleDef;
+        }
+    };
+
+    let value = unsafe {
+        q::JS_Eval(
+            ctx,
+            module_code_c.as_ptr(),
+            module_code.len() as _,
+            module_name_c.as_ptr(),
+            q::JS_EVAL_TYPE_MODULE as i32 | q::JS_EVAL_FLAG_COMPILE_ONLY as i32,
+        )
+    };
+
+    // TODO: exception handling
+
+    let module_def = q::JS_VALUE_GET_PTR(value);
+    // q::JS_DupValue(wrapper.context, v.value);
+    module_def as *mut q::JSModuleDef
 }
 
 pub unsafe extern "C" fn js_module_normalize(
@@ -43,12 +64,15 @@ pub unsafe extern "C" fn js_module_normalize(
     module_name: *const c_char,
     opaque: *mut c_void,
 ) -> *mut c_char {
-    let wrapper = &*(opaque as *mut ContextWrapper);
-    let opaque = wrapper.module_opaque.lock().unwrap().unwrap_or(null_mut());
+    let wrapper = &*(opaque as *mut ModuleLoader);
+    let opaque = wrapper.opaque;
+    let normalize = &wrapper.normalize;
+
+    println!("2");
     let module_base_name = CStr::from_ptr(module_base_name).to_str().unwrap();
     let module_name = CStr::from_ptr(module_name).to_str().unwrap();
 
-    if let Some(module_normalize_func) = wrapper.module_normalize_func.lock().unwrap().as_mut() {
+    if let Some(module_normalize_func) = normalize {
         let mut normalized_module_name =
             module_normalize_func(module_base_name, module_name, opaque);
         normalized_module_name.push('\0');
