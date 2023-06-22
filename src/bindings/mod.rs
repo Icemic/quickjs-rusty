@@ -1,6 +1,7 @@
 mod compile;
 mod convert;
 mod droppable_value;
+mod module;
 mod value;
 
 use std::{
@@ -20,6 +21,9 @@ use crate::{
 use value::{JsFunction, OwnedJsObject};
 
 pub use value::{JsCompiledFunction, OwnedJsValue};
+
+use self::module::{js_module_loader, js_module_normalize};
+pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
 // JS_TAG_* constants from quickjs.
 // For some reason bindgen does not pick them up.
@@ -348,6 +352,9 @@ pub struct ContextWrapper {
     /// the closure.
     // A Mutex is used over a RefCell because it needs to be unwind-safe.
     callbacks: Mutex<Vec<(Box<WrappedCallback>, Box<q::JSValue>)>>,
+    module_loader_func: Mutex<Option<JSModuleLoaderFunc>>,
+    module_normalize_func: Mutex<Option<JSModuleNormalizeFunc>>,
+    module_opaque: Mutex<Option<*mut c_void>>,
 }
 
 impl Drop for ContextWrapper {
@@ -388,6 +395,9 @@ impl ContextWrapper {
             runtime,
             context,
             callbacks: Mutex::new(Vec::new()),
+            module_loader_func: Mutex::new(None),
+            module_normalize_func: Mutex::new(None),
+            module_opaque: Mutex::new(None),
         };
 
         Ok(wrapper)
@@ -615,6 +625,76 @@ impl ContextWrapper {
         };
         let value = OwnedJsValue::new(self, value_raw);
         self.resolve_value(value)
+    }
+
+    /// Evaluate javascript module code.
+    pub fn eval_module<'a>(&'a self, code: &str) -> Result<OwnedJsValue<'a>, ExecutionError> {
+        let filename = "module.js";
+        let filename_c = make_cstring(filename)?;
+        let code_c = make_cstring(code)?;
+
+        let value_raw = unsafe {
+            q::JS_Eval(
+                self.context,
+                code_c.as_ptr(),
+                code.len(),
+                filename_c.as_ptr(),
+                q::JS_EVAL_TYPE_MODULE as i32,
+            )
+        };
+        let value = OwnedJsValue::new(self, value_raw);
+        self.resolve_value(value)
+    }
+
+    /// Evaluate Javascript module
+    pub fn run_module<'a>(&'a self, filename: &str) -> Result<(), ExecutionError> {
+        let filename_c = make_cstring(filename)?;
+
+        let value_raw = unsafe {
+            q::JS_RunModule(
+                self.context,
+                ".\0".as_ptr() as *const i8,
+                filename_c.as_ptr(),
+            )
+        };
+
+        if unsafe { q::JS_IsException(value_raw as u64) } {
+            let err = self
+                .get_exception()
+                .unwrap_or_else(|| ExecutionError::Exception("Unknown exception".into()));
+            Err(err)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn set_module_loader(
+        &self,
+        module_loader: JSModuleLoaderFunc,
+        module_normalize: Option<JSModuleNormalizeFunc>,
+        opaque: *mut c_void,
+    ) {
+        unsafe {
+            if module_normalize.is_some() {
+                q::JS_SetModuleLoaderFunc(
+                    self.runtime,
+                    Some(js_module_normalize),
+                    Some(js_module_loader),
+                    self as *const Self as *mut Self as *mut c_void,
+                );
+            } else {
+                q::JS_SetModuleLoaderFunc(
+                    self.runtime,
+                    None,
+                    Some(js_module_loader),
+                    self as *const Self as *mut Self as *mut c_void,
+                );
+            }
+        }
+
+        *self.module_loader_func.lock().unwrap() = Some(module_loader);
+        *self.module_normalize_func.lock().unwrap() = module_normalize;
+        *self.module_opaque.lock().unwrap() = Some(opaque);
     }
 
     /*

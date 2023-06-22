@@ -32,6 +32,32 @@ pub fn compile<'a>(
     Ok(value)
 }
 
+/// compile a script, will result in a JSValueRef with tag JS_TAG_FUNCTION_BYTECODE or JS_TAG_MODULE.
+///  It can be executed with run_compiled_function().
+pub fn compile_module<'a>(
+    context: &'a ContextWrapper,
+    script: &str,
+    file_name: &str,
+) -> Result<OwnedJsValue<'a>, ExecutionError> {
+    let filename_c = make_cstring(file_name)?;
+    let code_c = make_cstring(script)?;
+
+    let value = unsafe {
+        let v = q::JS_Eval(
+            context.context,
+            code_c.as_ptr(),
+            script.len() as _,
+            filename_c.as_ptr(),
+            q::JS_EVAL_TYPE_MODULE as i32 | q::JS_EVAL_FLAG_COMPILE_ONLY as i32,
+        );
+        OwnedJsValue::new(context, v)
+    };
+
+    // check for error
+    context.ensure_no_excpetion()?;
+    Ok(value)
+}
+
 /// run a compiled function, see compile for an example
 pub fn run_compiled_function<'a>(
     func: &'a JsCompiledFunction,

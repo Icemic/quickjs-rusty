@@ -38,7 +38,9 @@ mod value;
 #[cfg(test)]
 mod tests;
 
-use std::{convert::TryFrom, error, fmt};
+use std::{convert::TryFrom, error, ffi::c_void, fmt};
+
+use bindings::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
 pub use self::{
     callback::{Arguments, Callback},
@@ -239,6 +241,60 @@ impl Context {
         let value_raw = self.wrapper.eval(code)?;
         let value = value_raw.to_value()?;
         Ok(value)
+    }
+
+    /// Evaluates Javascript code and returns the value of the final expression
+    /// on module mode.
+    ///
+    /// **Promises**:
+    /// If the evaluated code returns a Promise, the event loop
+    /// will be executed until the promise is finished. The final value of
+    /// the promise will be returned, or a `ExecutionError::Exception` if the
+    /// promise failed.
+    ///
+    /// **Returns**:
+    /// Return value will always be undefined on module mode.
+    ///
+    /// ```ignore
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// let value = context.eval_module("import {foo} from 'bar'; foo();");
+    /// ```
+    pub fn eval_module(&self, code: &str) -> Result<JsValue, ExecutionError> {
+        let value_raw = self.wrapper.eval_module(code)?;
+        let value = value_raw.to_value()?;
+        Ok(value)
+    }
+
+    /// Evaluates Javascript code and returns the value of the final expression
+    /// on module mode.
+    ///
+    /// **Promises**:
+    /// If the evaluated code returns a Promise, the event loop
+    /// will be executed until the promise is finished. The final value of
+    /// the promise will be returned, or a `ExecutionError::Exception` if the
+    /// promise failed.
+    ///
+    /// ```ignore
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// let value = context.run_module("./module");
+    /// ```
+    pub fn run_module(&self, module_name: &str) -> Result<(), ExecutionError> {
+        self.wrapper.run_module(module_name)?;
+        Ok(())
+    }
+
+    /// register module loader function, giving module name as input and return module code as output.
+    pub fn set_module_loader(
+        &self,
+        loader: JSModuleLoaderFunc,
+        normalize: Option<JSModuleNormalizeFunc>,
+        opaque: *mut c_void,
+    ) {
+        self.wrapper.set_module_loader(loader, normalize, opaque);
     }
 
     /// Evaluates Javascript code and returns the value of the final expression
