@@ -16,7 +16,7 @@ This crate allows you to easily run and integrate with Javascript code from Rust
 
 ```toml
 [dependencies]
-quickjspp = "0.1.0"
+quickjspp = "0.2.0"
 ```
 
 ```rust
