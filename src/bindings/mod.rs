@@ -24,11 +24,11 @@ use value::{JsFunction, OwnedJsObject};
 pub use value::{JsCompiledFunction, OwnedJsValue};
 
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
+pub use self::utils::serialize_value;
 use self::{
     module::{js_module_loader, js_module_normalize, ModuleLoader},
-    utils::{get_exception, to_value},
+    utils::{ensure_no_excpetion, get_exception, to_value},
 };
-pub use self::utils::serialize_value;
 
 // JS_TAG_* constants from quickjs.
 // For some reason bindgen does not pick them up.
@@ -592,7 +592,7 @@ impl ContextWrapper {
     pub fn run_module(&self, filename: &str) -> Result<(), ExecutionError> {
         let filename_c = make_cstring(filename)?;
 
-        let value_raw = unsafe {
+        unsafe {
             q::JS_RunModule(
                 self.context,
                 ".\0".as_ptr() as *const i8,
@@ -600,13 +600,9 @@ impl ContextWrapper {
             )
         };
 
-        if unsafe { q::JS_IsException(value_raw as u64) } {
-            let err = get_exception(self.context)
-                .unwrap_or_else(|| ExecutionError::Exception("Unknown exception".into()));
-            Err(err)
-        } else {
-            Ok(())
-        }
+        ensure_no_excpetion(self.context)?;
+
+        Ok(())
     }
 
     pub fn set_module_loader(
