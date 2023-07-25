@@ -7,6 +7,8 @@ use std::{collections::HashMap, error, fmt};
 #[cfg(feature = "bigint")]
 pub use bigint::BigInt;
 
+use crate::JsFunction;
+
 /// A value that can be (de)serialized to/from the quickjs runtime.
 #[derive(PartialEq, Clone, Debug)]
 #[allow(missing_docs)]
@@ -19,6 +21,7 @@ pub enum JsValue {
     String(String),
     Array(Vec<JsValue>),
     Object(HashMap<String, JsValue>),
+    Function(JsFunction),
     /// chrono::Datetime<Utc> / JS Date integration.
     /// Only available with the optional `chrono` feature.
     #[cfg(feature = "chrono")]
@@ -38,6 +41,9 @@ impl JsValue {
     pub fn as_str(&self) -> Option<&str> {
         match self {
             JsValue::String(ref s) => Some(s.as_str()),
+            JsValue::Undefined => Some("undefined"),
+            JsValue::Null => Some("null"),
+            JsValue::Bool(v) => Some(if *v { "true" } else { "false" }),
             _ => None,
         }
     }
@@ -46,6 +52,11 @@ impl JsValue {
     pub fn into_string(self) -> Option<String> {
         match self {
             JsValue::String(s) => Some(s),
+            JsValue::Undefined => Some("undefined".to_string()),
+            JsValue::Null => Some("null".to_string()),
+            JsValue::Bool(v) => Some(v.to_string()),
+            JsValue::Int(n) => Some(n.to_string()),
+            JsValue::Float(n) => Some(n.to_string()),
             _ => None,
         }
     }
@@ -97,6 +108,7 @@ value_impl_from! {
         i32 => Int,
         f64 => Float,
         String => String,
+        JsFunction => Function,
     )
     (
         i8 => |x| i32::from(x) => Int,

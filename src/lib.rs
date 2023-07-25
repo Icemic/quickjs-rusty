@@ -43,6 +43,7 @@ use std::{convert::TryFrom, error, ffi::c_void, fmt};
 use bindings::{serialize_value, JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
 pub use self::{
+    bindings::*,
     callback::{Arguments, Callback},
     value::*,
 };

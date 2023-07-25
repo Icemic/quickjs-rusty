@@ -2,7 +2,7 @@ use std::{collections::HashMap, os::raw::c_char};
 
 use libquickjspp_sys as q;
 
-use crate::{JsValue, ValueError};
+use crate::{JsValue, OwnedJsValue, ValueError};
 
 use super::{droppable_value::DroppableValue, make_cstring};
 
@@ -170,6 +170,10 @@ pub(super) fn serialize_value(
             }
 
             obj
+        }
+        JsValue::Function(func) => {
+            let owned_value = func.into_value();
+            unsafe { owned_value.extract() }
         }
         #[cfg(feature = "chrono")]
         JsValue::Date(datetime) => {
@@ -363,6 +367,7 @@ fn deserialize_object(context: *mut q::JSContext, obj: &q::JSValue) -> Result<Js
     Ok(JsValue::Object(map))
 }
 
+/// convert from a raw JSValue ptr to a wrapped JsValue
 pub(super) fn deserialize_value(
     context: *mut q::JSContext,
     value: &q::JSValue,
@@ -415,8 +420,14 @@ pub(super) fn deserialize_value(
         // Object.
         TAG_OBJECT => {
             let is_array = unsafe { q::JS_IsArray(context, *r) } > 0;
+            let is_function = unsafe { q::JS_IsFunction(context, *r) } > 0;
+
             if is_array {
                 deserialize_array(context, r)
+            } else if is_function {
+                let func = OwnedJsValue::own(context, r);
+                let func = func.try_into_function()?;
+                Ok(JsValue::Function(func))
             } else {
                 #[cfg(feature = "chrono")]
                 {

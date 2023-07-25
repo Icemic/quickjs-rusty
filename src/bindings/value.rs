@@ -202,6 +202,7 @@ impl Clone for OwnedJsAtom {
 /// types. `OwnedJsValue`, in contrast, owns the underlying QuickJs runtime
 /// value directly.
 // TODO: provide usage docs.
+#[derive(PartialEq)]
 pub struct OwnedJsValue {
     context: *mut q::JSContext,
     // FIXME: make private again, just for testing
@@ -217,6 +218,14 @@ impl OwnedJsValue {
     #[inline]
     pub(crate) fn new(context: *mut q::JSContext, value: q::JSValue) -> Self {
         Self { context, value }
+    }
+
+    /// Create a new `OwnedJsValue` from a `JsValue`.
+    /// This will increase the ref count of the underlying value.
+    #[inline]
+    pub fn own(context: *mut q::JSContext, value: &q::JSValue) -> Self {
+        unsafe { q::JS_DupValue(context, *value) };
+        Self::new(context, *value)
     }
 
     #[inline]
@@ -492,7 +501,7 @@ impl OwnedJsObject {
 
 /// Wraps an object from the QuickJs runtime.
 /// Provides convenience property accessors.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct JsFunction {
     value: OwnedJsValue,
 }
