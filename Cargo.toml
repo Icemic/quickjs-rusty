@@ -2,7 +2,7 @@
 edition = "2018"
 name = "quickjspp"
 description = "QuickJS Javascript engine wrapper using quickjs fork named quickjspp"
-version = "0.2.0"
+version = "0.3.0"
 readme = "README.md"
 documentation = "https://docs.rs/quickjspp"
 repository = "https://github.com/Icemic/quickjspp-rs"
