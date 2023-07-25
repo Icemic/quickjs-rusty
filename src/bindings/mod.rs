@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 mod compile;
 mod convert;
 mod droppable_value;
@@ -19,9 +21,7 @@ use crate::{
     ContextError, ExecutionError, JsValue, ValueError,
 };
 
-use value::{JsFunction, OwnedJsObject};
-
-pub use value::{JsCompiledFunction, OwnedJsValue};
+pub use value::*;
 
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 pub use self::utils::serialize_value;
