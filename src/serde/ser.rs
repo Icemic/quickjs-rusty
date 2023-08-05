@@ -16,7 +16,6 @@ pub struct Serializer {
     current: Option<OwnedJsValue>,
     current_is_key: bool,
     current_key: Option<String>,
-    output: String,
 }
 
 /// convert from rust type to OwnedJsValue
@@ -32,11 +31,8 @@ where
         current: None,
         current_is_key: false,
         current_key: None,
-        output: String::new(),
     };
     value.serialize(&mut serializer)?;
-
-    println!("json format output: {:?}", serializer.output);
 
     Ok(serializer.root)
 }
@@ -148,9 +144,6 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // into the output string.
     fn serialize_bool(self, v: bool) -> Result<()> {
         let value = serialize_raw(self.context, JsValue::Bool(v)).unwrap();
-
-        self.output += if v { "true" } else { "false" };
-
         self.set_node_value(value)
     }
 
@@ -173,10 +166,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // Not particularly efficient but this is example code anyway. A more
     // performant approach would be to use the `itoa` crate.
     fn serialize_i64(self, v: i64) -> Result<()> {
-        self.output += &v.to_string();
-
         let value = serialize_raw(self.context, JsValue::Int(v as i32)).unwrap();
-
         self.set_node_value(value)
     }
 
@@ -193,10 +183,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_u64(self, v: u64) -> Result<()> {
-        self.output += &v.to_string();
-
         let value = serialize_raw(self.context, JsValue::Int(v as i32)).unwrap();
-
         self.set_node_value(value)
     }
 
@@ -205,10 +192,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_f64(self, v: f64) -> Result<()> {
-        self.output += &v.to_string();
-
         let value = serialize_raw(self.context, JsValue::Float(v)).unwrap();
-
         self.set_node_value(value)
     }
 
@@ -222,10 +206,6 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // get the idea. For example it would emit invalid JSON if the input string
     // contains a '"' character.
     fn serialize_str(self, v: &str) -> Result<()> {
-        self.output += "\"";
-        self.output += v;
-        self.output += "\"";
-
         if self.current_is_key {
             self.current_key = Some(v.to_string());
             self.current_is_key = false;
@@ -268,10 +248,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // In Serde, unit means an anonymous value containing no data. Map this to
     // JSON as `null`.
     fn serialize_unit(self) -> Result<()> {
-        self.output += "null";
-
         let value = serialize_raw(self.context, JsValue::Null).unwrap();
-
         self.set_node_value(value)
     }
 
@@ -321,12 +298,9 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     {
         self.push_object()?;
 
-        self.output += "{";
         self.current_is_key = true;
         variant.serialize(&mut *self)?;
-        self.output += ":";
         value.serialize(&mut *self)?;
-        self.output += "}";
 
         self.pop()?;
 
@@ -345,7 +319,6 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // support sequences for which the length is known up front.
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
         self.push_array()?;
-        self.output += "[";
         Ok(self)
     }
 
@@ -376,18 +349,15 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant> {
         self.push_object()?;
-        self.output += "{";
         self.current_is_key = true;
         variant.serialize(&mut *self)?;
         self.push_array()?;
-        self.output += ":[";
         Ok(self)
     }
 
     // Maps are represented in JSON as `{ K: V, K: V, ... }`.
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
         self.push_object()?;
-        self.output += "{";
         Ok(self)
     }
 
@@ -410,13 +380,10 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         _len: usize,
     ) -> Result<Self::SerializeStructVariant> {
         self.push_object()?;
-        self.output += "{";
         self.current_is_key = true;
         variant.serialize(&mut *self)?;
         self.push_object()?;
 
-        println!("dssd");
-        self.output += ":{";
         Ok(self)
     }
 }
@@ -439,16 +406,12 @@ impl<'a> ser::SerializeSeq for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        if !self.output.ends_with('[') {
-            self.output += ",";
-        }
         value.serialize(&mut **self)
     }
 
     // Close the sequence.
     fn end(self) -> Result<()> {
         self.pop()?;
-        self.output += "]";
         Ok(())
     }
 }
@@ -462,15 +425,11 @@ impl<'a> ser::SerializeTuple for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        if !self.output.ends_with('[') {
-            self.output += ",";
-        }
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<()> {
         self.pop()?;
-        self.output += "]";
         Ok(())
     }
 }
@@ -484,15 +443,11 @@ impl<'a> ser::SerializeTupleStruct for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        if !self.output.ends_with('[') {
-            self.output += ",";
-        }
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<()> {
         self.pop()?;
-        self.output += "]";
         Ok(())
     }
 }
@@ -514,16 +469,12 @@ impl<'a> ser::SerializeTupleVariant for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        if !self.output.ends_with('[') {
-            self.output += ",";
-        }
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<()> {
         self.pop()?;
         self.pop()?;
-        self.output += "]}";
         Ok(())
     }
 }
@@ -560,9 +511,6 @@ impl<'a> ser::SerializeMap for &'a mut Serializer {
             ));
         }
 
-        if !self.output.ends_with('{') {
-            self.output += ",";
-        }
         key.serialize(&mut **self)
     }
 
@@ -573,13 +521,11 @@ impl<'a> ser::SerializeMap for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        self.output += ":";
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<()> {
         self.pop()?;
-        self.output += "}";
         Ok(())
     }
 }
@@ -601,17 +547,12 @@ impl<'a> ser::SerializeStruct for &'a mut Serializer {
                 "Cannot serialize map with more than one key".to_string(),
             ));
         }
-        if !self.output.ends_with('{') {
-            self.output += ",";
-        }
         key.serialize(&mut **self)?;
-        self.output += ":";
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<()> {
         self.pop()?;
-        self.output += "}";
         Ok(())
     }
 }
@@ -633,19 +574,13 @@ impl<'a> ser::SerializeStructVariant for &'a mut Serializer {
                 "Cannot serialize map with more than one key".to_string(),
             ));
         }
-        if !self.output.ends_with('{') {
-            self.output += ",";
-        }
         key.serialize(&mut **self)?;
-        println!("dssd11 {}", key);
-        self.output += ":";
         value.serialize(&mut **self)
     }
 
     fn end(self) -> Result<()> {
         self.pop()?;
         self.pop()?;
-        self.output += "}}";
         Ok(())
     }
 }
