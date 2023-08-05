@@ -1,5 +1,3 @@
-use std::ptr::null_mut;
-
 use quickjspp::Context;
 
 struct Custom {
