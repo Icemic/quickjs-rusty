@@ -33,14 +33,14 @@
 mod bindings;
 mod callback;
 pub mod console;
+#[cfg(feature = "serde")]
+pub mod serde;
 mod value;
-
-#[cfg(test)]
-mod tests;
 
 use std::{convert::TryFrom, error, ffi::c_void, fmt};
 
 use bindings::{serialize_value, JSModuleLoaderFunc, JSModuleNormalizeFunc};
+use libquickjspp_sys::JSContext;
 
 pub use self::{
     bindings::*,
@@ -207,6 +207,11 @@ impl Context {
     pub fn reset(self) -> Result<Self, ContextError> {
         let wrapper = self.wrapper.reset()?;
         Ok(Self { wrapper })
+    }
+
+    /// Get raw pointer to the underlying QuickJS context.
+    pub fn context_raw(&self) -> *mut JSContext {
+        self.wrapper.context
     }
 
     /// Evaluates Javascript code and returns the value of the final expression.

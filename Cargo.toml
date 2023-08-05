@@ -1,32 +1,38 @@
 [package]
-edition = "2018"
-name = "quickjspp"
-description = "QuickJS Javascript engine wrapper using quickjs fork named quickjspp"
-version = "0.3.0"
-readme = "README.md"
-documentation = "https://docs.rs/quickjspp"
-repository = "https://github.com/Icemic/quickjspp-rs"
-license = "MIT"
 authors = ["Christoph Herzog <chris@theduke.at>", "Icemic J <bingfeng.web@gmail.com>"]
+description = "QuickJS Javascript engine wrapper using quickjs fork named quickjspp"
+documentation = "https://docs.rs/quickjspp"
+edition = "2018"
 keywords = ["quickjs", "javascript", "js", "engine", "interpreter"]
+license = "MIT"
+name = "quickjspp"
+readme = "README.md"
+repository = "https://github.com/Icemic/quickjspp-rs"
+version = "0.3.0"
 
 [package.metadata.docs.rs]
-features = [ "chrono", "bigint", "log" ]
+features = ["chrono", "bigint", "log"]
 
 [features]
-default = ["chrono"]
-patched = ["libquickjspp-sys/patched"]
 bigint = ["num-bigint", "num-traits", "libquickjspp-sys/patched"]
+default = ["chrono", "serde"]
+patched = ["libquickjspp-sys/patched"]
+serde = ["anyhow", "thiserror", "dep:serde"]
 
 [dependencies]
-libquickjspp-sys = { version = "0.1", path = "./libquickjs-sys" }
-chrono = { version = "0.4.7", optional = true }
-num-bigint = { version = "0.2.2", optional = true }
-num-traits = { version = "0.2.0", optional = true }
-log = { version = "0.4.8", optional = true }
+anyhow = {version = "1", optional = true}
+chrono = {version = "0.4.7", optional = true}
+libquickjspp-sys = {version = "0.1", path = "./libquickjs-sys"}
+log = {version = "0.4.8", optional = true}
+num-bigint = {version = "0.2.2", optional = true}
+num-traits = {version = "0.2.0", optional = true}
+serde = {version = "1", features = ["derive"], optional = true}
+thiserror = {version = "1", optional = true}
+
+[dev-dependencies]
+serde_json = "1"
 
 [workspace]
 members = [
-    "libquickjs-sys",
+  "libquickjs-sys",
 ]
-
