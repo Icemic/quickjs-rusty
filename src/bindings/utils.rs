@@ -4,6 +4,7 @@ use crate::{ExecutionError, JsValue, ValueError};
 
 use super::{convert, OwnedJsValue};
 
+#[inline]
 pub fn serialize_value(
     context: *mut q::JSContext,
     value: JsValue,
@@ -13,11 +14,20 @@ pub fn serialize_value(
 }
 
 // Deserialize a quickjs runtime value into a Rust value.
+#[inline]
 pub(crate) fn to_value(
     context: *mut q::JSContext,
     value: &q::JSValue,
 ) -> Result<JsValue, ValueError> {
     convert::deserialize_value(context, value)
+}
+
+#[inline]
+pub fn serialize_raw(
+    context: *mut q::JSContext,
+    value: JsValue,
+) -> Result<q::JSValue, ExecutionError> {
+    convert::serialize_value(context, value).map_err(|e| e.into())
 }
 
 /// Get the last exception from the runtime, and if present, convert it to a ExceptionError.

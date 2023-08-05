@@ -59,7 +59,7 @@ fn js_create_bigint_function(context: *mut q::JSContext) -> q::JSValue {
 }
 
 /// Serialize a Rust value into a quickjs runtime value.
-pub(super) fn serialize_value(
+pub(crate) fn serialize_value(
     context: *mut q::JSContext,
     value: JsValue,
 ) -> Result<q::JSValue, ValueError> {
@@ -368,7 +368,7 @@ fn deserialize_object(context: *mut q::JSContext, obj: &q::JSValue) -> Result<Js
 }
 
 /// convert from a raw JSValue ptr to a wrapped JsValue
-pub(super) fn deserialize_value(
+pub(crate) fn deserialize_value(
     context: *mut q::JSContext,
     value: &q::JSValue,
 ) -> Result<JsValue, ValueError> {

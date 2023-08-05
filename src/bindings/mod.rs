@@ -24,7 +24,7 @@ use crate::{
 pub use value::*;
 
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
-pub use self::utils::serialize_value;
+pub use self::utils::*;
 use self::{
     module::{js_module_loader, js_module_normalize, ModuleLoader},
     utils::{ensure_no_excpetion, get_exception, to_value},
