@@ -2,8 +2,8 @@ use libquickjspp_sys as q;
 
 use crate::{ExecutionError, JsValue, ValueError};
 
-use super::make_cstring;
 use super::utils::to_value;
+use super::{make_cstring, TAG_NULL};
 
 #[repr(u32)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -229,14 +229,14 @@ impl OwnedJsValue {
     }
 
     #[inline]
-    pub(crate) fn tag(&self) -> JsTag {
+    pub fn tag(&self) -> JsTag {
         JsTag::from_c(&self.value)
     }
 
     /// Get the inner JSValue without increasing ref count.
     ///
     /// Unsafe because the caller must ensure proper memory management.
-    pub(super) unsafe fn as_inner(&self) -> &q::JSValue {
+    pub unsafe fn as_inner(&self) -> &q::JSValue {
         &self.value
     }
 
@@ -247,6 +247,15 @@ impl OwnedJsValue {
         let v = self.value;
         std::mem::forget(self);
         v
+    }
+
+    /// Replace the underlying JSValue.
+    /// This will decrease the ref count of the old value but remain the ref count of the new value.
+    pub fn replace(&mut self, new: q::JSValue) {
+        unsafe {
+            q::JS_FreeValue(self.context, self.value);
+        }
+        self.value = new;
     }
 
     /// Check if this value is `null`.
@@ -338,7 +347,7 @@ impl OwnedJsValue {
     }
 
     /// Call the Javascript `.toString()` method on this value.
-    pub(crate) fn js_to_string(&self) -> Result<String, ExecutionError> {
+    pub fn js_to_string(&self) -> Result<String, ExecutionError> {
         let value = if self.is_string() {
             self.to_value()?
         } else {
@@ -352,6 +361,30 @@ impl OwnedJsValue {
             }
             value.to_value()?
         };
+
+        Ok(value.as_str().unwrap().to_string())
+    }
+
+    /// Call the Javascript `JSON.stringify()` method on this value.
+    pub fn to_json_string(&self, space: u8) -> Result<String, ExecutionError> {
+        let replacer = unsafe { q::JS_NewSpecialValue(TAG_NULL, 0) };
+        let space = unsafe { q::JS_NewInt32(self.context, space as i32) };
+        let raw = unsafe { q::JS_JSONStringify(self.context, self.value, replacer, space) };
+
+        let value = OwnedJsValue::new(self.context, raw);
+
+        unsafe {
+            q::JS_FreeValue(self.context, replacer);
+            q::JS_FreeValue(self.context, space);
+        }
+
+        if !value.is_string() {
+            return Err(ExecutionError::Exception(
+                "Could not convert value to string".into(),
+            ));
+        }
+
+        let value = value.to_value()?;
 
         Ok(value.as_str().unwrap().to_string())
     }
@@ -400,11 +433,61 @@ pub struct OwnedJsArray {
 }
 
 impl OwnedJsArray {
-    pub fn new(value: OwnedJsValue) -> Option<Self> {
-        if value.is_array() {
-            Some(Self { value })
+    pub fn try_from_value(value: OwnedJsValue) -> Result<Self, ValueError> {
+        if !value.is_array() {
+            Err(ValueError::Internal("Expected an array".into()))
         } else {
-            None
+            Ok(Self { value })
+        }
+    }
+
+    pub fn set_index(&self, index: u32, value: OwnedJsValue) -> Result<(), ExecutionError> {
+        unsafe {
+            // NOTE: SetPropertyStr takes ownership of the value.
+            // We do not, however, call OwnedJsValue::extract immediately, so
+            // the inner JSValue is still managed.
+            // `mem::forget` is called below only if SetProperty succeeds.
+            // This prevents leaks when an error occurs.
+            let ret =
+                q::JS_SetPropertyUint32(self.value.context, self.value.value, index, value.value);
+
+            if ret < 0 {
+                Err(ExecutionError::Exception("Could not set property".into()))
+            } else {
+                // Now we can call forget to prevent calling the destructor.
+                std::mem::forget(value);
+                Ok(())
+            }
+        }
+    }
+
+    pub fn push(&self, value: OwnedJsValue) -> Result<(), ExecutionError> {
+        unsafe {
+            let mut next_index: i64 = 0;
+            q::JS_GetPropertyLength(
+                self.value.context,
+                &mut next_index as *mut _,
+                self.value.value,
+            );
+            // NOTE: SetPropertyStr takes ownership of the value.
+            // We do not, however, call OwnedJsValue::extract immediately, so
+            // the inner JSValue is still managed.
+            // `mem::forget` is called below only if SetProperty succeeds.
+            // This prevents leaks when an error occurs.
+            let ret = q::JS_SetPropertyInt64(
+                self.value.context,
+                self.value.value,
+                next_index,
+                value.value,
+            );
+
+            if ret < 0 {
+                Err(ExecutionError::Exception("Could not set property".into()))
+            } else {
+                // Now we can call forget to prevent calling the destructor.
+                std::mem::forget(value);
+                Ok(())
+            }
         }
     }
 }
