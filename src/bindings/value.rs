@@ -3,7 +3,7 @@ use libquickjspp_sys as q;
 use crate::{ExecutionError, JsValue, ValueError};
 
 use super::utils::to_value;
-use super::{make_cstring, TAG_NULL};
+use super::{make_cstring, TAG_EXCEPTION, TAG_NULL, TAG_UNDEFINED};
 
 #[repr(u32)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -276,6 +276,18 @@ impl OwnedJsValue {
         self.tag() == JsTag::Bool
     }
 
+    /// Check if this value is `int`.
+    #[inline]
+    pub fn is_int(&self) -> bool {
+        self.tag() == JsTag::Int
+    }
+
+    /// Check if this value is `float`.
+    #[inline]
+    pub fn is_float(&self) -> bool {
+        self.tag() == JsTag::Float64
+    }
+
     /// Check if this value is a Javascript exception.
     #[inline]
     pub fn is_exception(&self) -> bool {
@@ -326,6 +338,27 @@ impl OwnedJsValue {
     pub(crate) fn to_bool(&self) -> Result<bool, ValueError> {
         match self.to_value()? {
             JsValue::Bool(b) => Ok(b),
+            _ => Err(ValueError::UnexpectedType),
+        }
+    }
+
+    pub(crate) fn to_int(&self) -> Result<i32, ValueError> {
+        match self.to_value()? {
+            JsValue::Int(v) => Ok(v),
+            _ => Err(ValueError::UnexpectedType),
+        }
+    }
+
+    pub(crate) fn to_float(&self) -> Result<f64, ValueError> {
+        match self.to_value()? {
+            JsValue::Float(v) => Ok(v),
+            _ => Err(ValueError::UnexpectedType),
+        }
+    }
+
+    pub(crate) fn to_string(&self) -> Result<String, ValueError> {
+        match self.to_value()? {
+            JsValue::String(s) => Ok(s),
             _ => Err(ValueError::UnexpectedType),
         }
     }
@@ -441,6 +474,32 @@ impl OwnedJsArray {
         }
     }
 
+    pub fn length(&self) -> u64 {
+        let mut next_index: i64 = 0;
+        unsafe {
+            q::JS_GetPropertyLength(
+                self.value.context,
+                &mut next_index as *mut _,
+                self.value.value,
+            );
+        }
+
+        next_index as u64
+    }
+
+    pub fn get_index(&self, index: u32) -> Result<Option<OwnedJsValue>, ExecutionError> {
+        let value_raw =
+            unsafe { q::JS_GetPropertyUint32(self.value.context, self.value.value, index) };
+        let tag = unsafe { q::JS_ValueGetTag(value_raw) };
+        if tag == TAG_EXCEPTION {
+            return Err(ExecutionError::Internal("Could not build array".into()));
+        } else if tag == TAG_UNDEFINED {
+            return Ok(None);
+        }
+
+        Ok(Some(OwnedJsValue::new(self.value.context, value_raw)))
+    }
+
     pub fn set_index(&self, index: u32, value: OwnedJsValue) -> Result<(), ExecutionError> {
         unsafe {
             // NOTE: SetPropertyStr takes ownership of the value.
@@ -494,7 +553,7 @@ impl OwnedJsArray {
 
 /// Wraps an object from the QuickJs runtime.
 /// Provides convenience property accessors.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct OwnedJsObject {
     value: OwnedJsValue,
 }
@@ -510,6 +569,12 @@ impl OwnedJsObject {
 
     pub fn into_value(self) -> OwnedJsValue {
         self.value
+    }
+
+    pub fn properties_iter(&self) -> Result<OwnedJsPropertyIterator, ValueError> {
+        let prop_iter = OwnedJsPropertyIterator::from_object(self.value.context, self.clone())?;
+
+        Ok(prop_iter)
     }
 
     pub fn property(&self, name: &str) -> Result<Option<OwnedJsValue>, ExecutionError> {
@@ -578,6 +643,108 @@ impl OwnedJsObject {
                 std::mem::forget(value);
                 Ok(())
             }
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct OwnedJsPropertyIterator {
+    context: *mut q::JSContext,
+    object: OwnedJsObject,
+    properties: *mut q::JSPropertyEnum,
+    length: u32,
+    cur_index: u32,
+}
+
+impl OwnedJsPropertyIterator {
+    pub fn from_object(
+        context: *mut q::JSContext,
+        object: OwnedJsObject,
+    ) -> Result<Self, ValueError> {
+        let mut properties: *mut q::JSPropertyEnum = std::ptr::null_mut();
+        let mut length: u32 = 0;
+
+        let flags = (q::JS_GPN_STRING_MASK | q::JS_GPN_SYMBOL_MASK | q::JS_GPN_ENUM_ONLY) as i32;
+        let ret = unsafe {
+            q::JS_GetOwnPropertyNames(
+                context,
+                &mut properties,
+                &mut length,
+                object.value.value,
+                flags,
+            )
+        };
+        if ret != 0 {
+            return Err(ValueError::Internal(
+                "Could not get object properties".into(),
+            ));
+        }
+
+        Ok(Self {
+            context,
+            object,
+            properties,
+            length,
+            cur_index: 0,
+        })
+    }
+}
+
+/// Iterator over the properties of an object.
+/// The iterator yields key first and then value.
+impl Iterator for OwnedJsPropertyIterator {
+    type Item = Result<OwnedJsValue, ExecutionError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let cur_index = self.cur_index / 2;
+        let is_key = (self.cur_index % 2) == 0;
+
+        if cur_index >= self.length {
+            return None;
+        }
+
+        let prop = unsafe { self.properties.offset(cur_index as isize) };
+
+        let value = if is_key {
+            let pair_key = unsafe { q::JS_AtomToString(self.context, (*prop).atom) };
+            let tag = unsafe { q::JS_ValueGetTag(pair_key) };
+            if tag == TAG_EXCEPTION {
+                return Some(Err(ExecutionError::Internal(
+                    "Could not get object property name".into(),
+                )));
+            }
+
+            OwnedJsValue::new(self.context, pair_key)
+        } else {
+            let pair_value = unsafe {
+                q::JS_GetPropertyInternal(
+                    self.context,
+                    self.object.value.value,
+                    (*prop).atom,
+                    self.object.value.value,
+                    0,
+                )
+            };
+            let tag = unsafe { q::JS_ValueGetTag(pair_value) };
+            if tag == TAG_EXCEPTION {
+                return Some(Err(ExecutionError::Internal(
+                    "Could not get object property".into(),
+                )));
+            }
+
+            OwnedJsValue::new(self.context, pair_value)
+        };
+
+        self.cur_index += 1;
+
+        Some(Ok(value))
+    }
+}
+
+impl Drop for OwnedJsPropertyIterator {
+    fn drop(&mut self) {
+        unsafe {
+            q::js_free_prop_enum(self.context, self.properties, self.length);
         }
     }
 }

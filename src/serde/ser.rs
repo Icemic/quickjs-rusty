@@ -8,7 +8,7 @@ use crate::{JsValue, OwnedJsArray, OwnedJsObject, OwnedJsValue};
 
 use super::error::{Error, Result};
 
-/// convert from rust type to JsValue
+/// A structure that serializes Rust values into JS values.
 pub struct Serializer {
     context: *mut JSContext,
     root: OwnedJsValue,

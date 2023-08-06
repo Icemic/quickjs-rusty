@@ -1,8 +1,12 @@
-use quickjspp::serde::to_js;
-use quickjspp::Context;
+use std::fmt::Debug;
+
+use libquickjspp_sys::JSContext;
+use quickjspp::serde::{from_js, to_js};
+use quickjspp::{Context, OwnedJsValue};
+use serde_json::{json, Value};
 
 #[test]
-fn serde_bool() {
+fn serde_ser_bool() {
     let context = Context::new().unwrap();
     // bool
     let value = true;
@@ -12,7 +16,7 @@ fn serde_bool() {
 }
 
 #[test]
-fn serde_int() {
+fn serde_ser_int() {
     let context = Context::new().unwrap();
     // int
     // TODO: should take care of i32, i64, u32, u64, etc.
@@ -23,7 +27,7 @@ fn serde_int() {
 }
 
 #[test]
-fn serde_float() {
+fn serde_ser_float() {
     let context = Context::new().unwrap();
     // float
     let value = 3.1415;
@@ -33,7 +37,7 @@ fn serde_float() {
 }
 
 #[test]
-fn serde_char() {
+fn serde_ser_char() {
     let context = Context::new().unwrap();
     // char
     let value = 'a';
@@ -43,7 +47,7 @@ fn serde_char() {
 }
 
 #[test]
-fn serde_string() {
+fn serde_ser_string() {
     let context = Context::new().unwrap();
     // string
     let value = "哈哈";
@@ -53,7 +57,7 @@ fn serde_string() {
 }
 
 #[test]
-fn serde_null_none() {
+fn serde_ser_null_none() {
     let context = Context::new().unwrap();
     // null (None)
     let value: Option<bool> = None;
@@ -63,7 +67,7 @@ fn serde_null_none() {
 }
 
 #[test]
-fn serde_null_unit_struct() {
+fn serde_ser_null_unit_struct() {
     let context = Context::new().unwrap();
     // null (unit struct)
     let value = SimpleUnitStruct;
@@ -73,7 +77,7 @@ fn serde_null_unit_struct() {
 }
 
 #[test]
-fn serde_unit_variant() {
+fn serde_ser_unit_variant() {
     let context = Context::new().unwrap();
     // unit variant
     let value = SimpleEnum::A;
@@ -83,7 +87,7 @@ fn serde_unit_variant() {
 }
 
 #[test]
-fn serde_newtype_variant() {
+fn serde_ser_newtype_variant() {
     let context = Context::new().unwrap();
     // newtype variant
     let value = SimpleEnum::Foo("bar".to_string());
@@ -93,7 +97,7 @@ fn serde_newtype_variant() {
 }
 
 #[test]
-fn serde_newtype_variant_tuple() {
+fn serde_ser_newtype_variant_tuple() {
     let context = Context::new().unwrap();
     // newtype variant tuple
     let value = SimpleEnum::D(true, 2233);
@@ -103,7 +107,7 @@ fn serde_newtype_variant_tuple() {
 }
 
 #[test]
-fn serde_newtype_variant_tuple_empty() {
+fn serde_ser_newtype_variant_tuple_empty() {
     let context = Context::new().unwrap();
     // newtype variant tuple empty
     let value = SimpleEnum::B();
@@ -113,7 +117,7 @@ fn serde_newtype_variant_tuple_empty() {
 }
 
 #[test]
-fn serde_newtype_variant_struct() {
+fn serde_ser_newtype_variant_struct() {
     let context = Context::new().unwrap();
     // newtype variant struct
     let value = SimpleEnum::C {
@@ -129,7 +133,7 @@ fn serde_newtype_variant_struct() {
 }
 
 #[test]
-fn serde_newtype_struct() {
+fn serde_ser_newtype_struct() {
     let context = Context::new().unwrap();
     // newtype struct
     let value = SimpleNewTypeStruct(100);
@@ -139,7 +143,7 @@ fn serde_newtype_struct() {
 }
 
 #[test]
-fn serde_tuple_struct() {
+fn serde_ser_tuple_struct() {
     let context = Context::new().unwrap();
     // tuple struct
     let value = SimpleTupleStruct(100, 101);
@@ -149,7 +153,7 @@ fn serde_tuple_struct() {
 }
 
 #[test]
-fn serde_struct() {
+fn serde_ser_struct() {
     let context = Context::new().unwrap();
     // simple struct
     let value = SimpleStruct { a: 100, b: 101 };
@@ -159,7 +163,7 @@ fn serde_struct() {
 }
 
 #[test]
-fn serde_vector() {
+fn serde_ser_vector() {
     let context = Context::new().unwrap();
     // vector
     let value = vec![1, 2, 3, 4, 5];
@@ -169,7 +173,7 @@ fn serde_vector() {
 }
 
 #[test]
-fn serde_tuple() {
+fn serde_ser_tuple() {
     let context = Context::new().unwrap();
     // tuple
     let value = (123, 3.14, "hh");
@@ -178,13 +182,235 @@ fn serde_tuple() {
     assert_eq!(js_value.to_json_string(0).unwrap(), "[123,3.14,\"hh\"]");
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[test]
+fn serde_ser_map() {
+    let context = Context::new().unwrap();
+    // map
+    let mut value = std::collections::HashMap::new();
+    value.insert("a".to_string(), 1);
+    value.insert("b".to_string(), 2);
+    value.insert("c".to_string(), 3);
+    let js_value = to_js(context.context_raw(), &value).unwrap();
+
+    let json_str = js_value.to_json_string(0).unwrap();
+
+    // the order of keys is not stable, so we just check the content
+    assert!(json_str.contains("\"a\":1"));
+    assert!(json_str.contains("\"b\":2"));
+    assert!(json_str.contains("\"c\":3"));
+}
+
+fn parse_from_js<T: serde::de::DeserializeOwned>(value: Value) -> T {
+    let context = Context::new().unwrap();
+    // use our to_js function to convert rust value to js value
+    // now it is a js value in quickjs context
+    let js_value = to_js(context.context_raw(), &value).unwrap();
+
+    match from_js::<T>(context.context_raw(), &js_value) {
+        Ok(v) => {
+            return v;
+        }
+        Err(err) => {
+            panic!("{}", err);
+        }
+    }
+}
+
+fn parse_from_js_borrowed<'a, T: serde::de::Deserialize<'a>>(
+    context: *mut JSContext,
+    value: &'a OwnedJsValue,
+) -> T {
+    match from_js::<T>(context, value) {
+        Ok(v) => {
+            return v;
+        }
+        Err(err) => {
+            panic!("{}", err);
+        }
+    }
+}
+
+#[test]
+fn serde_de_bool() {
+    // generate a complex json value (rust format)
+    // for simplicity, we use serde_json::json! macro here,
+    // please note that it is still a rust format value.
+    let value = json!(true);
+    assert_eq!(parse_from_js::<bool>(value), true);
+}
+
+#[test]
+fn serde_de_unsigned_interger() {
+    let value = json!(1234);
+    assert_eq!(parse_from_js::<u32>(value), 1234);
+}
+
+#[test]
+fn serde_de_signed_interger() {
+    let value = json!(-1234);
+    assert_eq!(parse_from_js::<i32>(value), -1234);
+}
+
+#[test]
+fn serde_de_float() {
+    let value = json!(3.14159265);
+    assert_eq!(parse_from_js::<f64>(value), 3.14159265);
+}
+
+#[test]
+fn serde_de_option_none() {
+    let value = json!(None::<()>);
+    assert_eq!(parse_from_js::<Option<()>>(value), None::<()>);
+}
+
+#[test]
+fn serde_de_option_some_with_value() {
+    let value = json!(Some(true));
+    assert_eq!(parse_from_js::<Option<bool>>(value), Some(true));
+}
+
+// in json, Some(()) is the same as None
+#[test]
+fn serde_de_option_some() {
+    let value = json!(Some(()));
+    assert_eq!(parse_from_js::<Option<()>>(value), None);
+}
+
+#[test]
+fn serde_de_string() {
+    let value = json!("😄");
+    assert_eq!(parse_from_js::<String>(value), "😄");
+}
+
+#[test]
+fn serde_de_borrowed_str() {
+    let context = Context::new().unwrap();
+    let value = json!("😄");
+    let js_value = to_js(context.context_raw(), &value).unwrap();
+    assert_eq!(
+        parse_from_js_borrowed::<&str>(context.context_raw(), &js_value),
+        "😄"
+    );
+}
+
+#[test]
+fn serde_de_char() {
+    let value = json!("😄");
+    assert_eq!(parse_from_js::<char>(value), '😄');
+}
+
+#[test]
+fn serde_de_unit_struct() {
+    let value = json!(null);
+    assert_eq!(parse_from_js::<SimpleUnitStruct>(value), SimpleUnitStruct);
+}
+
+#[test]
+fn serde_de_array() {
+    let value = json!([1, 2, 3]);
+    assert_eq!(parse_from_js::<Vec<u8>>(value), vec![1, 2, 3]);
+}
+
+// #[test]
+// fn serde_de_borrow_bytes() {
+//     let value = json!([1, 2, 3]);
+//     assert_eq!(
+//         parse_from_js::<&[u8]>(value),
+//         vec![1, 2, 3]
+//     );
+// }
+
+#[test]
+fn serde_de_tuple_fixed_vec() {
+    let value = json!([1, 2, 3]);
+    assert_eq!(parse_from_js::<[u8; 3]>(value), [1, 2, 3]);
+}
+
+#[test]
+fn serde_de_tuple() {
+    let value = json!([100, 101]);
+    assert_eq!(parse_from_js::<(u32, u32)>(value), (100, 101));
+}
+
+#[test]
+fn serde_de_tuple_struct() {
+    let value = json!([100, 101]);
+    assert_eq!(
+        parse_from_js::<SimpleTupleStruct>(value),
+        SimpleTupleStruct(100, 101)
+    );
+}
+
+#[test]
+fn serde_de_newtype_struct() {
+    let value = json!(SimpleNewTypeStruct(123));
+    assert_eq!(
+        parse_from_js::<SimpleNewTypeStruct>(value),
+        SimpleNewTypeStruct(123)
+    );
+}
+
+#[test]
+fn serde_de_struct() {
+    let value = json!(SimpleStruct { a: 123, b: 456 });
+    assert_eq!(
+        parse_from_js::<SimpleStruct>(value),
+        SimpleStruct { a: 123, b: 456 }
+    );
+}
+
+#[test]
+fn serde_de_unit_variant() {
+    let value = json!(SimpleEnum::A);
+    assert_eq!(parse_from_js::<SimpleEnum>(value), SimpleEnum::A);
+}
+
+#[test]
+fn serde_de_newtype_variant_empty() {
+    let value = json!(SimpleEnum::B());
+    assert_eq!(parse_from_js::<SimpleEnum>(value), SimpleEnum::B());
+}
+
+#[test]
+fn serde_de_newtype_variant_tuple() {
+    let value = json!(SimpleEnum::D(false, 222));
+    assert_eq!(
+        parse_from_js::<SimpleEnum>(value),
+        SimpleEnum::D(false, 222)
+    );
+}
+
+#[test]
+fn serde_de_newtype_variant_struct() {
+    let value = json!(SimpleEnum::C {
+        a: 123,
+        foo: "哈哈".to_string()
+    });
+    assert_eq!(
+        parse_from_js::<SimpleEnum>(value),
+        SimpleEnum::C {
+            a: 123,
+            foo: "哈哈".to_string()
+        }
+    );
+}
+
+#[test]
+fn serde_de_newtype_variant() {
+    let value = json!(SimpleEnum::Foo("哈哈".to_string()));
+    assert_eq!(
+        parse_from_js::<SimpleEnum>(value),
+        SimpleEnum::Foo("哈哈".to_string())
+    );
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Eq)]
 struct SimpleUnitStruct;
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Eq)]
 struct SimpleNewTypeStruct(i32);
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Eq)]
 struct SimpleTupleStruct(i32, i32);
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Eq)]
 struct SimpleStruct {
     a: i32,
     b: i32,
@@ -192,7 +418,7 @@ struct SimpleStruct {
 
 type Bar = String;
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Eq)]
 enum SimpleEnum {
     A,
     B(),

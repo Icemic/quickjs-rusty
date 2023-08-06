@@ -460,11 +460,11 @@ pub(crate) fn deserialize_value(
                         let tag = unsafe { q::JS_ValueGetTag(timestamp_raw) };
                         let res = if tag == TAG_FLOAT64 {
                             let f = unsafe { q::JS_VALUE_GET_FLOAT64(timestamp_raw) } as i64;
-                            let datetime = chrono::Utc.timestamp_millis(f);
+                            let datetime = chrono::Utc.timestamp_millis_opt(f).unwrap();
                             Ok(JsValue::Date(datetime))
                         } else if tag == TAG_INT {
                             let f = unsafe { q::JS_VALUE_GET_INT(timestamp_raw) } as i64;
-                            let datetime = chrono::Utc.timestamp_millis(f);
+                            let datetime = chrono::Utc.timestamp_millis_opt(f).unwrap();
                             Ok(JsValue::Date(datetime))
                         } else {
                             Err(ValueError::Internal(
@@ -512,6 +512,39 @@ pub(crate) fn deserialize_value(
         x => Err(ValueError::Internal(format!(
             "Unhandled JS_TAG value: {}",
             x
+        ))),
+    }
+}
+
+pub(crate) fn deserialize_borrowed_str<'a>(
+    context: *mut q::JSContext,
+    value: &'a q::JSValue,
+) -> Result<&'a str, ValueError> {
+    let r = value;
+    let tag = unsafe { q::JS_ValueGetTag(*r) };
+
+    match tag {
+        TAG_STRING => {
+            let ptr = unsafe { q::JS_ToCStringLen2(context, std::ptr::null_mut(), *r, 0) };
+
+            if ptr.is_null() {
+                return Err(ValueError::Internal(
+                    "Could not convert string: got a null pointer".into(),
+                ));
+            }
+
+            let cstr = unsafe { std::ffi::CStr::from_ptr(ptr) };
+
+            let s = cstr.to_str().map_err(ValueError::InvalidString)?;
+
+            // Free the c string.
+            unsafe { q::JS_FreeCString(context, ptr) };
+
+            Ok(s)
+        }
+        _ => Err(ValueError::Internal(format!(
+            "Expected a string, got a {:?}",
+            tag
         ))),
     }
 }
