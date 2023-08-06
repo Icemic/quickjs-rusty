@@ -1,5 +1,20 @@
 # quick-js - Changelog
 
+# v0.4.0 - 2023-08-06
+
+* support serde
+
+# v0.3.0 - 2023-07-26
+
+* feat: add JsValue::Function enum, and JsFunction can be used as callback parameter or return
+
+# v0.2.0 - 2023-06-23
+
+* add methods to run module codes
+* fix: module loader thread safe problem
+* refactor: decoupling some methods or structs with ContextWrapper
+* fix: module loader exception handling
+
 # v0.1.0 - 2023-03-05
 
 * switch to quickjspp

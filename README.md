@@ -46,6 +46,7 @@ context.eval(r#"
 
 The crate supports the following features:
 
+- `serde`: _(default enabled)._ enable serde method `from_js` and `to_js` to transform between Rust types and js value in quickjs context. It should compatible with `serde_json` but not tested yet. See more on the [example](/examples/serde.rs).
 - `chrono`: chrono integration
   - adds a `JsValue::Date` variant that can be (de)serialized to/from a JS `Date`
 - `bigint`: arbitrary precision integer support via [num-bigint](https://github.com/rust-num/num-bigint)
