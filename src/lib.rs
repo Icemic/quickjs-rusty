@@ -40,7 +40,7 @@ mod value;
 use std::{convert::TryFrom, error, ffi::c_void, fmt};
 
 use bindings::{serialize_value, JSModuleLoaderFunc, JSModuleNormalizeFunc};
-use libquickjspp_sys::JSContext;
+pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
 
 pub use self::{
     bindings::*,
@@ -430,5 +430,18 @@ impl Context {
         callback: impl Callback<F> + 'static,
     ) -> Result<(), ExecutionError> {
         self.wrapper.add_callback(name, callback)
+    }
+
+    /// create a custom callback function
+    pub fn create_custom_callback(
+        &self,
+        callback: CustomCallback,
+    ) -> Result<JsFunction, ExecutionError> {
+        self.wrapper.create_custom_callback(callback)
+    }
+
+    ///
+    pub fn execute_pending_job(&self) -> Result<(), ExecutionError> {
+        self.wrapper.execute_pending_job()
     }
 }

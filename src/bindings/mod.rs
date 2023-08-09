@@ -1,5 +1,6 @@
 #![allow(missing_docs)]
 
+mod callback;
 mod compile;
 mod convert;
 mod droppable_value;
@@ -10,7 +11,8 @@ mod value;
 use std::{
     ffi::CString,
     os::raw::{c_int, c_void},
-    sync::Mutex,
+    ptr::null_mut,
+    sync::{Arc, Mutex},
 };
 
 use libquickjspp_sys as q;
@@ -23,6 +25,7 @@ use crate::{
 
 pub use value::*;
 
+pub use self::callback::*;
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 pub use self::utils::*;
 use self::{
@@ -115,6 +118,7 @@ unsafe extern "C" fn native_module_init(
 pub struct ContextWrapper {
     runtime: *mut q::JSRuntime,
     pub(crate) context: *mut q::JSContext,
+    pub(crate) loop_context: Arc<Mutex<*mut q::JSContext>>,
     /// Stores callback closures and quickjs data pointers.
     /// This array is write-only and only exists to ensure the lifetime of
     /// the closure.
@@ -159,6 +163,7 @@ impl ContextWrapper {
         let wrapper = Self {
             runtime,
             context,
+            loop_context: Arc::new(Mutex::new(null_mut())),
             callbacks: Mutex::new(Vec::new()),
         };
 
@@ -241,6 +246,24 @@ impl ContextWrapper {
         let global_ref = OwnedJsValue::new(self.context, global_raw);
         let global = global_ref.try_into_object()?;
         Ok(global)
+    }
+
+    /// Execute the pending job in the event loop.
+    pub fn execute_pending_job(&self) -> Result<(), ExecutionError> {
+        let ctx = &mut *self.loop_context.lock().unwrap();
+        unsafe {
+            loop {
+                let err = q::JS_ExecutePendingJob(self.runtime, ctx as *mut _);
+
+                if err <= 0 {
+                    if err < 0 {
+                        ensure_no_excpetion(*ctx)?
+                    }
+                    break;
+                }
+            }
+        }
+        Ok(())
     }
 
     /// If the given value is a promise, run the event loop until it is
@@ -450,39 +473,7 @@ impl ContextWrapper {
         self.resolve_value(ret)
     }
 
-    /// Helper for executing a callback closure.
-    fn exec_callback<F>(
-        context: *mut q::JSContext,
-        argc: c_int,
-        argv: *mut q::JSValue,
-        callback: &impl Callback<F>,
-    ) -> Result<q::JSValue, ExecutionError> {
-        let result = std::panic::catch_unwind(|| {
-            let arg_slice = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
-
-            let args = arg_slice
-                .iter()
-                .map(|raw| convert::deserialize_value(context, raw))
-                .collect::<Result<Vec<_>, _>>()?;
-
-            match callback.call(args) {
-                Ok(Ok(result)) => {
-                    let serialized = convert::serialize_value(context, result)?;
-                    Ok(serialized)
-                }
-                // TODO: better error reporting.
-                Ok(Err(e)) => Err(ExecutionError::Exception(JsValue::String(e))),
-                Err(e) => Err(e.into()),
-            }
-        });
-
-        match result {
-            Ok(r) => r,
-            Err(_e) => Err(ExecutionError::Internal("Callback panicked!".to_string())),
-        }
-    }
-
-    /// Add a global JS function that is backed by a Rust function or closure.
+    /// Create a wrapped callback function.
     pub fn create_callback<'a, F>(
         &self,
         callback: impl Callback<F> + 'static,
@@ -491,7 +482,7 @@ impl ContextWrapper {
 
         let context = self.context;
         let wrapper = move |argc: c_int, argv: *mut q::JSValue| -> q::JSValue {
-            match Self::exec_callback(context, argc, argv, &callback) {
+            match exec_callback(context, argc, argv, &callback) {
                 Ok(value) => value,
                 // TODO: better error reporting.
                 Err(e) => {
@@ -523,6 +514,7 @@ impl ContextWrapper {
         Ok(f)
     }
 
+    /// Add a global JS function that is backed by a Rust function or closure.
     pub fn add_callback<'a, F>(
         &self,
         name: &str,
@@ -532,5 +524,64 @@ impl ContextWrapper {
         let global = self.global()?;
         global.set_property(name, cfunc.into_value())?;
         Ok(())
+    }
+
+    /// Create a raw callback function
+    pub fn create_custom_callback(
+        &self,
+        callback: CustomCallback,
+    ) -> Result<JsFunction, ExecutionError> {
+        let context = self.context;
+        let wrapper = move |argc: c_int, argv: *mut q::JSValue| -> q::JSValue {
+            let result = std::panic::catch_unwind(|| {
+                let arg_slice = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
+                match callback(context, arg_slice) {
+                    Ok(Some(value)) => value,
+                    Ok(None) => unsafe { q::JS_NewSpecialValue(TAG_UNDEFINED, 0) },
+                    // TODO: better error reporting.
+                    Err(e) => {
+                        // TODO: should create an Error type.
+                        let js_exception_value = e.to_string().into();
+                        let js_exception =
+                            convert::serialize_value(context, js_exception_value).unwrap();
+                        unsafe {
+                            q::JS_Throw(context, js_exception);
+                        }
+
+                        unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
+                    }
+                }
+            });
+
+            match result {
+                Ok(v) => v,
+                Err(_) => {
+                    // TODO: should create an Error type.
+                    let js_exception_value =
+                        ExecutionError::Internal("Callback panicked!".to_string())
+                            .to_string()
+                            .into();
+                    let js_exception =
+                        convert::serialize_value(context, js_exception_value).unwrap();
+                    unsafe {
+                        q::JS_Throw(context, js_exception);
+                    }
+
+                    unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
+                }
+            }
+        };
+
+        let (pair, trampoline) = unsafe { build_closure_trampoline(wrapper) };
+        let data = (&*pair.1) as *const q::JSValue as *mut q::JSValue;
+        self.callbacks.lock().unwrap().push(pair);
+
+        let obj = unsafe {
+            let f = q::JS_NewCFunctionData(self.context, trampoline, 0, 0, 1, data);
+            OwnedJsValue::new(self.context, f)
+        };
+
+        let f = obj.try_into_function()?;
+        Ok(f)
     }
 }

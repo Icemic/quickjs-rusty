@@ -211,12 +211,15 @@ pub struct OwnedJsValue {
 
 impl OwnedJsValue {
     #[inline]
-    pub(crate) fn context(&self) -> *mut q::JSContext {
+    pub fn context(&self) -> *mut q::JSContext {
         self.context
     }
 
+    /// Create a new `OwnedJsValue` from a `JsValue`.
+    /// This will **NOT** increase the ref count of the underlying value. So
+    /// you have to manage memory yourself. Be careful when using this.
     #[inline]
-    pub(crate) fn new(context: *mut q::JSContext, value: q::JSValue) -> Self {
+    pub fn new(context: *mut q::JSContext, value: q::JSValue) -> Self {
         Self { context, value }
     }
 
@@ -243,7 +246,7 @@ impl OwnedJsValue {
     /// Extract the underlying JSValue.
     ///
     /// Unsafe because the caller must ensure memory management. (eg JS_FreeValue)
-    pub(super) unsafe fn extract(self) -> q::JSValue {
+    pub unsafe fn extract(self) -> q::JSValue {
         let v = self.value;
         std::mem::forget(self);
         v
@@ -335,47 +338,55 @@ impl OwnedJsValue {
         to_value(self.context, &self.value)
     }
 
-    pub(crate) fn to_bool(&self) -> Result<bool, ValueError> {
+    /// Convert this value into a bool
+    pub fn to_bool(&self) -> Result<bool, ValueError> {
         match self.to_value()? {
             JsValue::Bool(b) => Ok(b),
             _ => Err(ValueError::UnexpectedType),
         }
     }
 
-    pub(crate) fn to_int(&self) -> Result<i32, ValueError> {
+    /// Convert this value into an i32
+    pub fn to_int(&self) -> Result<i32, ValueError> {
         match self.to_value()? {
             JsValue::Int(v) => Ok(v),
             _ => Err(ValueError::UnexpectedType),
         }
     }
 
-    pub(crate) fn to_float(&self) -> Result<f64, ValueError> {
+    /// Convert this value into an f64
+    pub fn to_float(&self) -> Result<f64, ValueError> {
         match self.to_value()? {
             JsValue::Float(v) => Ok(v),
             _ => Err(ValueError::UnexpectedType),
         }
     }
 
-    pub(crate) fn to_string(&self) -> Result<String, ValueError> {
+    /// Convert this value into a string
+    pub fn to_string(&self) -> Result<String, ValueError> {
         match self.to_value()? {
             JsValue::String(s) => Ok(s),
             _ => Err(ValueError::UnexpectedType),
         }
     }
 
-    pub(crate) fn try_into_object(self) -> Result<OwnedJsObject, ValueError> {
+    /// Try convert this value into a object
+    pub fn try_into_object(self) -> Result<OwnedJsObject, ValueError> {
         OwnedJsObject::try_from_value(self)
     }
 
-    pub(crate) fn try_into_function(self) -> Result<JsFunction, ValueError> {
+    /// Try convert this value into a function
+    pub fn try_into_function(self) -> Result<JsFunction, ValueError> {
         JsFunction::try_from_value(self)
     }
 
-    pub(crate) fn try_into_compiled_function(self) -> Result<JsCompiledFunction, ValueError> {
+    /// Try convert this value into a compiled function
+    pub fn try_into_compiled_function(self) -> Result<JsCompiledFunction, ValueError> {
         JsCompiledFunction::try_from_value(self)
     }
 
-    pub(crate) fn try_into_module(self) -> Result<JsModule, ValueError> {
+    /// Try convert this value into a module
+    pub fn try_into_module(self) -> Result<JsModule, ValueError> {
         JsModule::try_from_value(self)
     }
 
@@ -548,6 +559,17 @@ impl OwnedJsArray {
                 Ok(())
             }
         }
+    }
+
+    pub fn raw_elements(&self) -> Vec<q::JSValue> {
+        let mut ret = vec![];
+        let length = self.length() as u32;
+        for i in 0..length {
+            let value_raw =
+                unsafe { q::JS_GetPropertyUint32(self.value.context, self.value.value, i) };
+            ret.push(value_raw);
+        }
+        ret
     }
 }
 
