@@ -244,7 +244,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        if self.get_current().is_null() {
+        if self.get_current().is_null() || self.get_current().is_undefined() {
             visitor.visit_none()
         } else {
             visitor.visit_some(self)
