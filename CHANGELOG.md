@@ -1,5 +1,11 @@
 # quick-js - Changelog
 
+# v0.4.1 - 2023-08-09
+
+* fix: remove `OwnedValueRef` struct, which duplicate with OwnedJsValue
+* fix: serde `deserialize_any` problem
+* feat: expose more methods and support custom raw CFunction
+
 # v0.4.0 - 2023-08-06
 
 * support serde
