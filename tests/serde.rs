@@ -77,6 +77,16 @@ fn serde_ser_null_unit_struct() {
 }
 
 #[test]
+fn serde_ser_some() {
+    let context = Context::new().unwrap();
+    // null (None)
+    let value: Option<bool> = Some(true);
+    let js_value = to_js(context.context_raw(), &value).unwrap();
+
+    assert_eq!(js_value.to_json_string(0).unwrap(), "true");
+}
+
+#[test]
 fn serde_ser_unit_variant() {
     let context = Context::new().unwrap();
     // unit variant
@@ -267,6 +277,12 @@ fn serde_de_option_none() {
 fn serde_de_option_some_with_value() {
     let value = json!(Some(true));
     assert_eq!(parse_from_js::<Option<bool>>(value), Some(true));
+}
+
+#[test]
+fn serde_de_option_some_with_value2() {
+    let value = json!(Some(123));
+    assert_eq!(parse_from_js::<Option<i32>>(value), Some(123));
 }
 
 // in json, Some(()) is the same as None
