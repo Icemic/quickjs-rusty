@@ -151,12 +151,26 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         let current = self.get_current();
 
         match current.tag() {
+            crate::JsTag::Undefined => visitor.visit_unit(),
             crate::JsTag::Int => visitor.visit_i32(current.to_int()?),
             crate::JsTag::Bool => visitor.visit_bool(current.to_bool()?),
             crate::JsTag::Null => visitor.visit_unit(),
             crate::JsTag::String => visitor.visit_string(current.to_string()?),
             crate::JsTag::Float64 => visitor.visit_f64(current.to_float()?),
+            crate::JsTag::Object => {
+                if current.is_array() {
+                    self.deserialize_seq(visitor)
+                } else {
+                    self.deserialize_map(visitor)
+                }
+            }
+            crate::JsTag::Symbol => todo!("unimplemented deserialize_any for Symbol"),
             _ => {
+                #[cfg(debug_assertions)]
+                {
+                    println!("current type: {:?}", current.tag());
+                    println!("current: {}", current.to_json_string(0).unwrap());
+                }
                 unreachable!("unreachable tag: {:?}", current.tag());
             }
         }
