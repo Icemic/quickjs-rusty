@@ -22,6 +22,7 @@ pub enum JsValue {
     Array(Vec<JsValue>),
     Object(HashMap<String, JsValue>),
     Function(JsFunction),
+    Symbol,
     /// chrono::Datetime<Utc> / JS Date integration.
     /// Only available with the optional `chrono` feature.
     #[cfg(feature = "chrono")]

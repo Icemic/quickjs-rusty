@@ -7,7 +7,8 @@ use crate::{JsValue, OwnedJsValue, ValueError};
 use super::{droppable_value::DroppableValue, make_cstring};
 
 use super::{
-    TAG_BOOL, TAG_EXCEPTION, TAG_FLOAT64, TAG_INT, TAG_NULL, TAG_OBJECT, TAG_STRING, TAG_UNDEFINED,
+    TAG_BOOL, TAG_EXCEPTION, TAG_FLOAT64, TAG_INT, TAG_NULL, TAG_OBJECT, TAG_STRING, TAG_SYMBOL,
+    TAG_UNDEFINED,
 };
 
 #[cfg(feature = "bigint")]
@@ -205,6 +206,7 @@ pub(crate) fn serialize_value(
             }
             value
         }
+        JsValue::Symbol => todo!("create symbol not implemented"),
         #[cfg(feature = "bigint")]
         JsValue::BigInt(int) => match int.inner {
             BigIntOrI64::Int(int) => unsafe { q::JS_NewBigInt64(context, int) },
@@ -480,6 +482,7 @@ pub(crate) fn deserialize_value(
                 deserialize_object(context, r)
             }
         }
+        TAG_SYMBOL => Ok(JsValue::Symbol),
         // BigInt
         #[cfg(feature = "bigint")]
         TAG_BIG_INT => {

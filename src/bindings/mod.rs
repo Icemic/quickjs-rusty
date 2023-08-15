@@ -46,6 +46,7 @@ const TAG_NULL: u32 = q::JS_TAG_NULL;
 const TAG_UNDEFINED: u32 = q::JS_TAG_UNDEFINED;
 const TAG_EXCEPTION: u32 = q::JS_TAG_EXCEPTION;
 const TAG_FLOAT64: u32 = q::JS_TAG_FLOAT64;
+const TAG_SYMBOL: u32 = q::JS_TAG_SYMBOL;
 
 /// Helper for creating CStrings.
 fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
