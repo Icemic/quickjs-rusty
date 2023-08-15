@@ -84,10 +84,19 @@ impl<'de> Deserializer<'de> {
         }
     }
 
+    fn guard_circular_reference(&self, current: &OwnedJsValue) -> Result<()> {
+        if let Some(_) = self.paths.iter().find(|(p, _, _)| p == current) {
+            Err(Error::CircularReference)
+        } else {
+            Ok(())
+        }
+    }
+
     fn enter_array(&mut self) -> Result<()> {
         let current = self.get_current().clone();
 
         if current.is_array() {
+            self.guard_circular_reference(&current)?;
             self.paths.push((current, 0, None));
             Ok(())
         } else {
@@ -100,6 +109,7 @@ impl<'de> Deserializer<'de> {
 
         if current.is_object() {
             let obj = OwnedJsObject::try_from_value(current.clone()).unwrap();
+            self.guard_circular_reference(&current)?;
             self.paths.push((current, 0, Some(obj.properties_iter()?)));
             Ok(())
         } else {

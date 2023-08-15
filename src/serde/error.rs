@@ -13,6 +13,9 @@ pub enum Error {
     #[error("{0}")]
     Message(String),
 
+    #[error("circular reference detected")]
+    CircularReference,
+
     #[error("end of file")]
     Eof,
     #[error("invalid syntax")]
