@@ -164,15 +164,22 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
                     self.deserialize_map(visitor)
                 }
             }
-            crate::JsTag::Symbol => todo!("unimplemented deserialize_any for Symbol"),
-            _ => {
-                #[cfg(debug_assertions)]
-                {
-                    println!("current type: {:?}", current.tag());
-                    println!("current: {}", current.to_json_string(0).unwrap());
-                }
-                unreachable!("unreachable tag: {:?}", current.tag());
-            }
+            crate::JsTag::Symbol => visitor.visit_unit(),
+            crate::JsTag::Module => visitor.visit_unit(),
+            crate::JsTag::BigFloat => todo!("unimplemented deserialize_any for BigFloat"),
+            crate::JsTag::Exception => self.deserialize_map(visitor),
+            crate::JsTag::BigDecimal => todo!("unimplemented deserialize_any for BigDecimal"),
+            crate::JsTag::CatchOffset => visitor.visit_unit(),
+            crate::JsTag::Uninitialized => visitor.visit_unit(),
+            crate::JsTag::FunctionBytecode => visitor.visit_unit(),
+            // _ => {
+            //     #[cfg(debug_assertions)]
+            //     {
+            //         println!("current type: {:?}", current.tag());
+            //         println!("current: {}", current.to_json_string(0).unwrap());
+            //     }
+            //     unreachable!("unreachable tag: {:?}", current.tag());
+            // }
         }
     }
 
