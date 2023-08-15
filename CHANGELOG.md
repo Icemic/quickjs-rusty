@@ -1,5 +1,11 @@
 # quick-js - Changelog
 
+# v0.4.3 - 2023-08-16
+
+* feat: add symbol support in JsValue enums
+* fix: serde cannot handles symbol
+* fix: serde checks circular reference on deserialize
+
 # v0.4.2 - 2023-08-09
 
 * fix: Deserializer treat `undefined` as `Some` wrongly
