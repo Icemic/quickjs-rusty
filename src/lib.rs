@@ -440,6 +440,48 @@ impl Context {
         self.wrapper.create_custom_callback(callback)
     }
 
+    /// Create a JS function that is backed by a Rust function or closure.
+    /// Can be used to create a function and add it to an object.
+    ///
+    /// The callback must satisfy several requirements:
+    /// * accepts 0 - 5 arguments
+    /// * each argument must be convertible from a JsValue
+    /// * must return a value
+    /// * the return value must either:
+    ///   - be convertible to JsValue
+    ///   - be a Result<T, E> where T is convertible to JsValue
+    ///     if Err(e) is returned, a Javascript exception will be raised
+    ///
+    /// ```rust
+    /// use quickjspp::{Context, JsValue};
+    /// use std::collections::HashMap;
+    /// 
+    /// let context = Context::new().unwrap();
+    /// 
+    /// // Register an object.
+    /// let mut obj = HashMap::<String, JsValue>::new();
+
+    /// // insert add function into the object.
+    /// obj.insert(
+    ///     "add".to_string(),
+    ///     context
+    ///         .create_callback(|a: i32, b: i32| a + b)
+    ///         .unwrap()
+    ///         .into(),
+    /// );
+    /// // insert the myObj to global.
+    /// context.set_global("myObj", obj).unwrap();
+    /// // Now we try out the 'myObj.add' function via eval.    
+    /// let output = context.eval_as::<i32>("myObj.add( 3 , 4 ) ").unwrap();
+    /// assert_eq!(output, 7);
+    /// ``` 
+    pub fn create_callback<F>(
+        &self,
+        callback: impl Callback<F> + 'static,
+    ) -> Result<JsFunction, ExecutionError> {
+        self.wrapper.create_callback(callback)
+    }
+
     ///
     pub fn execute_pending_job(&self) -> Result<(), ExecutionError> {
         self.wrapper.execute_pending_job()
