@@ -4,4 +4,4 @@ pre-release-replacements = [
   {file="README.md", search="quickjspp = .*", replace="{{crate_name}} = \"{{version}}\""},
 ]
 
-tag-prefix = "quick-js-"
+tag-prefix = "quickjspp-"

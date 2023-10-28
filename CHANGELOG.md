@@ -1,5 +1,7 @@
 # quick-js - Changelog
 
+**ATTENTION: Latest changelog now maintained at Github release page**
+
 # v0.4.3 - 2023-08-16
 
 * feat: add symbol support in JsValue enums
