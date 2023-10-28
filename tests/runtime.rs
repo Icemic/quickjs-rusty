@@ -424,6 +424,29 @@ fn memory_limit_exceeded() {
     );
 }
 
+
+#[test]
+fn test_create_callback() {
+    let context = Context::new().unwrap();
+
+    // Register an object.
+    let mut obj = HashMap::<String, JsValue>::new();
+
+    // insert add function into the object.
+    obj.insert(
+        "add".to_string(),
+        context
+            .create_callback(|a: i32, b: i32| a + b)
+            .unwrap()
+            .into(),
+    );
+    context.set_global("myObj", obj).unwrap();
+
+    let output = context.eval_as::<i32>("myObj.add( 3 , 4 ) ").unwrap();
+
+    assert_eq!(output, 7);
+}
+
 #[test]
 fn context_reset() {
     let c = Context::new().unwrap();
