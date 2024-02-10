@@ -538,7 +538,11 @@ pub(crate) fn deserialize_borrowed_str<'a>(
 
             let cstr = unsafe { std::ffi::CStr::from_ptr(ptr) };
 
-            let s = cstr.to_str().map_err(ValueError::InvalidString)?;
+            let s = cstr
+                .to_str()
+                .map_err(ValueError::InvalidString)?
+                .to_string()
+                .leak();
 
             // Free the c string.
             unsafe { q::JS_FreeCString(context, ptr) };
