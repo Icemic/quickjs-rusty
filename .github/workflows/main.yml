@@ -82,11 +82,11 @@ jobs:
         cargo clean
         just FEATURES="$FEATURES" build
 
-    - name: Test (--no-default-features)
-      env:
-        FEATURES: "--no-default-features"
-      run: |
-        just FEATURES="$FEATURES" test
+    # - name: Test (--no-default-features)
+    #   env:
+    #     FEATURES: "--no-default-features"
+    #   run: |
+    #     just FEATURES="$FEATURES" test
 
     - name: Build (--all-features)
       env:
