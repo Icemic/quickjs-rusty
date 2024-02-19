@@ -17,10 +17,10 @@ features = ["chrono", "bigint", "log"]
 bigint = ["num-bigint", "num-traits", "libquickjspp-sys/patched"]
 default = ["chrono", "serde"]
 patched = ["libquickjspp-sys/patched"]
-serde = ["anyhow", "thiserror", "dep:serde"]
+serde = ["thiserror", "dep:serde"]
 
 [dependencies]
-anyhow = {version = "1", optional = true}
+anyhow = {version = "1"}
 chrono = {version = "0.4.7", optional = true}
 libquickjspp-sys = {version = "0.1", path = "./libquickjs-sys"}
 log = {version = "0.4.8", optional = true}
