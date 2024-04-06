@@ -4,7 +4,6 @@ mod callback;
 mod compile;
 mod droppable_value;
 mod module;
-mod utils;
 mod value;
 
 use std::{
@@ -19,34 +18,16 @@ use libquickjspp_sys as q;
 use crate::{
     callback::{Arguments, Callback},
     console::ConsoleBackend,
-    utils::create_string,
+    utils::{create_string, ensure_no_excpetion, get_exception},
     ContextError, ExecutionError, ValueError,
 };
 
 pub use value::*;
 
 pub use self::callback::*;
+use self::module::{js_module_loader, js_module_normalize, ModuleLoader};
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
-use self::{
-    module::{js_module_loader, js_module_normalize, ModuleLoader},
-    utils::{ensure_no_excpetion, get_exception},
-};
 pub use droppable_value::DroppableValue;
-
-// JS_TAG_* constants from quickjs.
-// For some reason bindgen does not pick them up.
-#[cfg(feature = "bigint")]
-const TAG_BIG_INT: u32 = q::JS_TAG_BIG_INT;
-const TAG_STRING: u32 = q::JS_TAG_STRING;
-const TAG_FUNCTION_BYTECODE: u32 = q::JS_TAG_FUNCTION_BYTECODE;
-const TAG_OBJECT: u32 = q::JS_TAG_OBJECT;
-const TAG_INT: u32 = q::JS_TAG_INT;
-const TAG_BOOL: u32 = q::JS_TAG_BOOL;
-const TAG_NULL: u32 = q::JS_TAG_NULL;
-const TAG_UNDEFINED: u32 = q::JS_TAG_UNDEFINED;
-const TAG_EXCEPTION: u32 = q::JS_TAG_EXCEPTION;
-const TAG_FLOAT64: u32 = q::JS_TAG_FLOAT64;
-const TAG_SYMBOL: u32 = q::JS_TAG_SYMBOL;
 
 /// Helper for creating CStrings.
 fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
@@ -87,7 +68,7 @@ where
     let boxed_f = Box::new(closure);
 
     let data = Box::new(q::JS_NewPointer(
-        TAG_NULL,
+        q::JS_TAG_NULL,
         (&*boxed_f) as *const F as *mut c_void,
     ));
 
@@ -498,7 +479,7 @@ impl ContextWrapper {
                         q::JS_Throw(context, js_exception_value);
                     }
 
-                    unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
+                    unsafe { q::JS_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
                 }
             }
         };
@@ -539,7 +520,7 @@ impl ContextWrapper {
                 let arg_slice = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
                 match callback(context, arg_slice) {
                     Ok(Some(value)) => value,
-                    Ok(None) => unsafe { q::JS_NewSpecialValue(TAG_UNDEFINED, 0) },
+                    Ok(None) => unsafe { q::JS_NewSpecialValue(q::JS_TAG_UNDEFINED, 0) },
                     // TODO: better error reporting.
                     Err(e) => {
                         // TODO: should create an Error type.
@@ -550,7 +531,7 @@ impl ContextWrapper {
                             q::JS_Throw(context, js_exception_value);
                         }
 
-                        unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
+                        unsafe { q::JS_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
                     }
                 }
             });
@@ -565,7 +546,7 @@ impl ContextWrapper {
                         q::JS_Throw(context, js_exception_value);
                     }
 
-                    unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
+                    unsafe { q::JS_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
                 }
             }
         };

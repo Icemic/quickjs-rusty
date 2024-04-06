@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -17,9 +18,7 @@ use crate::utils::{
 };
 use crate::{ExecutionError, ValueError};
 
-// use super::utils::to_value;
-use super::{make_cstring, TAG_EXCEPTION, TAG_NULL, TAG_UNDEFINED};
-use std::convert::TryFrom;
+use super::make_cstring;
 
 #[repr(u32)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -211,13 +210,6 @@ impl Clone for OwnedJsAtom {
 /// OwnedJsValue wraps a Javascript value owned by the QuickJs runtime.
 ///
 /// Guarantees cleanup of resources by dropping the value from the runtime.
-///
-/// ### Comparison to [`crate::JsValue`]:
-///
-/// `JsValue` is a native Rust value that can be converted to QuickJs native
-/// types. `OwnedJsValue`, in contrast, owns the underlying QuickJs runtime
-/// value directly.
-// TODO: provide usage docs.
 #[derive(PartialEq)]
 pub struct OwnedJsValue {
     context: *mut q::JSContext,
@@ -532,7 +524,7 @@ impl OwnedJsValue {
 
     /// Call the Javascript `JSON.stringify()` method on this value.
     pub fn to_json_string(&self, space: u8) -> Result<String, ExecutionError> {
-        let replacer = unsafe { q::JS_NewSpecialValue(TAG_NULL, 0) };
+        let replacer = unsafe { q::JS_NewSpecialValue(q::JS_TAG_NULL, 0) };
         let space = unsafe { q::JS_NewInt32(self.context, space as i32) };
         let raw = unsafe { q::JS_JSONStringify(self.context, self.value, replacer, space) };
 
@@ -811,9 +803,9 @@ impl OwnedJsArray {
         let value_raw =
             unsafe { q::JS_GetPropertyUint32(self.value.context, self.value.value, index) };
         let tag = unsafe { q::JS_ValueGetTag(value_raw) };
-        if tag == TAG_EXCEPTION {
+        if tag == q::JS_TAG_EXCEPTION {
             return Err(ExecutionError::Internal("Could not build array".into()));
-        } else if tag == TAG_UNDEFINED {
+        } else if tag == q::JS_TAG_UNDEFINED {
             return Ok(None);
         }
 
@@ -1045,7 +1037,7 @@ impl Iterator for OwnedJsPropertyIterator {
         let value = if is_key {
             let pair_key = unsafe { q::JS_AtomToString(self.context, (*prop).atom) };
             let tag = unsafe { q::JS_ValueGetTag(pair_key) };
-            if tag == TAG_EXCEPTION {
+            if tag == q::JS_TAG_EXCEPTION {
                 return Some(Err(ExecutionError::Internal(
                     "Could not get object property name".into(),
                 )));
@@ -1063,7 +1055,7 @@ impl Iterator for OwnedJsPropertyIterator {
                 )
             };
             let tag = unsafe { q::JS_ValueGetTag(pair_value) };
-            if tag == TAG_EXCEPTION {
+            if tag == q::JS_TAG_EXCEPTION {
                 return Some(Err(ExecutionError::Internal(
                     "Could not get object property".into(),
                 )));

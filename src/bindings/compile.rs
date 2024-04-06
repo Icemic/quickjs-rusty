@@ -1,11 +1,12 @@
 //! Utils to compile script to bytecode and run script from bytecode
 
-use crate::bindings::utils::get_exception;
-use crate::ExecutionError;
-use libquickjspp_sys as q;
 use std::os::raw::c_void;
 
-use super::utils::ensure_no_excpetion;
+use libquickjspp_sys as q;
+
+use crate::utils::{ensure_no_excpetion, get_exception};
+use crate::ExecutionError;
+
 use super::{make_cstring, value::JsCompiledFunction, ContextWrapper, OwnedJsValue};
 
 /// compile a script, will result in a JSValueRef with tag JS_TAG_FUNCTION_BYTECODE or JS_TAG_MODULE.
@@ -130,7 +131,6 @@ pub fn from_bytecode(
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crate::JsValue;
 
     #[test]
     fn test_compile_function() {
