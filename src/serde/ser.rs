@@ -1,12 +1,13 @@
-use std::collections::HashMap;
-
 use libquickjspp_sys::{JSContext, JSValue};
 use serde::{ser, Serialize};
 
-use crate::bindings::{serialize_raw, serialize_value};
-use crate::{JsValue, OwnedJsArray, OwnedJsObject, OwnedJsValue};
+use crate::bindings::{OwnedJsArray, OwnedJsObject, OwnedJsValue};
 
 use super::error::{Error, Result};
+use super::utils::{
+    create_bool, create_empty_array, create_empty_object, create_float, create_int, create_null,
+    create_string, create_undefined, own_raw_value,
+};
 
 /// A structure that serializes Rust values into JS values.
 pub struct Serializer {
@@ -23,7 +24,7 @@ pub fn to_js<T>(context: *mut JSContext, value: &T) -> Result<OwnedJsValue>
 where
     T: Serialize,
 {
-    let root = serialize_value(context, JsValue::Undefined).unwrap();
+    let root = own_raw_value(context, create_undefined());
     let mut serializer = Serializer {
         context,
         root,
@@ -82,7 +83,7 @@ impl Serializer {
 
     #[inline]
     pub(self) fn push_object(&mut self) -> Result<()> {
-        let value = serialize_raw(self.context, JsValue::Object(HashMap::default())).unwrap();
+        let value = create_empty_object(self.context).unwrap();
         self.set_node_value(value)?;
 
         if let Some(current) = self.current.take() {
@@ -96,7 +97,7 @@ impl Serializer {
 
     #[inline]
     pub(self) fn push_array(&mut self) -> Result<()> {
-        let value = serialize_raw(self.context, JsValue::Array(vec![])).unwrap();
+        let value = create_empty_array(self.context).unwrap();
         self.set_node_value(value)?;
 
         if let Some(current) = self.current.take() {
@@ -143,7 +144,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // of the primitive types of the data model and map it to JSON by appending
     // into the output string.
     fn serialize_bool(self, v: bool) -> Result<()> {
-        let value = serialize_raw(self.context, JsValue::Bool(v)).unwrap();
+        let value = create_bool(self.context, v);
         self.set_node_value(value)
     }
 
@@ -166,7 +167,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // Not particularly efficient but this is example code anyway. A more
     // performant approach would be to use the `itoa` crate.
     fn serialize_i64(self, v: i64) -> Result<()> {
-        let value = serialize_raw(self.context, JsValue::Int(v as i32)).unwrap();
+        let value = create_int(self.context, v as i32);
         self.set_node_value(value)
     }
 
@@ -183,7 +184,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_u64(self, v: u64) -> Result<()> {
-        let value = serialize_raw(self.context, JsValue::Int(v as i32)).unwrap();
+        let value = create_int(self.context, v as i32);
         self.set_node_value(value)
     }
 
@@ -192,7 +193,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_f64(self, v: f64) -> Result<()> {
-        let value = serialize_raw(self.context, JsValue::Float(v)).unwrap();
+        let value = create_float(self.context, v);
         self.set_node_value(value)
     }
 
@@ -211,7 +212,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
             self.current_is_key = false;
             Ok(())
         } else {
-            let value = serialize_raw(self.context, JsValue::String(v.to_string())).unwrap();
+            let value = create_string(self.context, v).unwrap();
             self.set_node_value(value)
         }
     }
@@ -248,7 +249,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // In Serde, unit means an anonymous value containing no data. Map this to
     // JSON as `null`.
     fn serialize_unit(self) -> Result<()> {
-        let value = serialize_raw(self.context, JsValue::Null).unwrap();
+        let value = create_null();
         self.set_node_value(value)
     }
 
