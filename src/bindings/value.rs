@@ -3,12 +3,14 @@ use std::convert::TryInto;
 use std::fmt::Debug;
 use std::hash::Hash;
 
+#[cfg(feature = "chrono")]
 use chrono::{DateTime, Utc};
 use libquickjspp_sys as q;
 
 use crate::utils::{
-    add_array_element, add_object_property, create_bool, create_date, create_empty_array,
-    create_empty_object, create_float, create_function, create_int, create_null, create_string,
+    add_array_element, add_object_property, create_bigint, create_bool, create_date,
+    create_empty_array, create_empty_object, create_float, create_function, create_int,
+    create_null, create_string,
 };
 use crate::{ExecutionError, ValueError};
 
@@ -458,6 +460,39 @@ impl OwnedJsValue {
         }
     }
 
+    #[cfg(feature = "bigint")]
+    pub fn to_bigint(&self) -> Result<crate::BigInt, ValueError> {
+        use crate::bigint::BigIntOrI64;
+        use crate::BigInt;
+
+        let mut int: i64 = 0;
+        let ret = unsafe { q::JS_ToBigInt64(self.context, &mut int, self.value) };
+        if ret == 0 {
+            Ok(BigInt {
+                inner: BigIntOrI64::Int(int),
+            })
+        } else {
+            let ptr =
+                unsafe { q::JS_ToCStringLen2(self.context, std::ptr::null_mut(), self.value, 0) };
+
+            if ptr.is_null() {
+                return Err(ValueError::Internal(
+                    "Could not convert BigInt to string: got a null pointer".into(),
+                ));
+            }
+
+            let cstr = unsafe { std::ffi::CStr::from_ptr(ptr) };
+            let bigint = num_bigint::BigInt::parse_bytes(cstr.to_bytes(), 10).unwrap();
+
+            // Free the c string.
+            unsafe { q::JS_FreeCString(self.context, ptr) };
+
+            Ok(BigInt {
+                inner: BigIntOrI64::BigInt(bigint),
+            })
+        }
+    }
+
     /// Try convert this value into a function
     pub fn try_into_function(self) -> Result<JsFunction, ValueError> {
         JsFunction::try_from_value(self)
@@ -587,11 +622,81 @@ impl TryFrom<OwnedJsValue> for String {
     }
 }
 
+#[cfg(feature = "chrono")]
 impl TryFrom<OwnedJsValue> for DateTime<Utc> {
     type Error = ValueError;
 
     fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
         value.to_date()
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl TryFrom<OwnedJsValue> for crate::BigInt {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_bigint()
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl TryFrom<OwnedJsValue> for i64 {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_bigint().map(|v| v.as_i64().unwrap())
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl TryFrom<OwnedJsValue> for u64 {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        use num_traits::ToPrimitive;
+        let bigint = value.to_bigint()?;
+        bigint
+            .into_bigint()
+            .to_u64()
+            .ok_or(ValueError::BigIntOverflow)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl TryFrom<OwnedJsValue> for i128 {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        use num_traits::ToPrimitive;
+        let bigint = value.to_bigint()?;
+        bigint
+            .into_bigint()
+            .to_i128()
+            .ok_or(ValueError::BigIntOverflow)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl TryFrom<OwnedJsValue> for u128 {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        use num_traits::ToPrimitive;
+        let bigint = value.to_bigint()?;
+        bigint
+            .into_bigint()
+            .to_u128()
+            .ok_or(ValueError::BigIntOverflow)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl TryFrom<OwnedJsValue> for num_bigint::BigInt {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_bigint().map(|v| v.into_bigint())
     }
 }
 
@@ -1165,9 +1270,61 @@ impl PrimitiveToOwnedJsValue for String {
     }
 }
 
+#[cfg(feature = "chrono")]
 impl PrimitiveToOwnedJsValue for DateTime<Utc> {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_date(context, self).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl PrimitiveToOwnedJsValue for crate::BigInt {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_bigint(context, self).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl PrimitiveToOwnedJsValue for num_bigint::BigInt {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_bigint(context, self.into()).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl PrimitiveToOwnedJsValue for i64 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_bigint(context, self.into()).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl PrimitiveToOwnedJsValue for u64 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let bigint: num_bigint::BigInt = self.into();
+        let val = create_bigint(context, bigint.into()).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl PrimitiveToOwnedJsValue for i128 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let bigint: num_bigint::BigInt = self.into();
+        let val = create_bigint(context, bigint.into()).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+#[cfg(feature = "bigint")]
+impl PrimitiveToOwnedJsValue for u128 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let bigint: num_bigint::BigInt = self.into();
+        let val = create_bigint(context, bigint.into()).unwrap();
         OwnedJsValue::new(context, val)
     }
 }

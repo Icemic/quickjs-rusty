@@ -53,6 +53,9 @@ pub enum Error {
     #[error("trailing characters")]
     TrailingCharacters,
 
+    #[error("big int overflow")]
+    BigIntOverflow,
+
     /// transparent enum value for [ValueError].
     #[error(transparent)]
     ValueError(#[from] ValueError),

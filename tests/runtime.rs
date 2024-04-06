@@ -432,7 +432,6 @@ fn test_callback_argn_variants() {
 #[test]
 fn test_callback_varargs() {
     let c = Context::new().unwrap();
-    let ctx = c.context_raw();
 
     // No return.
     c.add_callback("cb", |args: Arguments| {
@@ -522,7 +521,6 @@ fn test_create_callback() {
 #[test]
 fn context_reset() {
     let c = Context::new().unwrap();
-    let ctx = c.context_raw();
     c.eval(" var x = 123; ").unwrap();
     c.add_callback("myCallback", || true).unwrap();
 
@@ -629,9 +627,8 @@ fn chrono_roundtrip() {
 fn test_bigint_deserialize_i64() {
     for i in vec![0, std::i64::MAX, std::i64::MIN] {
         let c = Context::new().unwrap();
-        let ctx = c.context_raw();
         let value = c.eval(&format!("{}n", i)).unwrap();
-        assert_eq!(value, JsValue::BigInt(i.into()));
+        assert_eq!(value.to_bigint(), Ok(i.into()));
     }
 }
 
@@ -645,10 +642,9 @@ fn test_bigint_deserialize_bigint() {
         std::i128::MIN,
     ] {
         let c = Context::new().unwrap();
-        let ctx = c.context_raw();
         let value = c.eval(&format!("{}n", i)).unwrap();
         let expected = num_bigint::BigInt::from(i);
-        assert_eq!(value, JsValue::BigInt(expected.into()));
+        assert_eq!(value.to_bigint(), Ok(expected.into()));
     }
 }
 
@@ -660,10 +656,12 @@ fn test_bigint_serialize_i64() {
         let ctx = c.context_raw();
         c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
             .unwrap();
+        let bigint: BigInt = i.into();
         assert_eq!(
-            c.call_function("isEqual", vec![JsValue::BigInt(i.into())])
-                .unwrap(),
-            JsValue::Bool(true)
+            c.call_function("isEqual", vec![owned!(ctx, bigint)])
+                .unwrap()
+                .to_bool(),
+            Ok(true)
         );
     }
 }
@@ -681,10 +679,12 @@ fn test_bigint_serialize_bigint() {
         let ctx = c.context_raw();
         c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
             .unwrap();
-        let value = JsValue::BigInt(num_bigint::BigInt::from(i).into());
+        let value: BigInt = num_bigint::BigInt::from(i).into();
         assert_eq!(
-            c.call_function("isEqual", vec![value]).unwrap(),
-            JsValue::Bool(true)
+            c.call_function("isEqual", vec![owned!(ctx, value)])
+                .unwrap()
+                .to_bool(),
+            Ok(true)
         );
     }
 }

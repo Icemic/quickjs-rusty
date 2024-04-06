@@ -70,6 +70,27 @@ pub fn js_date_constructor(context: *mut q::JSContext) -> q::JSValue {
     date_constructor
 }
 
+#[cfg(feature = "bigint")]
+fn js_create_bigint_function(context: *mut q::JSContext) -> q::JSValue {
+    let global = unsafe { q::JS_GetGlobalObject(context) };
+    let tag = unsafe { q::JS_ValueGetTag(global) };
+    assert_eq!(tag, q::JS_TAG_OBJECT);
+
+    let bigint_function = unsafe {
+        q::JS_GetPropertyStr(
+            context,
+            global,
+            std::ffi::CStr::from_bytes_with_nul(b"BigInt\0")
+                .unwrap()
+                .as_ptr(),
+        )
+    };
+    let tag = unsafe { q::JS_ValueGetTag(bigint_function) };
+    assert_eq!(tag, q::JS_TAG_OBJECT);
+    unsafe { q::JS_FreeValue(context, global) };
+    bigint_function
+}
+
 pub fn create_undefined() -> q::JSValue {
     unsafe { q::JS_NewSpecialValue(q::JS_TAG_UNDEFINED, 0) }
 }
@@ -161,10 +182,7 @@ pub fn add_object_property(
     Ok(())
 }
 
-pub fn create_function(
-    context: *mut q::JSContext,
-    func: JsFunction,
-) -> Result<q::JSValue, ValueError> {
+pub fn create_function(_: *mut q::JSContext, func: JsFunction) -> Result<q::JSValue, ValueError> {
     let owned_value = func.into_value();
     let v = unsafe { owned_value.extract() };
     Ok(v)
@@ -207,23 +225,31 @@ pub fn create_date(
 #[cfg(feature = "bigint")]
 pub fn create_bigint(
     context: *mut q::JSContext,
-    int: num_bigint::BigInt,
+    int: crate::BigInt,
 ) -> Result<q::JSValue, ValueError> {
-    match int.to_i64() {
-        Some(int) => unsafe { q::JS_NewBigInt64(context, int) },
-        None => {
-            let bigint_string = int.to_str_radix(10);
+    use std::ffi::c_char;
+
+    use crate::bigint::BigIntOrI64;
+    use crate::DroppableValue;
+
+    let val = match int.inner {
+        BigIntOrI64::Int(int) => unsafe { q::JS_NewBigInt64(context, int) },
+        BigIntOrI64::BigInt(bigint) => {
+            let bigint_string = bigint.to_str_radix(10);
             let s = unsafe {
                 q::JS_NewStringLen(
                     context,
                     bigint_string.as_ptr() as *const c_char,
-                    bigint_string.len() as q::size_t,
+                    bigint_string.len(),
                 )
             };
+
+            let s_tag = unsafe { q::JS_ValueGetTag(s) };
+
             let s = DroppableValue::new(s, |&mut s| unsafe {
                 q::JS_FreeValue(context, s);
             });
-            if (*s).tag != q::JS_TAG_STRING {
+            if s_tag != q::JS_TAG_STRING {
                 return Err(ValueError::Internal(
                     "Could not construct String object needed to create BigInt object".into(),
                 ));
@@ -231,34 +257,43 @@ pub fn create_bigint(
 
             let mut args = vec![*s];
 
-            letjs_create_bigint_function(context);
+            let bigint_function = js_create_bigint_function(context);
             let bigint_function =
                 DroppableValue::new(bigint_function, |&mut bigint_function| unsafe {
                     q::JS_FreeValue(context, bigint_function);
                 });
+
+            let null = create_null();
             let js_bigint = unsafe {
                 q::JS_Call(
                     context,
                     *bigint_function,
-                    q::JSValue {
-                        u: q::JSValueUnion { int32: 0 },
-                        tag: q::JS_TAG_NULL,
-                    },
+                    create_null(),
                     1,
                     args.as_mut_ptr(),
                 )
             };
 
-            if js_bigint.tag != q::JS_TAG_BIG_INT {
-                panic!("Could not construct BigInt object");
+            unsafe {
+                q::JS_FreeValue(context, null);
+            }
+
+            let js_bigint_tag = unsafe { q::JS_ValueGetTag(js_bigint) };
+
+            if js_bigint_tag != q::JS_TAG_BIG_INT {
+                return Err(ValueError::Internal(
+                    "Could not construct BigInt object".into(),
+                ));
             }
 
             js_bigint
         }
-    }
+    };
+
+    Ok(val)
 }
 
-pub fn create_symbol(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
+pub fn create_symbol(_: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
     todo!("create symbol not implemented")
 }
 

@@ -279,6 +279,8 @@ pub enum ValueError {
     StringWithZeroBytes(std::ffi::NulError),
     /// Internal error.
     Internal(String),
+    ///
+    BigIntOverflow,
     /// Received an unexpected type that could not be converted.
     UnexpectedType,
     #[doc(hidden)]
@@ -304,6 +306,7 @@ impl fmt::Display for ValueError {
             ),
             StringWithZeroBytes(_) => write!(f, "String contains \\0 bytes",),
             Internal(e) => write!(f, "Value conversion failed - internal error: {}", e),
+            BigIntOverflow => write!(f, "BigInt overflow"),
             UnexpectedType => write!(f, "Could not convert - received unexpected type"),
             __NonExhaustive => unreachable!(),
         }

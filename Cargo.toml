@@ -15,7 +15,7 @@ features = ["chrono", "bigint", "log"]
 
 [features]
 bigint = ["num-bigint", "num-traits", "libquickjspp-sys/patched"]
-default = ["chrono", "serde"]
+default = ["chrono", "serde", "bigint"]
 patched = ["libquickjspp-sys/patched"]
 serde = ["thiserror", "dep:serde"]
 

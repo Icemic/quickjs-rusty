@@ -27,11 +27,11 @@ pub use value::*;
 
 pub use self::callback::*;
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
-pub use self::utils::*;
 use self::{
     module::{js_module_loader, js_module_normalize, ModuleLoader},
     utils::{ensure_no_excpetion, get_exception},
 };
+pub use droppable_value::DroppableValue;
 
 // JS_TAG_* constants from quickjs.
 // For some reason bindgen does not pick them up.
