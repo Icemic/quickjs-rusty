@@ -3,9 +3,9 @@ use std::os::raw::c_int;
 use anyhow::Result;
 use libquickjspp_sys as q;
 
-use crate::{callback::Callback, ExecutionError, JsValue};
-
-use super::convert;
+use crate::utils::create_string;
+use crate::OwnedJsValue;
+use crate::{callback::Callback, ExecutionError};
 
 /// Helper for executing a callback closure.
 pub(super) fn exec_callback<F>(
@@ -19,16 +19,19 @@ pub(super) fn exec_callback<F>(
 
         let args = arg_slice
             .iter()
-            .map(|raw| convert::deserialize_value(context, raw))
-            .collect::<Result<Vec<_>, _>>()?;
+            .map(|raw| OwnedJsValue::own(context, raw))
+            .collect::<Vec<_>>();
 
-        match callback.call(args) {
+        match callback.call(context, args) {
             Ok(Ok(result)) => {
-                let serialized = convert::serialize_value(context, result)?;
+                let serialized = unsafe { result.extract() };
                 Ok(serialized)
             }
             // TODO: better error reporting.
-            Ok(Err(e)) => Err(ExecutionError::Exception(JsValue::String(e))),
+            Ok(Err(e)) => Err(ExecutionError::Exception(OwnedJsValue::new(
+                context,
+                create_string(context, &e).unwrap(),
+            ))),
             Err(e) => Err(e.into()),
         }
     });

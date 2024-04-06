@@ -1,47 +1,9 @@
 use libquickjspp_sys as q;
 
-use crate::{ExecutionError, JsValue, ValueError};
+use crate::utils::create_string;
+use crate::ExecutionError;
 
-use super::{convert, OwnedJsValue};
-
-#[inline]
-pub fn serialize_value(
-    context: *mut q::JSContext,
-    value: JsValue,
-) -> Result<OwnedJsValue, ExecutionError> {
-    let serialized = convert::serialize_value(context, value)?;
-    Ok(OwnedJsValue::new(context, serialized))
-}
-
-// Deserialize a quickjs runtime value into a Rust value.
-#[inline]
-pub(crate) fn to_value(
-    context: *mut q::JSContext,
-    value: &q::JSValue,
-) -> Result<JsValue, ValueError> {
-    convert::deserialize_value(context, value)
-}
-
-#[inline]
-pub fn serialize_raw(context: *mut q::JSContext, value: JsValue) -> Result<q::JSValue, ValueError> {
-    convert::serialize_value(context, value).map_err(|e| e.into())
-}
-
-#[inline]
-pub fn deserialize_raw(
-    context: *mut q::JSContext,
-    value: &q::JSValue,
-) -> Result<JsValue, ValueError> {
-    convert::deserialize_value(context, value).map_err(|e| e.into())
-}
-
-#[inline]
-pub fn deserialize_borrowed_str<'a>(
-    context: *mut q::JSContext,
-    value: &'a q::JSValue,
-) -> Result<&'a str, ValueError> {
-    convert::deserialize_borrowed_str(context, value).map_err(|e| e.into())
-}
+use super::OwnedJsValue;
 
 /// Get the last exception from the runtime, and if present, convert it to a ExceptionError.
 pub(crate) fn get_exception(context: *mut q::JSContext) -> Option<ExecutionError> {
@@ -62,7 +24,10 @@ pub(crate) fn get_exception(context: *mut q::JSContext) -> Option<ExecutionError
                 if strval.contains("out of memory") {
                     Some(ExecutionError::OutOfMemory)
                 } else {
-                    Some(ExecutionError::Exception(JsValue::String(strval)))
+                    Some(ExecutionError::Exception(OwnedJsValue::new(
+                        context,
+                        create_string(context, &strval).unwrap(),
+                    )))
                 }
             }
             Err(e) => Some(e),

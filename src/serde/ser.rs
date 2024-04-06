@@ -2,12 +2,12 @@ use libquickjspp_sys::{JSContext, JSValue};
 use serde::{ser, Serialize};
 
 use crate::bindings::{OwnedJsArray, OwnedJsObject, OwnedJsValue};
-
-use super::error::{Error, Result};
-use super::utils::{
+use crate::utils::{
     create_bool, create_empty_array, create_empty_object, create_float, create_int, create_null,
     create_string, create_undefined, own_raw_value,
 };
+
+use super::error::{Error, Result};
 
 /// A structure that serializes Rust values into JS values.
 pub struct Serializer {

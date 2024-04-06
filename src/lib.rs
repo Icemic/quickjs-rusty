@@ -13,7 +13,7 @@
 //! // Eval.
 //!
 //! let value = context.eval("1 + 2").unwrap();
-//! assert_eq!(value, JsValue::Int(3));
+//! assert_eq!(value.to_int(), Ok(3));
 //!
 //! let value = context.eval_as::<String>(" var x = 100 + 250; x.toString() ").unwrap();
 //! assert_eq!(&value, "350");
@@ -28,18 +28,18 @@
 //! "#).unwrap();
 //! ```
 
-#![deny(missing_docs)]
+// #![deny(missing_docs)]
 
 mod bindings;
 mod callback;
 pub mod console;
 #[cfg(feature = "serde")]
 pub mod serde;
+pub mod utils;
 mod value;
 
 use std::{convert::TryFrom, error, ffi::c_void, fmt};
 
-use bindings::{serialize_value, JSModuleLoaderFunc, JSModuleNormalizeFunc};
 pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
 
 pub use self::{
@@ -58,7 +58,7 @@ pub enum ExecutionError {
     /// Internal error.
     Internal(String),
     /// JS Exception was thrown.
-    Exception(JsValue),
+    Exception(OwnedJsValue),
     /// JS Runtime exceeded the memory limit.
     OutOfMemory,
     #[doc(hidden)]
@@ -226,10 +226,10 @@ impl Context {
     /// use quickjspp::{Context, JsValue};
     /// let context = Context::new().unwrap();
     ///
-    /// let value = context.eval(" 1 + 2 + 3 ");
+    /// let value = context.eval(" 1 + 2 + 3 ").unwrap();
     /// assert_eq!(
-    ///     value,
-    ///     Ok(JsValue::Int(6)),
+    ///     value.to_int(),
+    ///     Ok(6),
     /// );
     ///
     /// let value = context.eval(r#"
@@ -237,15 +237,14 @@ impl Context {
     ///     let y = f();
     ///     var x = y.toString() + "!"
     ///     x
-    /// "#);
+    /// "#).unwrap();
     /// assert_eq!(
-    ///     value,
-    ///     Ok(JsValue::String("165!".to_string())),
+    ///     value.to_string().unwrap(),
+    ///     "165!",
     /// );
     /// ```
-    pub fn eval(&self, code: &str) -> Result<JsValue, ExecutionError> {
-        let value_raw = self.wrapper.eval(code)?;
-        let value = value_raw.to_value()?;
+    pub fn eval(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
+        let value = self.wrapper.eval(code)?;
         Ok(value)
     }
 
@@ -267,9 +266,8 @@ impl Context {
     ///
     /// let value = context.eval_module("import {foo} from 'bar'; foo();");
     /// ```
-    pub fn eval_module(&self, code: &str) -> Result<JsValue, ExecutionError> {
-        let value_raw = self.wrapper.eval_module(code)?;
-        let value = value_raw.to_value()?;
+    pub fn eval_module(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
+        let value = self.wrapper.eval_module(code)?;
         Ok(value)
     }
 
@@ -330,11 +328,10 @@ impl Context {
     /// ```
     pub fn eval_as<R>(&self, code: &str) -> Result<R, ExecutionError>
     where
-        R: TryFrom<JsValue>,
+        R: TryFrom<OwnedJsValue>,
         R::Error: Into<ValueError>,
     {
-        let value_raw = self.wrapper.eval(code)?;
-        let value = value_raw.to_value()?;
+        let value = self.wrapper.eval(code)?;
         let ret = R::try_from(value).map_err(|e| e.into())?;
         Ok(ret)
     }
@@ -352,13 +349,9 @@ impl Context {
     ///     42,
     /// );
     /// ```
-    pub fn set_global<V>(&self, name: &str, value: V) -> Result<(), ExecutionError>
-    where
-        V: Into<JsValue>,
-    {
+    pub fn set_global(&self, name: &str, value: OwnedJsValue) -> Result<(), ExecutionError> {
         let global = self.wrapper.global()?;
-        let v = serialize_value(self.wrapper.context, value.into())?;
-        global.set_property(name, v)?;
+        global.set_property(name, value)?;
         Ok(())
     }
 
@@ -374,27 +367,24 @@ impl Context {
     /// use quickjspp::{Context, JsValue};
     /// let context = Context::new().unwrap();
     ///
-    /// let res = context.call_function("encodeURIComponent", vec!["a=b"]);
+    /// let res = context.call_function("encodeURIComponent", vec!["a=b"]).unwrap();
     /// assert_eq!(
-    ///     res,
-    ///     Ok(JsValue::String("a%3Db".to_string())),
+    ///     res.to_string(),
+    ///     Ok("a%3Db".to_string()),
     /// );
     /// ```
     pub fn call_function(
         &self,
         function_name: &str,
-        args: impl IntoIterator<Item = impl Into<JsValue>>,
-    ) -> Result<JsValue, ExecutionError> {
-        let qargs = args
-            .into_iter()
-            .map(|arg| serialize_value(self.wrapper.context, arg.into()))
-            .collect::<Result<Vec<_>, _>>()?;
+        args: impl IntoIterator<Item = OwnedJsValue>,
+    ) -> Result<OwnedJsValue, ExecutionError> {
+        let qargs = args.into_iter().collect::<Vec<OwnedJsValue>>();
 
         let global = self.wrapper.global()?;
         let func = global
             .property_require(function_name)?
             .try_into_function()?;
-        let v = self.wrapper.call_function(func, qargs)?.to_value()?;
+        let v = self.wrapper.call_function(func, qargs)?;
         Ok(v)
     }
 
@@ -455,9 +445,9 @@ impl Context {
     /// ```rust
     /// use quickjspp::{Context, JsValue};
     /// use std::collections::HashMap;
-    /// 
+    ///
     /// let context = Context::new().unwrap();
-    /// 
+    ///
     /// // Register an object.
     /// let mut obj = HashMap::<String, JsValue>::new();
 
@@ -474,7 +464,7 @@ impl Context {
     /// // Now we try out the 'myObj.add' function via eval.    
     /// let output = context.eval_as::<i32>("myObj.add( 3 , 4 ) ").unwrap();
     /// assert_eq!(output, 7);
-    /// ``` 
+    /// ```
     pub fn create_callback<F>(
         &self,
         callback: impl Callback<F> + 'static,

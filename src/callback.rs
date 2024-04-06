@@ -1,21 +1,31 @@
 use std::{convert::TryFrom, marker::PhantomData, panic::RefUnwindSafe};
 
-use crate::value::{JsValue, ValueError};
+use libquickjspp_sys as q;
+
+use crate::utils::create_undefined;
+use crate::value::ValueError;
+use crate::OwnedJsValue;
 
 pub trait IntoCallbackResult {
-    fn into_callback_res(self) -> Result<JsValue, String>;
+    fn into_callback_res(self, context: *mut q::JSContext) -> Result<OwnedJsValue, String>;
 }
 
-impl<T: Into<JsValue>> IntoCallbackResult for T {
-    fn into_callback_res(self) -> Result<JsValue, String> {
-        Ok(self.into())
+impl<T> IntoCallbackResult for T
+where
+    OwnedJsValue: From<(*mut q::JSContext, T)>,
+{
+    fn into_callback_res(self, context: *mut q::JSContext) -> Result<OwnedJsValue, String> {
+        Ok((context, self).into())
     }
 }
 
-impl<T: Into<JsValue>, E: std::fmt::Display> IntoCallbackResult for Result<T, E> {
-    fn into_callback_res(self) -> Result<JsValue, String> {
+impl<T, E: std::fmt::Display> IntoCallbackResult for Result<T, E>
+where
+    OwnedJsValue: From<(*mut q::JSContext, T)>,
+{
+    fn into_callback_res(self, context: *mut q::JSContext) -> Result<OwnedJsValue, String> {
         match self {
-            Ok(v) => Ok(v.into()),
+            Ok(v) => Ok((context, v).into()),
             Err(e) => Err(e.to_string()),
         }
     }
@@ -34,7 +44,11 @@ pub trait Callback<F>: RefUnwindSafe {
     ///   - Ok(Err(_)) if an error ocurred while processing.
     ///       The given error will be raised as a JS exception.
     ///   - Ok(Ok(result)) when execution succeeded.
-    fn call(&self, args: Vec<JsValue>) -> Result<Result<JsValue, String>, ValueError>;
+    fn call(
+        &self,
+        context: *mut q::JSContext,
+        args: Vec<OwnedJsValue>,
+    ) -> Result<Result<OwnedJsValue, String>, ValueError>;
 }
 
 macro_rules! impl_callback {
@@ -68,7 +82,7 @@ macro_rules! impl_callback {
                 &F,
             )>> for F
             where
-                $( $arg: TryFrom<JsValue, Error = E>, )*
+                $( $arg: TryFrom<OwnedJsValue, Error = E>, )*
                 ValueError: From<E>,
                 R: IntoCallbackResult,
                 F: Fn( $( $arg, )*  ) -> R + Sized + RefUnwindSafe,
@@ -77,7 +91,8 @@ macro_rules! impl_callback {
                     $len
                 }
 
-                fn call(&self, args: Vec<JsValue>) -> Result<Result<JsValue, String>, ValueError> {
+                fn call(&self, context: *mut q::JSContext, args: Vec<OwnedJsValue>)
+                    -> Result<Result<OwnedJsValue, String>, ValueError> {
                     if args.len() != $len {
                         return Ok(Err(format!(
                             "Invalid argument count: Expected {}, got {}",
@@ -87,7 +102,7 @@ macro_rules! impl_callback {
                     }
 
                     let res = impl_callback!(@call $len self args $($arg),* );
-                    Ok(res.into_callback_res())
+                    Ok(res.into_callback_res(context))
                 }
             }
         )*
@@ -103,7 +118,11 @@ where
         0
     }
 
-    fn call(&self, args: Vec<JsValue>) -> Result<Result<JsValue, String>, ValueError> {
+    fn call(
+        &self,
+        context: *mut q::JSContext,
+        args: Vec<OwnedJsValue>,
+    ) -> Result<Result<OwnedJsValue, String>, ValueError> {
         if args.len() != 0 {
             return Ok(Err(format!(
                 "Invalid argument count: Expected 0, got {}",
@@ -112,7 +131,7 @@ where
         }
 
         let res = self();
-        Ok(res.into_callback_res())
+        Ok(res.into_callback_res(context))
     }
 }
 
@@ -128,11 +147,11 @@ impl_callback![
 ///
 /// To create a callback with a variable number of arguments, a callback closure
 /// must take a single `Arguments` argument.
-pub struct Arguments(Vec<JsValue>);
+pub struct Arguments(Vec<OwnedJsValue>);
 
 impl Arguments {
     /// Unpack the arguments into a Vec.
-    pub fn into_vec(self) -> Vec<JsValue> {
+    pub fn into_vec(self) -> Vec<OwnedJsValue> {
         self.0
     }
 }
@@ -145,9 +164,13 @@ where
         0
     }
 
-    fn call(&self, args: Vec<JsValue>) -> Result<Result<JsValue, String>, ValueError> {
+    fn call(
+        &self,
+        context: *mut q::JSContext,
+        args: Vec<OwnedJsValue>,
+    ) -> Result<Result<OwnedJsValue, String>, ValueError> {
         (self)(Arguments(args));
-        Ok(Ok(JsValue::Undefined))
+        Ok(Ok(OwnedJsValue::new(context, create_undefined())))
     }
 }
 
@@ -160,8 +183,12 @@ where
         0
     }
 
-    fn call(&self, args: Vec<JsValue>) -> Result<Result<JsValue, String>, ValueError> {
+    fn call(
+        &self,
+        context: *mut q::JSContext,
+        args: Vec<OwnedJsValue>,
+    ) -> Result<Result<OwnedJsValue, String>, ValueError> {
         let res = (self)(Arguments(args));
-        Ok(res.into_callback_res())
+        Ok(res.into_callback_res(context))
     }
 }

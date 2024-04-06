@@ -1,7 +1,7 @@
 //! Javascript console integration.
 //! See the [ConsoleBackend] trait for more info.
 
-use super::JsValue;
+use crate::OwnedJsValue;
 
 /// Log level of a log message sent via the console.
 /// These levels represent the different functions defined in the spec:
@@ -44,10 +44,10 @@ impl std::fmt::Display for Level {
 /// A very simple logger that just prints to stderr could look like this:
 ///
 /// ```rust
-/// use quickjspp::{Context, JsValue, console::Level};
+/// use quickjspp::{Context, OwnedJsValue, console::Level};
 ///
 /// Context::builder()
-///     .console(|level: Level, args: Vec<JsValue>| {
+///     .console(|level: Level, args: Vec<OwnedJsValue>| {
 ///         eprintln!("{}: {:?}", level, args);
 ///     })
 ///     .build()
@@ -56,14 +56,14 @@ impl std::fmt::Display for Level {
 ///
 pub trait ConsoleBackend: std::panic::RefUnwindSafe + 'static {
     /// Handle a log message.
-    fn log(&self, level: Level, values: Vec<JsValue>);
+    fn log(&self, level: Level, values: Vec<OwnedJsValue>);
 }
 
 impl<F> ConsoleBackend for F
 where
-    F: Fn(Level, Vec<JsValue>) + std::panic::RefUnwindSafe + 'static,
+    F: Fn(Level, Vec<OwnedJsValue>) + std::panic::RefUnwindSafe + 'static,
 {
-    fn log(&self, level: Level, values: Vec<JsValue>) {
+    fn log(&self, level: Level, values: Vec<OwnedJsValue>) {
         (self)(level, values);
     }
 }

@@ -2,7 +2,6 @@
 
 mod callback;
 mod compile;
-mod convert;
 mod droppable_value;
 mod module;
 mod utils;
@@ -20,7 +19,8 @@ use libquickjspp_sys as q;
 use crate::{
     callback::{Arguments, Callback},
     console::ConsoleBackend,
-    ContextError, ExecutionError, JsValue, ValueError,
+    utils::create_string,
+    ContextError, ExecutionError, ValueError,
 };
 
 pub use value::*;
@@ -181,7 +181,7 @@ impl ContextWrapper {
             if args.len() > 1 {
                 let level_raw = args.remove(0);
 
-                let level_opt = level_raw.as_str().and_then(|v| match v {
+                let level_opt = level_raw.to_string().ok().and_then(|v| match v.as_str() {
                     "trace" => Some(Level::Trace),
                     "debug" => Some(Level::Debug),
                     "log" => Some(Level::Log),
@@ -272,7 +272,7 @@ impl ContextWrapper {
     fn resolve_value(&self, value: OwnedJsValue) -> Result<OwnedJsValue, ExecutionError> {
         if value.is_exception() {
             let err = get_exception(self.context)
-                .unwrap_or_else(|| ExecutionError::Exception("Unknown exception".into()));
+                .unwrap_or_else(|| ExecutionError::Internal("Unknown exception".to_string()));
             Err(err)
         } else if value.is_object() {
             let obj = value.try_into_object()?;
@@ -317,7 +317,7 @@ impl ContextWrapper {
                     };
                     if flag < 0 {
                         let e = get_exception(self.context).unwrap_or_else(|| {
-                            ExecutionError::Exception("Unknown exception".into())
+                            ExecutionError::Internal("Unknown exception".to_string())
                         });
                         return Err(e);
                     }
@@ -332,7 +332,10 @@ impl ContextWrapper {
                             return self.resolve_value(value);
                         } else {
                             let err_msg = value.js_to_string()?;
-                            return Err(ExecutionError::Exception(JsValue::String(err_msg)));
+                            return Err(ExecutionError::Exception(OwnedJsValue::new(
+                                self.context,
+                                create_string(self.context, &err_msg).unwrap(),
+                            )));
                         }
                     }
                 }
@@ -488,13 +491,11 @@ impl ContextWrapper {
                 // TODO: better error reporting.
                 Err(e) => {
                     let js_exception_value = match e {
-                        ExecutionError::Exception(e) => e,
-                        other => other.to_string().into(),
+                        ExecutionError::Exception(e) => unsafe { e.extract() },
+                        other => create_string(context, other.to_string().as_str()).unwrap(),
                     };
-                    let js_exception =
-                        convert::serialize_value(context, js_exception_value).unwrap();
                     unsafe {
-                        q::JS_Throw(context, js_exception);
+                        q::JS_Throw(context, js_exception_value);
                     }
 
                     unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
@@ -542,11 +543,11 @@ impl ContextWrapper {
                     // TODO: better error reporting.
                     Err(e) => {
                         // TODO: should create an Error type.
-                        let js_exception_value = e.to_string().into();
-                        let js_exception =
-                            convert::serialize_value(context, js_exception_value).unwrap();
+                        let js_exception_value =
+                            create_string(context, e.to_string().as_str()).unwrap();
+
                         unsafe {
-                            q::JS_Throw(context, js_exception);
+                            q::JS_Throw(context, js_exception_value);
                         }
 
                         unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }
@@ -558,14 +559,10 @@ impl ContextWrapper {
                 Ok(v) => v,
                 Err(_) => {
                     // TODO: should create an Error type.
-                    let js_exception_value =
-                        ExecutionError::Internal("Callback panicked!".to_string())
-                            .to_string()
-                            .into();
-                    let js_exception =
-                        convert::serialize_value(context, js_exception_value).unwrap();
+                    let js_exception_value = create_string(context, "Callback panicked!").unwrap();
+
                     unsafe {
-                        q::JS_Throw(context, js_exception);
+                        q::JS_Throw(context, js_exception_value);
                     }
 
                     unsafe { q::JS_NewSpecialValue(TAG_EXCEPTION, 0) }

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use quickjspp::serde::to_js;
-use quickjspp::{Context, JSContext, JsTag, OwnedJsValue, RawJSValue};
+use quickjspp::{owned, Context, JSContext, JsTag, OwnedJsValue, RawJSValue};
 
 pub fn main() {
     let context = Context::builder()
@@ -9,10 +9,11 @@ pub fn main() {
         })
         .build()
         .unwrap();
+    let ctx = context.context_raw();
 
     let f = context.create_custom_callback(custom_func).unwrap();
 
-    context.set_global("custom_func", f).unwrap();
+    context.set_global("custom_func", owned!(ctx, f)).unwrap();
 
     if let Err(err) = context.eval("console.log('returns', custom_func(1, 'haha'))") {
         eprintln!("Error: {}", err);

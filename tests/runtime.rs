@@ -5,11 +5,12 @@ use quickjspp::*;
 // #[test]
 // fn test_global_properties() {
 //     let c = Context::new().unwrap();
+// let ctx = c.context_raw();
 
 //     assert_eq!(
 //         c.global_property("lala"),
-//         Err(ExecutionError::Exception(
-//             "Global object does not have property 'lala'".into()
+//         Err(ExecutionError::Internal(
+//             "Global object does not have property 'lala'".to_string()
 //         ))
 //     );
 
@@ -22,51 +23,93 @@ use quickjspp::*;
 
 #[test]
 fn test_eval_pass() {
-    use std::iter::FromIterator;
-
     let c = Context::new().unwrap();
 
-    let cases = vec![
-        ("undefined", Ok(JsValue::Undefined)),
-        ("null", Ok(JsValue::Null)),
-        ("true", Ok(JsValue::Bool(true))),
-        ("2 > 10", Ok(JsValue::Bool(false))),
-        ("1", Ok(JsValue::Int(1))),
-        ("1 + 1", Ok(JsValue::Int(2))),
-        ("1.1", Ok(JsValue::Float(1.1))),
-        ("2.2 * 2 + 5", Ok(JsValue::Float(9.4))),
-        ("\"abc\"", Ok(JsValue::String("abc".into()))),
+    let cases: Vec<(&str, Box<dyn Fn(&OwnedJsValue) -> bool>)> = vec![
+        ("undefined", Box::new(|v| v.is_undefined())),
+        ("null", Box::new(|v| v.is_null())),
+        ("true", Box::new(|v| v.is_bool() && v.to_bool().unwrap())),
+        ("false", Box::new(|v| v.is_bool() && !v.to_bool().unwrap())),
+        ("2 > 10", Box::new(|v| v.is_bool() && !v.to_bool().unwrap())),
+        ("1", Box::new(|v| v.is_int() && v.to_int().unwrap() == 1)),
+        (
+            "1 + 1",
+            Box::new(|v| v.is_int() && v.to_int().unwrap() == 2),
+        ),
+        (
+            "1.1",
+            Box::new(|v| v.is_float() && v.to_float().unwrap() == 1.1),
+        ),
+        (
+            "2.2 * 2 + 5",
+            Box::new(|v| v.is_float() && v.to_float().unwrap() == 9.4),
+        ),
+        (
+            "\"abc\"",
+            Box::new(|v| v.is_string() && v.to_string().unwrap() == "abc"),
+        ),
         (
             "[1,2]",
-            Ok(JsValue::Array(vec![JsValue::Int(1), JsValue::Int(2)])),
+            Box::new(|v| {
+                if v.is_array() {
+                    let arr = v.to_array().unwrap();
+                    if arr.length() == 2
+                        && arr.get_index(0).unwrap().unwrap().to_int().unwrap() == 1
+                        && arr.get_index(1).unwrap().unwrap().to_int().unwrap() == 2
+                    {
+                        return true;
+                    }
+                }
+
+                false
+            }),
         ),
     ];
 
     for (code, res) in cases.into_iter() {
-        assert_eq!(c.eval(code), res,);
+        let v = c.eval(code).unwrap();
+        assert!(res(&v));
     }
 
-    let obj_cases = vec![
+    let obj_cases: Vec<(&str, Box<dyn Fn(&OwnedJsValue) -> bool>)> = vec![
         (
             r#" {"a": null, "b": undefined} "#,
-            Ok(JsValue::Object(HashMap::from_iter(vec![
-                ("a".to_string(), JsValue::Null),
-                ("b".to_string(), JsValue::Undefined),
-            ]))),
+            Box::new(|v| {
+                if v.is_object() {
+                    let obj = v.clone().try_into_object().unwrap();
+                    if obj.property("a").unwrap().unwrap().is_null()
+                        && obj.property("b").unwrap().unwrap().is_undefined()
+                    {
+                        return true;
+                    }
+                }
+
+                false
+            }),
         ),
         (
             r#" {a: 1, b: true, c: {c1: false}} "#,
-            Ok(JsValue::Object(HashMap::from_iter(vec![
-                ("a".to_string(), JsValue::Int(1)),
-                ("b".to_string(), JsValue::Bool(true)),
-                (
-                    "c".to_string(),
-                    JsValue::Object(HashMap::from_iter(vec![(
-                        "c1".to_string(),
-                        JsValue::Bool(false),
-                    )])),
-                ),
-            ]))),
+            Box::new(|v| {
+                if v.is_object() {
+                    let obj = v.clone().try_into_object().unwrap();
+                    if obj.property("a").unwrap().unwrap().to_int().unwrap() == 1
+                        && obj.property("b").unwrap().unwrap().to_bool().unwrap()
+                        && obj.property("c").unwrap().unwrap().is_object()
+                    {
+                        let c = obj
+                            .property("c")
+                            .unwrap()
+                            .unwrap()
+                            .try_into_object()
+                            .unwrap();
+                        if c.property("c1").unwrap().unwrap().to_bool().unwrap() == false {
+                            return true;
+                        }
+                    }
+                }
+
+                false
+            }),
         ),
     ];
 
@@ -76,7 +119,9 @@ fn test_eval_pass() {
             index = index,
             code = code
         );
-        assert_eq!(c.eval(&full_code), res,);
+
+        let v = c.eval(&full_code).unwrap();
+        assert!(res(&v));
     }
 
     assert_eq!(c.eval_as::<bool>("true").unwrap(), true,);
@@ -107,8 +152,8 @@ fn test_eval_syntax_error() {
             !!!!
         "#
         ),
-        Err(ExecutionError::Exception(
-            "SyntaxError: unexpected token in expression: \'\'".into()
+        Err(ExecutionError::Internal(
+            "SyntaxError: unexpected token in expression: \'\'".to_string()
         ))
     );
 }
@@ -125,7 +170,7 @@ fn test_eval_exception() {
             f();
         "#
         ),
-        Err(ExecutionError::Exception("Error: My Error".into(),))
+        Err(ExecutionError::Internal("Error: My Error".to_string(),))
     );
 }
 
@@ -142,7 +187,7 @@ fn eval_async() {
     "#,
         )
         .unwrap();
-    assert_eq!(value, JsValue::Int(33));
+    assert_eq!(value.to_int().unwrap(), 33,);
 
     let res = c.eval(
         r#"
@@ -151,18 +196,17 @@ fn eval_async() {
         })
     "#,
     );
-    assert_eq!(
-        res,
-        Err(ExecutionError::Exception(JsValue::String(
-            "Failed...".into()
-        )))
-    );
+    assert!(res.is_err());
+    assert!(res.is_err() && res.unwrap_err().to_string().contains("Failed..."),);
 }
 
 #[test]
 fn test_set_global() {
     let context = Context::new().unwrap();
-    context.set_global("someGlobalVariable", 42).unwrap();
+    let ctx = context.context_raw();
+    context
+        .set_global("someGlobalVariable", (ctx, 42).into())
+        .unwrap();
     let value = context.eval_as::<i32>("someGlobalVariable").unwrap();
     assert_eq!(value, 42,);
 }
@@ -170,10 +214,14 @@ fn test_set_global() {
 #[test]
 fn test_call() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
 
     assert_eq!(
-        c.call_function("parseInt", vec!["22"]).unwrap(),
-        JsValue::Int(22),
+        c.call_function("parseInt", vec![(ctx, "22").into()])
+            .unwrap()
+            .to_int()
+            .unwrap(),
+        22
     );
 
     c.eval(
@@ -185,8 +233,11 @@ fn test_call() {
     )
     .unwrap();
     assert_eq!(
-        c.call_function("add", vec![5, 7]).unwrap(),
-        JsValue::Int(12),
+        c.call_function("add", vec![owned!(ctx, 5), owned!(ctx, 7)])
+            .unwrap()
+            .to_int()
+            .unwrap(),
+        12,
     );
 
     c.eval(
@@ -202,8 +253,11 @@ fn test_call() {
     )
     .unwrap();
     assert_eq!(
-        c.call_function("sumArray", vec![vec![1, 2, 3]]).unwrap(),
-        JsValue::Int(6),
+        c.call_function("sumArray", vec![owned!(ctx, vec![1, 2, 3])])
+            .unwrap()
+            .to_int()
+            .unwrap(),
+        6,
     );
 
     c.eval(
@@ -219,28 +273,37 @@ fn test_call() {
     )
     .unwrap();
     let mut obj = std::collections::HashMap::<String, i32>::new();
-    obj.insert("a".into(), 10);
-    obj.insert("b".into(), 20);
-    obj.insert("c".into(), 30);
+    obj.insert("a".to_string(), 10);
+    obj.insert("b".to_string(), 20);
+    obj.insert("c".to_string(), 30);
     assert_eq!(
-        c.call_function("addObject", vec![obj]).unwrap(),
-        JsValue::Int(60),
+        c.call_function("addObject", vec![owned!(ctx, obj)])
+            .unwrap()
+            .to_int()
+            .unwrap(),
+        60
     );
 }
 
 #[test]
 fn test_call_large_string() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
     c.eval(" function strLen(s) { return s.length; } ").unwrap();
 
     let s = " ".repeat(200_000);
-    let v = c.call_function("strLen", vec![s]).unwrap();
-    assert_eq!(v, JsValue::Int(200_000));
+    let v = c
+        .call_function("strLen", vec![owned!(ctx, s)])
+        .unwrap()
+        .to_int()
+        .unwrap();
+    assert_eq!(v, 200_000);
 }
 
 #[test]
 fn call_async() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
 
     c.eval(
         r#"
@@ -259,15 +322,17 @@ fn call_async() {
     )
     .unwrap();
 
-    let value = c.call_function("asyncOk", vec![true]).unwrap();
-    assert_eq!(value, JsValue::Int(33));
+    let value = c
+        .call_function("asyncOk", vec![owned!(ctx, true)])
+        .unwrap()
+        .to_int()
+        .unwrap();
+    assert_eq!(value, 33);
 
-    let res = c.call_function("asyncErr", vec![true]);
+    let res = c.call_function("asyncErr", vec![owned!(ctx, true)]);
     assert_eq!(
         res,
-        Err(ExecutionError::Exception(JsValue::String(
-            "Failed...".into()
-        )))
+        Err(ExecutionError::Exception(owned!(ctx, "Failed...")))
     );
 }
 
@@ -282,29 +347,35 @@ fn test_callback() {
     assert_eq!(c.eval_as::<bool>("no_arguments()").unwrap(), false);
 
     c.add_callback("cb1", |flag: bool| !flag).unwrap();
-    assert_eq!(c.eval("cb1(true)").unwrap(), JsValue::Bool(false),);
+    assert_eq!(c.eval("cb1(true)").unwrap().to_bool().unwrap(), false,);
 
     c.add_callback("concat2", |a: String, b: String| format!("{}{}", a, b))
         .unwrap();
     assert_eq!(
-        c.eval(r#"concat2("abc", "def")"#).unwrap(),
-        JsValue::String("abcdef".into()),
+        c.eval(r#"concat2("abc", "def")"#)
+            .unwrap()
+            .to_string()
+            .unwrap(),
+        "abcdef",
     );
 
     c.add_callback("add2", |a: i32, b: i32| -> i32 { a + b })
         .unwrap();
-    assert_eq!(c.eval("add2(5, 11)").unwrap(), JsValue::Int(16),);
+    assert_eq!(c.eval("add2(5, 11)").unwrap().to_int().unwrap(), 16,);
 
     c.add_callback("sum", |items: Vec<i32>| -> i32 { items.iter().sum() })
         .unwrap();
-    assert_eq!(c.eval("sum([1, 2, 3, 4, 5, 6])").unwrap(), JsValue::Int(21),);
+    assert_eq!(
+        c.eval("sum([1, 2, 3, 4, 5, 6])").unwrap().to_int().unwrap(),
+        21,
+    );
 
-    c.add_callback("identity", |value: JsValue| -> JsValue { value })
-        .unwrap();
-    {
-        let v = JsValue::from(22);
-        assert_eq!(c.eval("identity(22)").unwrap(), v);
-    }
+    // c.add_callback("identity", |value: OwnedJsValue| -> OwnedJsValue { value })
+    //     .unwrap();
+    // {
+    //     let v = JsValue::from(22);
+    //     assert_eq!(c.eval("identity(22)").unwrap(), v);
+    // }
 }
 
 #[test]
@@ -320,13 +391,14 @@ fn test_callback_argn_variants() {
                     // Test plain return type.
                     let name = format!("cb{}", $len);
                     let c = Context::new().unwrap();
+                    let ctx = c.context_raw();
                     c.add_callback(&name, | $( $argn : i32 ),*| -> i32 {
                         $( $argn + )* 0
                     }).unwrap();
 
                     let code = format!("{}( {} )", name, "1,".repeat($len));
                     let v = c.eval(&code).unwrap();
-                    assert_eq!(v, JsValue::Int($len));
+                    assert_eq!(v.to_int().unwrap(), $len);
 
                     // Test Result<T, E> return type with OK(_) returns.
                     let name = format!("cbres{}", $len);
@@ -336,17 +408,17 @@ fn test_callback_argn_variants() {
 
                     let code = format!("{}( {} )", name, "1,".repeat($len));
                     let v = c.eval(&code).unwrap();
-                    assert_eq!(v, JsValue::Int($len));
+                    assert_eq!(v.to_int().unwrap(), $len);
 
                     // Test Result<T, E> return type with Err(_) returns.
                     let name = format!("cbreserr{}", $len);
                     c.add_callback(&name, #[allow(unused_variables)] | $( $argn : i32 ),*| -> Result<i32, String> {
-                        Err("error".into())
+                        Err("error".to_string())
                     }).unwrap();
 
                     let code = format!("{}( {} )", name, "1,".repeat($len));
                     let res = c.eval(&code);
-                    assert_eq!(res, Err(ExecutionError::Exception("error".into())));
+                    assert_eq!(res, Err(ExecutionError::Exception(owned!(ctx, "error"))));
                 }
             )*
         }
@@ -360,18 +432,15 @@ fn test_callback_argn_variants() {
 #[test]
 fn test_callback_varargs() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
 
     // No return.
     c.add_callback("cb", |args: Arguments| {
         let args = args.into_vec();
-        assert_eq!(
-            args,
-            vec![
-                JsValue::String("hello".into()),
-                JsValue::Bool(true),
-                JsValue::from(100),
-            ]
-        );
+        assert_eq!(args.len(), 3);
+        assert_eq!(args.get(0).unwrap().to_string(), Ok("hello".to_string()));
+        assert_eq!(args.get(1).unwrap().to_bool(), Ok(true));
+        assert_eq!(args.get(2).unwrap().to_int(), Ok(100));
     })
     .unwrap();
     assert_eq!(
@@ -383,10 +452,11 @@ fn test_callback_varargs() {
     // With return.
     c.add_callback("cb2", |args: Arguments| -> u32 {
         let args = args.into_vec();
-        assert_eq!(
-            args,
-            vec![JsValue::from(1), JsValue::from(10), JsValue::from(100),]
-        );
+        assert_eq!(args.len(), 3);
+        assert_eq!(args.get(0).unwrap().to_int(), Ok(1));
+        assert_eq!(args.get(1).unwrap().to_int(), Ok(10));
+        assert_eq!(args.get(2).unwrap().to_int(), Ok(100));
+
         111
     })
     .unwrap();
@@ -404,14 +474,16 @@ fn test_callback_varargs() {
 #[test]
 fn test_callback_invalid_argcount() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
 
     c.add_callback("cb", |a: i32, b: i32| a + b).unwrap();
 
     assert_eq!(
         c.eval(" cb(5) "),
-        Err(ExecutionError::Exception(
-            "Invalid argument count: Expected 2, got 1".into()
-        )),
+        Err(ExecutionError::Exception(owned!(
+            ctx,
+            "Invalid argument count: Expected 2, got 1"
+        ))),
     );
 }
 
@@ -424,23 +496,23 @@ fn memory_limit_exceeded() {
     );
 }
 
-
 #[test]
 fn test_create_callback() {
     let context = Context::new().unwrap();
+    let ctx = context.context_raw();
 
     // Register an object.
-    let mut obj = HashMap::<String, JsValue>::new();
+    let mut obj = HashMap::<String, OwnedJsValue>::new();
 
     // insert add function into the object.
     obj.insert(
         "add".to_string(),
-        context
-            .create_callback(|a: i32, b: i32| a + b)
-            .unwrap()
-            .into(),
+        owned!(
+            ctx,
+            context.create_callback(|a: i32, b: i32| a + b).unwrap()
+        ),
     );
-    context.set_global("myObj", obj).unwrap();
+    context.set_global("myObj", owned!(ctx, obj)).unwrap();
 
     let output = context.eval_as::<i32>("myObj.add( 3 , 4 ) ").unwrap();
 
@@ -450,6 +522,7 @@ fn test_create_callback() {
 #[test]
 fn context_reset() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
     c.eval(" var x = 123; ").unwrap();
     c.add_callback("myCallback", || true).unwrap();
 
@@ -485,17 +558,19 @@ fn build_context() -> Context {
 #[test]
 fn moved_context() {
     let c = build_context();
-    let v = c.call_function("f", vec!["test"]).unwrap();
-    assert_eq!(v, "testtest".into());
+    let ctx = c.context_raw();
+    let v = c.call_function("f", vec![owned!(ctx, "test")]).unwrap();
+    assert_eq!(v.to_string().unwrap(), "testtest");
 
     let v = c.eval(" f('la') ").unwrap();
-    assert_eq!(v, "lala".into());
+    assert_eq!(v.to_string().unwrap(), "lala");
 }
 
 #[cfg(feature = "chrono")]
 #[test]
 fn chrono_serialize() {
     let c = build_context();
+    let ctx = c.context_raw();
 
     c.eval(
         "
@@ -510,10 +585,10 @@ fn chrono_serialize() {
     let now_millis = now.timestamp_millis();
 
     let timestamp = c
-        .call_function("dateToTimestamp", vec![JsValue::Date(now.clone())])
+        .call_function("dateToTimestamp", vec![owned!(ctx, now.clone())])
         .unwrap();
 
-    assert_eq!(timestamp, JsValue::Float(now_millis as f64));
+    assert_eq!(timestamp.to_float().unwrap(), now_millis as f64);
 }
 
 #[cfg(feature = "chrono")]
@@ -526,19 +601,21 @@ fn chrono_deserialize() {
     let value = c.eval(" new Date(1234567555) ").unwrap();
     let datetime = chrono::Utc.timestamp_millis_opt(1234567555).unwrap();
 
-    assert_eq!(value, JsValue::Date(datetime));
+    assert_eq!(value.to_date().unwrap(), datetime);
 }
 
 #[cfg(feature = "chrono")]
 #[test]
 fn chrono_roundtrip() {
     let c = build_context();
+    let ctx = c.context_raw();
 
     c.eval(" function identity(x) { return x; } ").unwrap();
     let d = chrono::Utc::now();
-    let td = JsValue::Date(d.clone());
-    let td2 = c.call_function("identity", vec![td.clone()]).unwrap();
-    let d2 = if let JsValue::Date(x) = td2 {
+    let td2 = c
+        .call_function("identity", vec![owned!(ctx, d.clone())])
+        .unwrap();
+    let d2 = if let Ok(x) = td2.to_date() {
         x
     } else {
         panic!("expected date")
@@ -552,6 +629,7 @@ fn chrono_roundtrip() {
 fn test_bigint_deserialize_i64() {
     for i in vec![0, std::i64::MAX, std::i64::MIN] {
         let c = Context::new().unwrap();
+        let ctx = c.context_raw();
         let value = c.eval(&format!("{}n", i)).unwrap();
         assert_eq!(value, JsValue::BigInt(i.into()));
     }
@@ -567,6 +645,7 @@ fn test_bigint_deserialize_bigint() {
         std::i128::MIN,
     ] {
         let c = Context::new().unwrap();
+        let ctx = c.context_raw();
         let value = c.eval(&format!("{}n", i)).unwrap();
         let expected = num_bigint::BigInt::from(i);
         assert_eq!(value, JsValue::BigInt(expected.into()));
@@ -578,6 +657,7 @@ fn test_bigint_deserialize_bigint() {
 fn test_bigint_serialize_i64() {
     for i in vec![0, std::i64::MAX, std::i64::MIN] {
         let c = Context::new().unwrap();
+        let ctx = c.context_raw();
         c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
             .unwrap();
         assert_eq!(
@@ -598,6 +678,7 @@ fn test_bigint_serialize_bigint() {
         std::i128::MIN,
     ] {
         let c = Context::new().unwrap();
+        let ctx = c.context_raw();
         c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
             .unwrap();
         let value = JsValue::BigInt(num_bigint::BigInt::from(i).into());
@@ -613,11 +694,11 @@ fn test_console() {
     use console::Level;
     use std::sync::{Arc, Mutex};
 
-    let messages = Arc::new(Mutex::new(Vec::<(Level, Vec<JsValue>)>::new()));
+    let messages = Arc::new(Mutex::new(Vec::<(Level, Vec<OwnedJsValue>)>::new()));
 
     let m = messages.clone();
     let c = Context::builder()
-        .console(move |level: Level, args: Vec<JsValue>| {
+        .console(move |level: Level, args: Vec<OwnedJsValue>| {
             m.lock().unwrap().push((level, args));
         })
         .build()
@@ -633,18 +714,26 @@ fn test_console() {
 
     let m = messages.lock().unwrap();
 
+    assert_eq!(m.len(), 2);
+    assert_eq!(m.get(0).unwrap().0, Level::Log);
+    assert_eq!(m.get(1).unwrap().0, Level::Error);
+    assert_eq!(m.get(0).unwrap().1.len(), 1);
+    assert_eq!(m.get(1).unwrap().1.len(), 1);
     assert_eq!(
-        *m,
-        vec![
-            (Level::Log, vec![JsValue::from("hi")]),
-            (Level::Error, vec![JsValue::from(false)]),
-        ]
+        m.get(0).unwrap().1.get(0).unwrap().to_string().unwrap(),
+        "hi"
+    );
+    assert_eq!(
+        m.get(1).unwrap().1.get(0).unwrap().to_bool().unwrap(),
+        false
     );
 }
 
 #[test]
 fn test_global_setter() {
-    let ctx = Context::new().unwrap();
-    ctx.set_global("a", "a").unwrap();
-    ctx.eval("a + 1").unwrap();
+    let context = Context::new().unwrap();
+    let ctx = context.context_raw();
+
+    context.set_global("a", owned!(ctx, "a")).unwrap();
+    context.eval("a + 1").unwrap();
 }

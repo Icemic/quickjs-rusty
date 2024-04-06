@@ -8,9 +8,9 @@ use serde::de::{
 use serde::{forward_to_deserialize_any, Deserialize};
 
 use crate::bindings::{JsTag, OwnedJsArray, OwnedJsObject, OwnedJsPropertyIterator, OwnedJsValue};
+use crate::utils::deserialize_borrowed_str;
 
 use super::error::{Error, Result};
-use super::utils::deserialize_borrowed_str;
 
 /// A structure that deserializes JS values into Rust values.
 pub struct Deserializer<'de> {

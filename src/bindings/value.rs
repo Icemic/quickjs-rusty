@@ -1,9 +1,20 @@
+use std::collections::HashMap;
+use std::convert::TryInto;
+use std::fmt::Debug;
+use std::hash::Hash;
+
+use chrono::{DateTime, Utc};
 use libquickjspp_sys as q;
 
-use crate::{ExecutionError, JsValue, ValueError};
+use crate::utils::{
+    add_array_element, add_object_property, create_bool, create_date, create_empty_array,
+    create_empty_object, create_float, create_function, create_int, create_null, create_string,
+};
+use crate::{ExecutionError, ValueError};
 
-use super::utils::to_value;
+// use super::utils::to_value;
 use super::{make_cstring, TAG_EXCEPTION, TAG_NULL, TAG_UNDEFINED};
+use std::convert::TryFrom;
 
 #[repr(u32)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -333,46 +344,118 @@ impl OwnedJsValue {
         self.tag() == JsTag::FunctionBytecode
     }
 
-    /// Serialize this value into a [`JsValue`].
-    pub fn to_value(&self) -> Result<JsValue, ValueError> {
-        to_value(self.context, &self.value)
+    #[inline]
+    fn check_tag(&self, expected: JsTag) -> Result<(), ValueError> {
+        if self.tag() == expected {
+            Ok(())
+        } else {
+            Err(ValueError::UnexpectedType)
+        }
     }
 
     /// Convert this value into a bool
     pub fn to_bool(&self) -> Result<bool, ValueError> {
-        match self.to_value()? {
-            JsValue::Bool(b) => Ok(b),
-            _ => Err(ValueError::UnexpectedType),
-        }
+        self.check_tag(JsTag::Bool)?;
+        let val = unsafe { q::JS_VALUE_GET_BOOL(self.value) };
+        Ok(val)
     }
 
     /// Convert this value into an i32
     pub fn to_int(&self) -> Result<i32, ValueError> {
-        match self.to_value()? {
-            JsValue::Int(v) => Ok(v),
-            _ => Err(ValueError::UnexpectedType),
-        }
+        self.check_tag(JsTag::Int)?;
+        let val = unsafe { q::JS_VALUE_GET_INT(self.value) };
+        Ok(val)
     }
 
     /// Convert this value into an f64
     pub fn to_float(&self) -> Result<f64, ValueError> {
-        match self.to_value()? {
-            JsValue::Float(v) => Ok(v),
-            _ => Err(ValueError::UnexpectedType),
-        }
+        self.check_tag(JsTag::Float64)?;
+        let val = unsafe { q::JS_VALUE_GET_FLOAT64(self.value) };
+        Ok(val)
     }
 
     /// Convert this value into a string
     pub fn to_string(&self) -> Result<String, ValueError> {
-        match self.to_value()? {
-            JsValue::String(s) => Ok(s),
-            _ => Err(ValueError::UnexpectedType),
+        self.check_tag(JsTag::String)?;
+        let ptr = unsafe { q::JS_ToCStringLen2(self.context, std::ptr::null_mut(), self.value, 0) };
+
+        if ptr.is_null() {
+            return Err(ValueError::Internal(
+                "Could not convert string: got a null pointer".into(),
+            ));
         }
+
+        let cstr = unsafe { std::ffi::CStr::from_ptr(ptr) };
+
+        let s = cstr
+            .to_str()
+            .map_err(ValueError::InvalidString)?
+            .to_string();
+
+        // Free the c string.
+        unsafe { q::JS_FreeCString(self.context, ptr) };
+
+        Ok(s)
+    }
+
+    pub fn to_array(&self) -> Result<OwnedJsArray, ValueError> {
+        OwnedJsArray::try_from_value(self.clone())
     }
 
     /// Try convert this value into a object
     pub fn try_into_object(self) -> Result<OwnedJsObject, ValueError> {
         OwnedJsObject::try_from_value(self)
+    }
+
+    #[cfg(feature = "chrono")]
+    pub fn to_date(&self) -> Result<chrono::DateTime<chrono::Utc>, ValueError> {
+        use chrono::offset::TimeZone;
+
+        use crate::utils::js_date_constructor;
+
+        let date_constructor = js_date_constructor(self.context);
+        let is_date = unsafe { q::JS_IsInstanceOf(self.context, self.value, date_constructor) > 0 };
+
+        if is_date {
+            let getter = unsafe {
+                q::JS_GetPropertyStr(
+                    self.context,
+                    self.value,
+                    std::ffi::CStr::from_bytes_with_nul(b"getTime\0")
+                        .unwrap()
+                        .as_ptr(),
+                )
+            };
+            let tag = unsafe { q::JS_ValueGetTag(getter) };
+            assert_eq!(tag, q::JS_TAG_OBJECT);
+
+            let timestamp_raw =
+                unsafe { q::JS_Call(self.context, getter, self.value, 0, std::ptr::null_mut()) };
+
+            unsafe {
+                q::JS_FreeValue(self.context, getter);
+                q::JS_FreeValue(self.context, date_constructor);
+            };
+
+            let tag = unsafe { q::JS_ValueGetTag(timestamp_raw) };
+            let res = if tag == q::JS_TAG_FLOAT64 {
+                let f = unsafe { q::JS_VALUE_GET_FLOAT64(timestamp_raw) } as i64;
+                let datetime = chrono::Utc.timestamp_millis_opt(f).unwrap();
+                Ok(datetime)
+            } else if tag == q::JS_TAG_INT {
+                let f = unsafe { q::JS_VALUE_GET_INT(timestamp_raw) } as i64;
+                let datetime = chrono::Utc.timestamp_millis_opt(f).unwrap();
+                Ok(datetime)
+            } else {
+                Err(ValueError::Internal(
+                    "Could not convert 'Date' instance to timestamp".into(),
+                ))
+            };
+            return res;
+        } else {
+            unsafe { q::JS_FreeValue(self.context, date_constructor) };
+            Err(ValueError::UnexpectedType)
+        }
     }
 
     /// Try convert this value into a function
@@ -393,20 +476,20 @@ impl OwnedJsValue {
     /// Call the Javascript `.toString()` method on this value.
     pub fn js_to_string(&self) -> Result<String, ExecutionError> {
         let value = if self.is_string() {
-            self.to_value()?
+            self.to_string()?
         } else {
             let raw = unsafe { q::JS_ToString(self.context, self.value) };
             let value = OwnedJsValue::new(self.context, raw);
 
             if !value.is_string() {
-                return Err(ExecutionError::Exception(
+                return Err(ExecutionError::Internal(
                     "Could not convert value to string".into(),
                 ));
             }
-            value.to_value()?
+            value.to_string()?
         };
 
-        Ok(value.as_str().unwrap().to_string())
+        Ok(value)
     }
 
     /// Call the Javascript `JSON.stringify()` method on this value.
@@ -423,14 +506,14 @@ impl OwnedJsValue {
         }
 
         if !value.is_string() {
-            return Err(ExecutionError::Exception(
-                "Could not convert value to string".into(),
+            return Err(ExecutionError::Internal(
+                "Could not convert value to string".to_string(),
             ));
         }
 
-        let value = value.to_value()?;
+        let value = value.to_string()?;
 
-        Ok(value.as_str().unwrap().to_string())
+        Ok(value)
     }
 
     #[cfg(test)]
@@ -469,6 +552,124 @@ impl Clone for OwnedJsValue {
 impl std::fmt::Debug for OwnedJsValue {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}(_)", self.tag())
+    }
+}
+
+impl TryFrom<OwnedJsValue> for bool {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_bool()
+    }
+}
+
+impl TryFrom<OwnedJsValue> for i32 {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_int()
+    }
+}
+
+impl TryFrom<OwnedJsValue> for f64 {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_float()
+    }
+}
+
+impl TryFrom<OwnedJsValue> for String {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_string()
+    }
+}
+
+impl TryFrom<OwnedJsValue> for DateTime<Utc> {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        value.to_date()
+    }
+}
+
+impl<T: TryFrom<OwnedJsValue, Error = ValueError>> TryFrom<OwnedJsValue> for Vec<T> {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        let arr = value.to_array()?;
+        let mut ret: Vec<T> = vec![];
+        for i in 0..arr.length() {
+            let item = arr.get_index(i as u32).unwrap();
+            if let Some(item) = item {
+                let item = item.try_into()?;
+                ret.push(item);
+            }
+        }
+        Ok(ret)
+    }
+}
+
+impl<K: From<String> + PartialEq + Eq + Hash, V: TryFrom<OwnedJsValue, Error = ValueError>>
+    TryFrom<OwnedJsValue> for HashMap<K, V>
+{
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        let obj = value.try_into_object()?;
+        let mut ret: HashMap<K, V> = HashMap::new();
+        let mut iter = obj.properties_iter()?;
+        while let Some(Ok(key)) = iter.next() {
+            let key = key.to_string()?;
+            let item = obj.property(&key).unwrap();
+            if let Some(item) = item {
+                let item = item.try_into()?;
+                ret.insert(key.into(), item);
+            }
+        }
+        Ok(ret)
+    }
+}
+
+impl TryFrom<OwnedJsValue> for JsFunction {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        JsFunction::try_from_value(value)
+    }
+}
+
+impl TryFrom<OwnedJsValue> for OwnedJsArray {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        OwnedJsArray::try_from_value(value)
+    }
+}
+
+impl TryFrom<OwnedJsValue> for OwnedJsObject {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        OwnedJsObject::try_from_value(value)
+    }
+}
+
+impl TryFrom<OwnedJsValue> for JsCompiledFunction {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        JsCompiledFunction::try_from_value(value)
+    }
+}
+
+impl TryFrom<OwnedJsValue> for JsModule {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        JsModule::try_from_value(value)
     }
 }
 
@@ -522,7 +723,7 @@ impl OwnedJsArray {
                 q::JS_SetPropertyUint32(self.value.context, self.value.value, index, value.value);
 
             if ret < 0 {
-                Err(ExecutionError::Exception("Could not set property".into()))
+                Err(ExecutionError::Internal("Could not set property".into()))
             } else {
                 // Now we can call forget to prevent calling the destructor.
                 std::mem::forget(value);
@@ -552,7 +753,9 @@ impl OwnedJsArray {
             );
 
             if ret < 0 {
-                Err(ExecutionError::Exception("Could not set property".into()))
+                Err(ExecutionError::Internal(
+                    "Could not set property".to_string(),
+                ))
             } else {
                 // Now we can call forget to prevent calling the destructor.
                 std::mem::forget(value);
@@ -583,7 +786,7 @@ pub struct OwnedJsObject {
 impl OwnedJsObject {
     pub fn try_from_value(value: OwnedJsValue) -> Result<Self, ValueError> {
         if !value.is_object() {
-            Err(ValueError::Internal("Expected an object".into()))
+            Err(ValueError::Internal("Expected an object".to_string()))
         } else {
             Ok(Self { value })
         }
@@ -615,9 +818,11 @@ impl OwnedJsObject {
                 "Exception while getting property '{}'",
                 name
             )))
-        } else if tag.is_undefined() {
-            Ok(None)
-        } else {
+        }
+        //  else if tag.is_undefined() {
+        //     Ok(None)
+        // }
+        else {
             Ok(Some(value))
         }
     }
@@ -659,7 +864,9 @@ impl OwnedJsObject {
             );
 
             if ret < 0 {
-                Err(ExecutionError::Exception("Could not set property".into()))
+                Err(ExecutionError::Internal(
+                    "Could not set property".to_string(),
+                ))
             } else {
                 // Now we can call forget to prevent calling the destructor.
                 std::mem::forget(value);
@@ -878,4 +1085,157 @@ impl JsModule {
 pub enum JsCompiledValue {
     Function(JsCompiledFunction),
     Module(JsModule),
+}
+
+/// to avoid infinite recursion, we need to implement a PrimitiveToOwnedJsValue trait for T,
+/// and then implement the `From<(*mut q::JSContext, T)>` trait for T and XXX<T> where T: PrimitiveToOwnedJsValue
+///
+/// This trait should not be public, use the `From<(*mut q::JSContext, T)>` trait outside of this module.
+trait PrimitiveToOwnedJsValue {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue;
+}
+
+impl PrimitiveToOwnedJsValue for bool {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_bool(context, self);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for i32 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_int(context, self);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for i8 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_int(context, self as i32);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for i16 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_int(context, self as i32);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for u8 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_int(context, self as i32);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for u16 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_int(context, self as i32);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for f64 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_float(context, self);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for u32 {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_float(context, self as f64);
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for &str {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_string(context, self).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for String {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_string(context, &self).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for DateTime<Utc> {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_date(context, self).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl PrimitiveToOwnedJsValue for JsFunction {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = create_function(context, self).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+/// for some cases like HashMap<String, OwnedJsValue>
+impl PrimitiveToOwnedJsValue for OwnedJsValue {
+    fn to_owned(self, _: *mut q::JSContext) -> OwnedJsValue {
+        self
+    }
+}
+
+impl<T> From<(*mut q::JSContext, T)> for OwnedJsValue
+where
+    T: PrimitiveToOwnedJsValue,
+{
+    fn from((context, value): (*mut q::JSContext, T)) -> Self {
+        value.to_owned(context)
+    }
+}
+
+impl<T> From<(*mut q::JSContext, Option<T>)> for OwnedJsValue
+where
+    T: PrimitiveToOwnedJsValue,
+{
+    fn from((context, value): (*mut q::JSContext, Option<T>)) -> Self {
+        if let Some(val) = value {
+            (context, val).into()
+        } else {
+            OwnedJsValue::new(context, create_null())
+        }
+    }
+}
+
+impl<T: Debug> From<(*mut q::JSContext, Vec<T>)> for OwnedJsValue
+where
+    T: PrimitiveToOwnedJsValue,
+{
+    fn from((context, values): (*mut q::JSContext, Vec<T>)) -> Self {
+        let arr = create_empty_array(context).unwrap();
+        let _ = values.into_iter().enumerate().for_each(|(idx, val)| {
+            let val: OwnedJsValue = (context, val).into();
+            add_array_element(context, arr, idx as u32, unsafe { val.extract() }).unwrap();
+        });
+
+        OwnedJsValue::new(context, arr)
+    }
+}
+
+impl<K, V> From<(*mut q::JSContext, HashMap<K, V>)> for OwnedJsValue
+where
+    K: Into<String>,
+    V: PrimitiveToOwnedJsValue,
+{
+    fn from((context, values): (*mut q::JSContext, HashMap<K, V>)) -> Self {
+        let obj = create_empty_object(context).unwrap();
+        let _ = values.into_iter().for_each(|(key, val)| {
+            let val: OwnedJsValue = (context, val).into();
+            add_object_property(context, obj, key.into().as_str(), unsafe { val.extract() })
+                .unwrap();
+        });
+
+        OwnedJsValue::new(context, obj)
+    }
 }

@@ -1,3 +1,5 @@
+//! utils
+
 use std::ffi::CString;
 
 use libquickjspp_sys as q;
@@ -48,7 +50,7 @@ fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
 }
 
 #[cfg(feature = "chrono")]
-fn js_date_constructor(context: *mut q::JSContext) -> q::JSValue {
+pub fn js_date_constructor(context: *mut q::JSContext) -> q::JSValue {
     let global = unsafe { q::JS_GetGlobalObject(context) };
     let tag = unsafe { q::JS_ValueGetTag(global) };
     assert_eq!(tag, q::JS_TAG_OBJECT);
@@ -68,30 +70,27 @@ fn js_date_constructor(context: *mut q::JSContext) -> q::JSValue {
     date_constructor
 }
 
-pub(crate) fn create_undefined() -> q::JSValue {
+pub fn create_undefined() -> q::JSValue {
     unsafe { q::JS_NewSpecialValue(q::JS_TAG_UNDEFINED, 0) }
 }
 
-pub(crate) fn create_null() -> q::JSValue {
+pub fn create_null() -> q::JSValue {
     unsafe { q::JS_NewSpecialValue(q::JS_TAG_NULL, 0) }
 }
 
-pub(crate) fn create_bool(context: *mut q::JSContext, value: bool) -> q::JSValue {
+pub fn create_bool(context: *mut q::JSContext, value: bool) -> q::JSValue {
     unsafe { q::JS_NewBool(context, value) }
 }
 
-pub(crate) fn create_int(context: *mut q::JSContext, value: i32) -> q::JSValue {
+pub fn create_int(context: *mut q::JSContext, value: i32) -> q::JSValue {
     unsafe { q::JS_NewInt32(context, value) }
 }
 
-pub(crate) fn create_float(context: *mut q::JSContext, value: f64) -> q::JSValue {
+pub fn create_float(context: *mut q::JSContext, value: f64) -> q::JSValue {
     unsafe { q::JS_NewFloat64(context, value) }
 }
 
-pub(crate) fn create_string(
-    context: *mut q::JSContext,
-    value: &str,
-) -> Result<q::JSValue, ValueError> {
+pub fn create_string(context: *mut q::JSContext, value: &str) -> Result<q::JSValue, ValueError> {
     // although rust string is not null-terminated, but quickjs not require it to be null-terminated
     let qval = unsafe { q::JS_NewStringLen(context, value.as_ptr() as *const _, value.len()) };
 
@@ -106,7 +105,7 @@ pub(crate) fn create_string(
     Ok(qval)
 }
 
-pub(crate) fn create_empty_array(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
+pub fn create_empty_array(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
     // Allocate a new array in the runtime.
     let arr = unsafe { q::JS_NewArray(context) };
     let tag = unsafe { q::JS_ValueGetTag(arr) };
@@ -119,7 +118,23 @@ pub(crate) fn create_empty_array(context: *mut q::JSContext) -> Result<q::JSValu
     Ok(arr)
 }
 
-pub(crate) fn create_empty_object(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
+pub fn add_array_element(
+    context: *mut q::JSContext,
+    array: q::JSValue,
+    index: u32,
+    value: q::JSValue,
+) -> Result<(), ValueError> {
+    let result = unsafe { q::JS_SetPropertyUint32(context, array, index, value) };
+    if result < 0 {
+        return Err(ValueError::Internal(
+            "Could not add element to array".into(),
+        ));
+    }
+
+    Ok(())
+}
+
+pub fn create_empty_object(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
     let obj = unsafe { q::JS_NewObject(context) };
     let tag = unsafe { q::JS_ValueGetTag(obj) };
     if tag == q::JS_TAG_EXCEPTION {
@@ -129,7 +144,24 @@ pub(crate) fn create_empty_object(context: *mut q::JSContext) -> Result<q::JSVal
     Ok(obj)
 }
 
-pub(crate) fn create_function(
+pub fn add_object_property(
+    context: *mut q::JSContext,
+    object: q::JSValue,
+    key: &str,
+    value: q::JSValue,
+) -> Result<(), ValueError> {
+    let key = make_cstring(key)?;
+    let result = unsafe { q::JS_SetPropertyStr(context, object, key.as_ptr(), value) };
+    if result < 0 {
+        return Err(ValueError::Internal(
+            "Could not add property to object".into(),
+        ));
+    }
+
+    Ok(())
+}
+
+pub fn create_function(
     context: *mut q::JSContext,
     func: JsFunction,
 ) -> Result<q::JSValue, ValueError> {
@@ -139,7 +171,7 @@ pub(crate) fn create_function(
 }
 
 #[cfg(feature = "chrono")]
-pub(crate) fn create_date(
+pub fn create_date(
     context: *mut q::JSContext,
     datetime: chrono::DateTime<chrono::Utc>,
 ) -> Result<q::JSValue, ValueError> {
@@ -173,7 +205,7 @@ pub(crate) fn create_date(
 }
 
 #[cfg(feature = "bigint")]
-pub(crate) fn create_bigint(
+pub fn create_bigint(
     context: *mut q::JSContext,
     int: num_bigint::BigInt,
 ) -> Result<q::JSValue, ValueError> {
@@ -199,7 +231,7 @@ pub(crate) fn create_bigint(
 
             let mut args = vec![*s];
 
-            let bigint_function = js_create_bigint_function(context);
+            letjs_create_bigint_function(context);
             let bigint_function =
                 DroppableValue::new(bigint_function, |&mut bigint_function| unsafe {
                     q::JS_FreeValue(context, bigint_function);
@@ -226,11 +258,18 @@ pub(crate) fn create_bigint(
     }
 }
 
-pub(crate) fn create_symbol(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
+pub fn create_symbol(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
     todo!("create symbol not implemented")
 }
 
 #[inline]
 pub fn own_raw_value(context: *mut q::JSContext, value: q::JSValue) -> OwnedJsValue {
     OwnedJsValue::new(context, value)
+}
+
+#[macro_export]
+macro_rules! owned {
+    ($context:expr, $val:expr) => {
+        OwnedJsValue::from(($context, $val))
+    };
 }

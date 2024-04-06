@@ -159,7 +159,7 @@ pub mod tests {
         let run_res = run_compiled_function(&func2);
         match run_res {
             Ok(res) => {
-                assert_eq!(res.to_value().unwrap(), JsValue::Int(7 * 5));
+                assert_eq!(res.to_int().unwrap(), 7 * 5);
             }
             Err(e) => {
                 panic!("run failed1: {}", e);
@@ -194,7 +194,7 @@ pub mod tests {
 
         match run_res {
             Ok(res) => {
-                assert_eq!(res.to_value().unwrap(), JsValue::Int(7 * 5));
+                assert_eq!(res.to_int().unwrap(), 7 * 5);
             }
             Err(e) => {
                 panic!("run failed: {}", e);
