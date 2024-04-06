@@ -30,6 +30,8 @@
 
 // #![deny(missing_docs)]
 
+#[cfg(feature = "bigint")]
+pub(crate) mod bigint;
 mod bindings;
 mod callback;
 pub mod console;
@@ -37,7 +39,6 @@ pub mod errors;
 #[cfg(feature = "serde")]
 pub mod serde;
 pub mod utils;
-mod value;
 
 use std::{convert::TryFrom, error, ffi::c_void, fmt};
 
@@ -47,8 +48,9 @@ pub use self::{
     bindings::*,
     callback::{Arguments, Callback},
     errors::ValueError,
-    value::*,
 };
+#[cfg(feature = "bigint")]
+pub use bigint::BigInt;
 
 /// Error on Javascript execution.
 #[derive(PartialEq, Debug)]
