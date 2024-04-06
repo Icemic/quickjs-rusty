@@ -33,6 +33,7 @@
 mod bindings;
 mod callback;
 pub mod console;
+pub mod errors;
 #[cfg(feature = "serde")]
 pub mod serde;
 pub mod utils;
@@ -45,6 +46,7 @@ pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
 pub use self::{
     bindings::*,
     callback::{Arguments, Callback},
+    errors::ValueError,
     value::*,
 };
 

@@ -3,8 +3,8 @@ use std::{convert::TryFrom, marker::PhantomData, panic::RefUnwindSafe};
 use libquickjspp_sys as q;
 
 use crate::utils::create_undefined;
-use crate::value::ValueError;
 use crate::OwnedJsValue;
+use crate::ValueError;
 
 pub trait IntoCallbackResult {
     fn into_callback_res(self, context: *mut q::JSContext) -> Result<OwnedJsValue, String>;
