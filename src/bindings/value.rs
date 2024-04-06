@@ -7,10 +7,13 @@ use std::hash::Hash;
 use chrono::{DateTime, Utc};
 use libquickjspp_sys as q;
 
+#[cfg(feature = "bigint")]
+use crate::utils::create_bigint;
+#[cfg(feature = "chrono")]
+use crate::utils::create_date;
 use crate::utils::{
-    add_array_element, add_object_property, create_bigint, create_bool, create_date,
-    create_empty_array, create_empty_object, create_float, create_function, create_int,
-    create_null, create_string,
+    add_array_element, add_object_property, create_bool, create_empty_array, create_empty_object,
+    create_float, create_function, create_int, create_null, create_string,
 };
 use crate::{ExecutionError, ValueError};
 

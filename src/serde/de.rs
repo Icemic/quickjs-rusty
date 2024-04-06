@@ -182,6 +182,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
             JsTag::CatchOffset => visitor.visit_unit(),
             JsTag::Uninitialized => visitor.visit_unit(),
             JsTag::FunctionBytecode => visitor.visit_unit(),
+            #[cfg(feature = "bigint")]
             JsTag::BigInt => {
                 let bigint = current.to_bigint()?;
                 visitor.visit_i64(bigint.as_i64().ok_or(Error::BigIntOverflow)?)
