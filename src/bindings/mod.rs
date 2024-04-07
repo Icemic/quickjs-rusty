@@ -2,7 +2,6 @@
 
 mod callback;
 mod compile;
-mod droppable_value;
 mod module;
 mod value;
 
@@ -27,7 +26,6 @@ pub use value::*;
 pub use self::callback::*;
 use self::module::{js_module_loader, js_module_normalize, ModuleLoader};
 pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
-pub use droppable_value::DroppableValue;
 
 /// Helper for creating CStrings.
 fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {

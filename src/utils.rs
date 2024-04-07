@@ -230,7 +230,6 @@ pub fn create_bigint(
     use std::ffi::c_char;
 
     use crate::bigint::BigIntOrI64;
-    use crate::DroppableValue;
 
     let val = match int.inner {
         BigIntOrI64::Int(int) => unsafe { q::JS_NewBigInt64(context, int) },
@@ -245,36 +244,23 @@ pub fn create_bigint(
             };
 
             let s_tag = unsafe { q::JS_ValueGetTag(s) };
-
-            let s = DroppableValue::new(s, |&mut s| unsafe {
-                q::JS_FreeValue(context, s);
-            });
             if s_tag != q::JS_TAG_STRING {
                 return Err(ValueError::Internal(
                     "Could not construct String object needed to create BigInt object".into(),
                 ));
             }
 
-            let mut args = vec![*s];
+            let mut args = vec![s];
 
             let bigint_function = js_create_bigint_function(context);
-            let bigint_function =
-                DroppableValue::new(bigint_function, |&mut bigint_function| unsafe {
-                    q::JS_FreeValue(context, bigint_function);
-                });
 
             let null = create_null();
-            let js_bigint = unsafe {
-                q::JS_Call(
-                    context,
-                    *bigint_function,
-                    create_null(),
-                    1,
-                    args.as_mut_ptr(),
-                )
-            };
+            let js_bigint =
+                unsafe { q::JS_Call(context, bigint_function, null, 1, args.as_mut_ptr()) };
 
             unsafe {
+                q::JS_FreeValue(context, s);
+                q::JS_FreeValue(context, bigint_function);
                 q::JS_FreeValue(context, null);
             }
 
