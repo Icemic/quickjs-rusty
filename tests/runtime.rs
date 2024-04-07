@@ -146,21 +146,24 @@ fn test_eval_pass() {
 #[test]
 fn test_eval_syntax_error() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
     assert_eq!(
         c.eval(
             r#"
             !!!!
         "#
         ),
-        Err(ExecutionError::Internal(
-            "SyntaxError: unexpected token in expression: \'\'".to_string()
-        ))
+        Err(ExecutionError::Exception(owned!(
+            ctx,
+            "SyntaxError: unexpected token in expression: \'\'"
+        )))
     );
 }
 
 #[test]
 fn test_eval_exception() {
     let c = Context::new().unwrap();
+    let ctx = c.context_raw();
     assert_eq!(
         c.eval(
             r#"
@@ -170,7 +173,7 @@ fn test_eval_exception() {
             f();
         "#
         ),
-        Err(ExecutionError::Internal("Error: My Error".to_string(),))
+        Err(ExecutionError::Exception(owned!(ctx, "Error: My Error")))
     );
 }
 

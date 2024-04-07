@@ -53,7 +53,7 @@ pub use self::{
 pub use bigint::BigInt;
 
 /// Error on Javascript execution.
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum ExecutionError {
     /// Code to be executed contained zero-bytes.
     InputWithZeroBytes,
@@ -76,10 +76,24 @@ impl fmt::Display for ExecutionError {
             InputWithZeroBytes => write!(f, "Invalid script input: code contains zero byte (\\0)"),
             Conversion(e) => e.fmt(f),
             Internal(e) => write!(f, "Internal error: {}", e),
-            Exception(e) => write!(f, "{:?}", e),
+            Exception(e) => {
+                if e.is_string() {
+                    write!(f, "{:?}", e.to_string().unwrap())
+                } else {
+                    write!(f, "JS Exception: {:?}", e)
+                }
+            }
             OutOfMemory => write!(f, "Out of memory: runtime memory limit exceeded"),
             __NonExhaustive => unreachable!(),
         }
+    }
+}
+
+impl PartialEq for ExecutionError {
+    fn eq(&self, other: &Self) -> bool {
+        let left = self.to_string();
+        let right = other.to_string();
+        left == right
     }
 }
 
