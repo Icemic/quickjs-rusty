@@ -715,21 +715,30 @@ fn test_console() {
     )
     .unwrap();
 
-    let m = messages.lock().unwrap();
+    {
+        let m = messages.lock().unwrap();
 
-    assert_eq!(m.len(), 2);
-    assert_eq!(m.get(0).unwrap().0, Level::Log);
-    assert_eq!(m.get(1).unwrap().0, Level::Error);
-    assert_eq!(m.get(0).unwrap().1.len(), 1);
-    assert_eq!(m.get(1).unwrap().1.len(), 1);
-    assert_eq!(
-        m.get(0).unwrap().1.get(0).unwrap().to_string().unwrap(),
-        "hi"
-    );
-    assert_eq!(
-        m.get(1).unwrap().1.get(0).unwrap().to_bool().unwrap(),
-        false
-    );
+        assert_eq!(m.len(), 2);
+        assert_eq!(m.get(0).unwrap().0, Level::Log);
+        assert_eq!(m.get(1).unwrap().0, Level::Error);
+        assert_eq!(m.get(0).unwrap().1.len(), 1);
+        assert_eq!(m.get(1).unwrap().1.len(), 1);
+        assert_eq!(
+            m.get(0).unwrap().1.get(0).unwrap().to_string().unwrap(),
+            "hi"
+        );
+        assert_eq!(
+            m.get(1).unwrap().1.get(0).unwrap().to_bool().unwrap(),
+            false
+        );
+    }
+
+    // release OwnedJsValue before the Context is dropped,
+    // or it will cause a double free error.
+    for (level, args) in messages.lock().unwrap().drain(..).into_iter() {
+        println!("{:?} {:?}", level, args);
+        drop(args);
+    }
 }
 
 #[test]
