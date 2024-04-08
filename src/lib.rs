@@ -42,6 +42,7 @@ pub mod utils;
 
 use std::{convert::TryFrom, error, ffi::c_void, fmt};
 
+use libquickjspp_sys::JSHostPromiseRejectionTracker;
 pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
 
 pub use self::{
@@ -317,6 +318,16 @@ impl Context {
         opaque: *mut c_void,
     ) {
         self.wrapper.set_module_loader(loader, normalize, opaque);
+    }
+
+    /// Set a promise rejection tracker.
+    pub fn set_host_promise_rejection_tracker(
+        &self,
+        tracker: JSHostPromiseRejectionTracker,
+        opaque: *mut c_void,
+    ) {
+        self.wrapper
+            .set_host_promise_rejection_tracker(tracker, opaque);
     }
 
     /// Evaluates Javascript code and returns the value of the final expression

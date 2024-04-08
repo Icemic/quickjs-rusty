@@ -6,8 +6,7 @@ mod module;
 mod value;
 
 use std::{
-    ffi::CString,
-    os::raw::{c_int, c_void},
+    ffi::{c_int, c_void, CString},
     ptr::null_mut,
     sync::{Arc, Mutex},
 };
@@ -414,6 +413,18 @@ impl ContextWrapper {
                     module_loader_ptr as *mut c_void,
                 );
             }
+        }
+    }
+
+    /// Set the host promise rejection tracker.\
+    /// This function works not as expected, see more details in the example.
+    pub fn set_host_promise_rejection_tracker(
+        &self,
+        func: q::JSHostPromiseRejectionTracker,
+        opaque: *mut c_void,
+    ) {
+        unsafe {
+            q::JS_SetHostPromiseRejectionTracker(self.runtime, func, opaque);
         }
     }
 
