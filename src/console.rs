@@ -70,47 +70,21 @@ where
 
 #[cfg(feature = "log")]
 mod log {
-    use super::{JsValue, Level};
+    use crate::OwnedJsValue;
+
+    use super::Level;
 
     /// A console implementation that logs messages via the `log` crate.
     ///
     /// Only available with the `log` feature.
     pub struct LogConsole;
 
-    fn print_value(value: JsValue) -> String {
-        match value {
-            JsValue::Undefined => "undefined".to_string(),
-            JsValue::Null => "null".to_string(),
-            JsValue::Bool(v) => v.to_string(),
-            JsValue::Int(v) => v.to_string(),
-            JsValue::Float(v) => v.to_string(),
-            JsValue::String(v) => v,
-            JsValue::Array(values) => {
-                let parts = values
-                    .into_iter()
-                    .map(print_value)
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                format!("[{}]", parts)
-            }
-            JsValue::Object(map) => {
-                let parts = map
-                    .into_iter()
-                    .map(|(key, value)| format!("{}: {}", key, print_value(value)))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                format!("{{{}}}", parts)
-            }
-            #[cfg(feature = "chrono")]
-            JsValue::Date(v) => v.to_string(),
-            #[cfg(feature = "bigint")]
-            JsValue::BigInt(v) => v.to_string(),
-            JsValue::__NonExhaustive => unreachable!(),
-        }
+    fn print_value(value: OwnedJsValue) -> String {
+        value.to_json_string(0).unwrap()
     }
 
     impl super::ConsoleBackend for LogConsole {
-        fn log(&self, level: Level, values: Vec<JsValue>) {
+        fn log(&self, level: Level, values: Vec<OwnedJsValue>) {
             if values.is_empty() {
                 return;
             }
