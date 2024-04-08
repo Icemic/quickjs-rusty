@@ -1,4 +1,5 @@
-use crate::{console, Context, ContextError, ContextWrapper};
+use super::Context;
+use crate::{console, ContextError};
 
 /// A builder for [Context](Context).
 ///
@@ -43,10 +44,10 @@ impl ContextBuilder {
 
     /// Finalize the builder and build a JS Context.
     pub fn build(self) -> Result<Context, ContextError> {
-        let wrapper = ContextWrapper::new(self.memory_limit)?;
+        let context = Context::new(self.memory_limit)?;
         if let Some(be) = self.console_backend {
-            wrapper.set_console(be).map_err(ContextError::Execution)?;
+            context.set_console(be).map_err(ContextError::Execution)?;
         }
-        Ok(Context::from_wrapper(wrapper))
+        Ok(context)
     }
 }

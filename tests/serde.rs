@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 
 #[test]
 fn serde_ser_bool() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // bool
     let value = true;
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -17,7 +17,7 @@ fn serde_ser_bool() {
 
 #[test]
 fn serde_ser_int() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // int
     // TODO: should take care of i32, i64, u32, u64, etc.
     let value = 123;
@@ -28,7 +28,7 @@ fn serde_ser_int() {
 
 #[test]
 fn serde_ser_float() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // float
     let value = 3.1415;
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -38,7 +38,7 @@ fn serde_ser_float() {
 
 #[test]
 fn serde_ser_char() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // char
     let value = 'a';
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -48,7 +48,7 @@ fn serde_ser_char() {
 
 #[test]
 fn serde_ser_string() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // string
     let value = "哈哈";
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -58,7 +58,7 @@ fn serde_ser_string() {
 
 #[test]
 fn serde_ser_null_none() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // null (None)
     let value: Option<bool> = None;
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -68,7 +68,7 @@ fn serde_ser_null_none() {
 
 #[test]
 fn serde_ser_null_unit_struct() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // null (unit struct)
     let value = SimpleUnitStruct;
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -78,7 +78,7 @@ fn serde_ser_null_unit_struct() {
 
 #[test]
 fn serde_ser_some() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // null (None)
     let value: Option<bool> = Some(true);
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -88,7 +88,7 @@ fn serde_ser_some() {
 
 #[test]
 fn serde_ser_unit_variant() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // unit variant
     let value = SimpleEnum::A;
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -98,7 +98,7 @@ fn serde_ser_unit_variant() {
 
 #[test]
 fn serde_ser_newtype_variant() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // newtype variant
     let value = SimpleEnum::Foo("bar".to_string());
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -108,7 +108,7 @@ fn serde_ser_newtype_variant() {
 
 #[test]
 fn serde_ser_newtype_variant_tuple() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // newtype variant tuple
     let value = SimpleEnum::D(true, 2233);
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -118,7 +118,7 @@ fn serde_ser_newtype_variant_tuple() {
 
 #[test]
 fn serde_ser_newtype_variant_tuple_empty() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // newtype variant tuple empty
     let value = SimpleEnum::B();
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -128,7 +128,7 @@ fn serde_ser_newtype_variant_tuple_empty() {
 
 #[test]
 fn serde_ser_newtype_variant_struct() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // newtype variant struct
     let value = SimpleEnum::C {
         a: 233,
@@ -144,7 +144,7 @@ fn serde_ser_newtype_variant_struct() {
 
 #[test]
 fn serde_ser_newtype_struct() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // newtype struct
     let value = SimpleNewTypeStruct(100);
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -154,7 +154,7 @@ fn serde_ser_newtype_struct() {
 
 #[test]
 fn serde_ser_tuple_struct() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // tuple struct
     let value = SimpleTupleStruct(100, 101);
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -164,7 +164,7 @@ fn serde_ser_tuple_struct() {
 
 #[test]
 fn serde_ser_struct() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // simple struct
     let value = SimpleStruct { a: 100, b: 101 };
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -174,7 +174,7 @@ fn serde_ser_struct() {
 
 #[test]
 fn serde_ser_vector() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // vector
     let value = vec![1, 2, 3, 4, 5];
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -184,7 +184,7 @@ fn serde_ser_vector() {
 
 #[test]
 fn serde_ser_tuple() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // tuple
     let value = (123, 3.14, "hh");
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -194,7 +194,7 @@ fn serde_ser_tuple() {
 
 #[test]
 fn serde_ser_map() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // map
     let mut value = std::collections::HashMap::new();
     value.insert("a".to_string(), 1);
@@ -211,7 +211,7 @@ fn serde_ser_map() {
 }
 
 fn parse_from_js<T: serde::de::DeserializeOwned>(value: Value) -> T {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     // use our to_js function to convert rust value to js value
     // now it is a js value in quickjs context
     let js_value = to_js(context.context_raw(), &value).unwrap();
@@ -300,7 +300,7 @@ fn serde_de_string() {
 
 #[test]
 fn serde_de_borrowed_str() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     let value = json!("😄");
     let js_value = to_js(context.context_raw(), &value).unwrap();
     assert_eq!(

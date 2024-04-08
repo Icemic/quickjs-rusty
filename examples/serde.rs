@@ -6,7 +6,7 @@ use quickjspp::{Context, OwnedJsValue};
 use serde_json::json;
 
 pub fn main() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
 
     // generate a complex json value (rust format)
     // for simplicity, we use serde_json::json! macro here,

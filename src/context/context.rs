@@ -1,6 +1,7 @@
 #![allow(missing_docs)]
 
 use std::{
+    convert::TryFrom,
     ffi::{c_int, c_void},
     ptr::null_mut,
     sync::{Arc, Mutex},
@@ -8,22 +9,23 @@ use std::{
 
 use libquickjspp_sys as q;
 
-use crate::callback::{
-    build_closure_trampoline, exec_callback, Arguments, Callback, CustomCallback, WrappedCallback,
-};
+use crate::callback::*;
 use crate::console::ConsoleBackend;
-use crate::module_loader::{
-    js_module_loader, js_module_normalize, JSModuleLoaderFunc, JSModuleNormalizeFunc, ModuleLoader,
-};
+use crate::errors::*;
+use crate::module_loader::*;
 use crate::utils::{create_string, ensure_no_excpetion, get_exception, make_cstring};
 use crate::value::*;
-use crate::ContextError;
-use crate::ExecutionError;
 
-/// Wraps a quickjs context.
+use super::ContextBuilder;
+
+/// Context is a wrapper around a QuickJS Javascript context.
+/// It is the primary way to interact with the runtime.
 ///
-/// Cleanup of the context happens in drop.
-pub struct ContextWrapper {
+/// For each `Context` instance a new instance of QuickJS
+/// runtime is created. It means that it is safe to use
+/// different contexts in different threads, but each
+/// `Context` instance must be used only from a single thread.
+pub struct Context {
     runtime: *mut q::JSRuntime,
     pub(crate) context: *mut q::JSContext,
     pub(crate) loop_context: Arc<Mutex<*mut q::JSContext>>,
@@ -34,7 +36,7 @@ pub struct ContextWrapper {
     callbacks: Mutex<Vec<(Box<WrappedCallback>, Box<q::JSValue>)>>,
 }
 
-impl Drop for ContextWrapper {
+impl Drop for Context {
     fn drop(&mut self) {
         unsafe {
             q::JS_FreeContext(self.context);
@@ -43,7 +45,21 @@ impl Drop for ContextWrapper {
     }
 }
 
-impl ContextWrapper {
+impl Context {
+    /// Create a `ContextBuilder` that allows customization of JS Runtime settings.
+    ///
+    /// For details, see the methods on `ContextBuilder`.
+    ///
+    /// ```rust
+    /// let _context = quickjspp::Context::builder()
+    ///     .memory_limit(100_000)
+    ///     .build()
+    ///     .unwrap();
+    /// ```
+    pub fn builder() -> ContextBuilder {
+        ContextBuilder::new()
+    }
+
     /// Initialize a wrapper by creating a JSRuntime and JSContext.
     pub fn new(memory_limit: Option<usize>) -> Result<Self, ContextError> {
         let runtime = unsafe { q::JS_NewRuntime() };
@@ -132,7 +148,9 @@ impl ContextWrapper {
         Ok(())
     }
 
-    /// Reset the wrapper by creating a new context.
+    /// Reset the Javascript engine.
+    ///
+    /// All state and callbacks will be removed.
     pub fn reset(self) -> Result<Self, ContextError> {
         unsafe {
             q::JS_FreeContext(self.context);
@@ -148,12 +166,36 @@ impl ContextWrapper {
         Ok(s)
     }
 
+    /// Get raw pointer to the underlying QuickJS context.
+    pub fn context_raw(&self) -> *mut q::JSContext {
+        self.context
+    }
+
     /// Get the global object.
     pub fn global(&self) -> Result<OwnedJsObject, ExecutionError> {
         let global_raw = unsafe { q::JS_GetGlobalObject(self.context) };
         let global_ref = OwnedJsValue::new(self.context, global_raw);
         let global = global_ref.try_into_object()?;
         Ok(global)
+    }
+
+    /// Set a global variable.
+    ///
+    /// ```rust
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// context.set_global("someGlobalVariable", 42).unwrap();
+    /// let value = context.eval_as::<i32>("someGlobalVariable").unwrap();
+    /// assert_eq!(
+    ///     value,
+    ///     42,
+    /// );
+    /// ```
+    pub fn set_global(&self, name: &str, value: OwnedJsValue) -> Result<(), ExecutionError> {
+        let global = self.global()?;
+        global.set_property(name, value)?;
+        Ok(())
     }
 
     /// Execute the pending job in the event loop.
@@ -254,7 +296,35 @@ impl ContextWrapper {
         }
     }
 
-    /// Evaluate javascript code.
+    /// Evaluates Javascript code and returns the value of the final expression.
+    ///
+    /// **Promises**:
+    /// If the evaluated code returns a Promise, the event loop
+    /// will be executed until the promise is finished. The final value of
+    /// the promise will be returned, or a `ExecutionError::Exception` if the
+    /// promise failed.
+    ///
+    /// ```rust
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// let value = context.eval(" 1 + 2 + 3 ").unwrap();
+    /// assert_eq!(
+    ///     value.to_int(),
+    ///     Ok(6),
+    /// );
+    ///
+    /// let value = context.eval(r#"
+    ///     function f() { return 55 * 3; }
+    ///     let y = f();
+    ///     var x = y.toString() + "!"
+    ///     x
+    /// "#).unwrap();
+    /// assert_eq!(
+    ///     value.to_string().unwrap(),
+    ///     "165!",
+    /// );
+    /// ```
     pub fn eval(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
         let filename = "script.js";
         let filename_c = make_cstring(filename)?;
@@ -273,7 +343,24 @@ impl ContextWrapper {
         self.resolve_value(value)
     }
 
-    /// Evaluate javascript module code.
+    /// Evaluates Javascript code and returns the value of the final expression
+    /// on module mode.
+    ///
+    /// **Promises**:
+    /// If the evaluated code returns a Promise, the event loop
+    /// will be executed until the promise is finished. The final value of
+    /// the promise will be returned, or a `ExecutionError::Exception` if the
+    /// promise failed.
+    ///
+    /// **Returns**:
+    /// Return value will always be undefined on module mode.
+    ///
+    /// ```ignore
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// let value = context.eval_module("import {foo} from 'bar'; foo();");
+    /// ```
     pub fn eval_module(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
         let filename = "module.js";
         let filename_c = make_cstring(filename)?;
@@ -292,7 +379,56 @@ impl ContextWrapper {
         self.resolve_value(value)
     }
 
-    /// Evaluate Javascript module
+    /// Evaluates Javascript code and returns the value of the final expression
+    /// as a Rust type.
+    ///
+    /// **Promises**:
+    /// If the evaluated code returns a Promise, the event loop
+    /// will be executed until the promise is finished. The final value of
+    /// the promise will be returned, or a `ExecutionError::Exception` if the
+    /// promise failed.
+    ///
+    /// ```rust
+    /// use quickjspp::{Context};
+    /// let context = Context::new().unwrap();
+    ///
+    /// let res = context.eval_as::<bool>(" 100 > 10 ");
+    /// assert_eq!(
+    ///     res,
+    ///     Ok(true),
+    /// );
+    ///
+    /// let value: i32 = context.eval_as(" 10 + 10 ").unwrap();
+    /// assert_eq!(
+    ///     value,
+    ///     20,
+    /// );
+    /// ```
+    pub fn eval_as<R>(&self, code: &str) -> Result<R, ExecutionError>
+    where
+        R: TryFrom<OwnedJsValue>,
+        R::Error: Into<ValueError>,
+    {
+        let value = self.eval(code)?;
+        let ret = R::try_from(value).map_err(|e| e.into())?;
+        Ok(ret)
+    }
+
+    /// Evaluates Javascript code and returns the value of the final expression
+    /// on module mode.
+    ///
+    /// **Promises**:
+    /// If the evaluated code returns a Promise, the event loop
+    /// will be executed until the promise is finished. The final value of
+    /// the promise will be returned, or a `ExecutionError::Exception` if the
+    /// promise failed.
+    ///
+    /// ```ignore
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// let value = context.run_module("./module");
+    /// ```
     pub fn run_module(&self, filename: &str) -> Result<(), ExecutionError> {
         let filename_c = make_cstring(filename)?;
 
@@ -309,6 +445,7 @@ impl ContextWrapper {
         Ok(())
     }
 
+    /// register module loader function, giving module name as input and return module code as output.
     pub fn set_module_loader(
         &self,
         module_loader_func: JSModuleLoaderFunc,
@@ -357,46 +494,77 @@ impl ContextWrapper {
         }
     }
 
-    /*
-    /// Call a constructor function.
-    fn call_constructor(
-        & self,
-        function: OwnedJsValue,
-        args: Vec<OwnedJsValue>,
-    ) -> Result<OwnedJsValue, ExecutionError> {
-        let mut qargs = args.iter().map(|arg| arg.value).collect::<Vec<_>>();
-
-        let value_raw = unsafe {
-            q::JS_CallConstructor(
-                self.context,
-                function.value,
-                qargs.len() as i32,
-                qargs.as_mut_ptr(),
-            )
-        };
-        let value = OwnedJsValue::new(self, value_raw);
-        if value.is_exception() {
-            let err = self
-                .get_exception()
-                .unwrap_or_else(|| ExecutionError::Exception("Unknown exception".into()));
-            Err(err)
-        } else {
-            Ok(value)
-        }
-    }
-    */
-
-    /// Call a JS function with the given arguments.
+    /// Call a global function in the Javascript namespace.
+    ///
+    /// **Promises**:
+    /// If the evaluated code returns a Promise, the event loop
+    /// will be executed until the promise is finished. The final value of
+    /// the promise will be returned, or a `ExecutionError::Exception` if the
+    /// promise failed.
+    ///
+    /// ```rust
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// let res = context.call_function("encodeURIComponent", vec!["a=b"]).unwrap();
+    /// assert_eq!(
+    ///     res.to_string(),
+    ///     Ok("a%3Db".to_string()),
+    /// );
+    /// ```
     pub fn call_function(
         &self,
-        function: JsFunction,
-        args: Vec<OwnedJsValue>,
+        function_name: &str,
+        args: impl IntoIterator<Item = OwnedJsValue>,
     ) -> Result<OwnedJsValue, ExecutionError> {
-        let ret = function.call(args)?;
-        self.resolve_value(ret)
+        let qargs = args.into_iter().collect::<Vec<OwnedJsValue>>();
+
+        let global = self.global()?;
+        let func = global
+            .property_require(function_name)?
+            .try_into_function()?;
+
+        let ret = func.call(qargs)?;
+        let v = self.resolve_value(ret)?;
+
+        Ok(v)
     }
 
-    /// Create a wrapped callback function.
+    /// Create a JS function that is backed by a Rust function or closure.
+    /// Can be used to create a function and add it to an object.
+    ///
+    /// The callback must satisfy several requirements:
+    /// * accepts 0 - 5 arguments
+    /// * each argument must be convertible from a JsValue
+    /// * must return a value
+    /// * the return value must either:
+    ///   - be convertible to JsValue
+    ///   - be a Result<T, E> where T is convertible to JsValue
+    ///     if Err(e) is returned, a Javascript exception will be raised
+    ///
+    /// ```rust
+    /// use quickjspp::{Context, JsValue};
+    /// use std::collections::HashMap;
+    ///
+    /// let context = Context::new().unwrap();
+    ///
+    /// // Register an object.
+    /// let mut obj = HashMap::<String, JsValue>::new();
+
+    /// // insert add function into the object.
+    /// obj.insert(
+    ///     "add".to_string(),
+    ///     context
+    ///         .create_callback(|a: i32, b: i32| a + b)
+    ///         .unwrap()
+    ///         .into(),
+    /// );
+    /// // insert the myObj to global.
+    /// context.set_global("myObj", obj).unwrap();
+    /// // Now we try out the 'myObj.add' function via eval.    
+    /// let output = context.eval_as::<i32>("myObj.add( 3 , 4 ) ").unwrap();
+    /// assert_eq!(output, 7);
+    /// ```
     pub fn create_callback<'a, F>(
         &self,
         callback: impl Callback<F> + 'static,
@@ -436,6 +604,31 @@ impl ContextWrapper {
     }
 
     /// Add a global JS function that is backed by a Rust function or closure.
+    ///
+    /// The callback must satisfy several requirements:
+    /// * accepts 0 - 5 arguments
+    /// * each argument must be convertible from a JsValue
+    /// * must return a value
+    /// * the return value must either:
+    ///   - be convertible to JsValue
+    ///   - be a Result<T, E> where T is convertible to JsValue
+    ///     if Err(e) is returned, a Javascript exception will be raised
+    ///
+    /// ```rust
+    /// use quickjspp::{Context, JsValue};
+    /// let context = Context::new().unwrap();
+    ///
+    /// // Register a closue as a callback under the "add" name.
+    /// // The 'add' function can now be called from Javascript code.
+    /// context.add_callback("add", |a: i32, b: i32| { a + b }).unwrap();
+    ///
+    /// // Now we try out the 'add' function via eval.
+    /// let output = context.eval_as::<i32>(" add( 3 , 4 ) ").unwrap();
+    /// assert_eq!(
+    ///     output,
+    ///     7,
+    /// );
+    /// ```
     pub fn add_callback<'a, F>(
         &self,
         name: &str,
@@ -447,7 +640,7 @@ impl ContextWrapper {
         Ok(())
     }
 
-    /// Create a raw callback function
+    /// create a custom callback function
     pub fn create_custom_callback(
         &self,
         callback: CustomCallback,

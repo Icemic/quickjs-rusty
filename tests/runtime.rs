@@ -5,7 +5,7 @@ use quickjspp::*;
 
 // #[test]
 // fn test_global_properties() {
-//     let c = Context::new().unwrap();
+//     let c = Context::builder().build().unwrap();
 // let ctx = c.context_raw();
 
 //     assert_eq!(
@@ -24,7 +24,7 @@ use quickjspp::*;
 
 #[test]
 fn test_eval_pass() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
 
     let cases: Vec<(&str, Box<dyn Fn(&OwnedJsValue) -> bool>)> = vec![
         ("undefined", Box::new(|v| v.is_undefined())),
@@ -146,7 +146,7 @@ fn test_eval_pass() {
 
 #[test]
 fn test_eval_syntax_error() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
     assert_eq!(
         c.eval(
@@ -163,7 +163,7 @@ fn test_eval_syntax_error() {
 
 #[test]
 fn test_eval_exception() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
     assert_eq!(
         c.eval(
@@ -180,7 +180,7 @@ fn test_eval_exception() {
 
 #[test]
 fn eval_async() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
 
     let value = c
         .eval(
@@ -206,7 +206,7 @@ fn eval_async() {
 
 #[test]
 fn test_set_global() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     let ctx = context.context_raw();
     context
         .set_global("someGlobalVariable", (ctx, 42).into())
@@ -217,7 +217,7 @@ fn test_set_global() {
 
 #[test]
 fn test_call() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
 
     assert_eq!(
@@ -291,7 +291,7 @@ fn test_call() {
 
 #[test]
 fn test_call_large_string() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
     c.eval(" function strLen(s) { return s.length; } ").unwrap();
 
@@ -306,7 +306,7 @@ fn test_call_large_string() {
 
 #[test]
 fn call_async() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
 
     c.eval(
@@ -342,7 +342,7 @@ fn call_async() {
 
 #[test]
 fn test_callback() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
 
     c.add_callback("no_arguments", || true).unwrap();
     assert_eq!(c.eval_as::<bool>("no_arguments()").unwrap(), true);
@@ -394,7 +394,7 @@ fn test_callback_argn_variants() {
                 {
                     // Test plain return type.
                     let name = format!("cb{}", $len);
-                    let c = Context::new().unwrap();
+                    let c = Context::builder().build().unwrap();
                     let ctx = c.context_raw();
                     c.add_callback(&name, | $( $argn : i32 ),*| -> i32 {
                         $( $argn + )* 0
@@ -435,7 +435,7 @@ fn test_callback_argn_variants() {
 
 #[test]
 fn test_callback_varargs() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
 
     // No return.
     c.add_callback("cb", |args: Arguments| {
@@ -476,7 +476,7 @@ fn test_callback_varargs() {
 
 #[test]
 fn test_callback_invalid_argcount() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
 
     c.add_callback("cb", |a: i32, b: i32| a + b).unwrap();
@@ -501,7 +501,7 @@ fn memory_limit_exceeded() {
 
 #[test]
 fn test_create_callback() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     let ctx = context.context_raw();
 
     // Register an object.
@@ -524,7 +524,7 @@ fn test_create_callback() {
 
 #[test]
 fn context_reset() {
-    let c = Context::new().unwrap();
+    let c = Context::builder().build().unwrap();
     c.eval(" var x = 123; ").unwrap();
     c.add_callback("myCallback", || true).unwrap();
 
@@ -547,7 +547,7 @@ fn context_reset() {
 
 #[inline(never)]
 fn build_context() -> Context {
-    let ctx = Context::new().unwrap();
+    let ctx = Context::builder().build().unwrap();
     let name = "cb".to_string();
     ctx.add_callback(&name, |a: String| a.repeat(2)).unwrap();
 
@@ -630,7 +630,7 @@ fn chrono_roundtrip() {
 #[test]
 fn test_bigint_deserialize_i64() {
     for i in vec![0, std::i64::MAX, std::i64::MIN] {
-        let c = Context::new().unwrap();
+        let c = Context::builder().build().unwrap();
         let value = c.eval(&format!("{}n", i)).unwrap();
         assert_eq!(value.to_bigint(), Ok(i.into()));
     }
@@ -645,7 +645,7 @@ fn test_bigint_deserialize_bigint() {
         std::i128::MAX,
         std::i128::MIN,
     ] {
-        let c = Context::new().unwrap();
+        let c = Context::builder().build().unwrap();
         let value = c.eval(&format!("{}n", i)).unwrap();
         let expected = num_bigint::BigInt::from(i);
         assert_eq!(value.to_bigint(), Ok(expected.into()));
@@ -656,7 +656,7 @@ fn test_bigint_deserialize_bigint() {
 #[test]
 fn test_bigint_serialize_i64() {
     for i in vec![0, std::i64::MAX, std::i64::MIN] {
-        let c = Context::new().unwrap();
+        let c = Context::builder().build().unwrap();
         let ctx = c.context_raw();
         c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
             .unwrap();
@@ -679,7 +679,7 @@ fn test_bigint_serialize_bigint() {
         std::i128::MAX,
         std::i128::MIN,
     ] {
-        let c = Context::new().unwrap();
+        let c = Context::builder().build().unwrap();
         let ctx = c.context_raw();
         c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
             .unwrap();
@@ -744,7 +744,7 @@ fn test_console() {
 
 #[test]
 fn test_global_setter() {
-    let context = Context::new().unwrap();
+    let context = Context::builder().build().unwrap();
     let ctx = context.context_raw();
 
     context.set_global("a", owned!(ctx, "a")).unwrap();

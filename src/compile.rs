@@ -130,11 +130,11 @@ pub fn from_bytecode(
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crate::ContextWrapper;
+    use crate::Context;
 
     #[test]
     fn test_compile_function() {
-        let ctx = ContextWrapper::new(None).unwrap();
+        let ctx = Context::new(None).unwrap();
 
         let func_res = compile(
             ctx.context,
@@ -169,7 +169,7 @@ pub mod tests {
 
     #[test]
     fn test_load_and_eval_compiled_function() {
-        let ctx = ContextWrapper::new(None).unwrap();
+        let ctx = Context::new(None).unwrap();
 
         let func_res = compile(
             ctx.context,
@@ -204,7 +204,7 @@ pub mod tests {
 
     #[test]
     fn test_load_compiled_function_fail() {
-        let ctx = ContextWrapper::new(None).unwrap();
+        let ctx = Context::new(None).unwrap();
 
         let func_res = compile(
             ctx.context,
@@ -216,7 +216,7 @@ pub mod tests {
 
     #[test]
     fn test_compiled_func_bad_eval() {
-        let ctx = ContextWrapper::new(None).unwrap();
+        let ctx = Context::new(None).unwrap();
 
         let func_res = compile(ctx.context, "let abcdef = 1;", "test_func_runfail.es");
         let func = func_res
