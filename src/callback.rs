@@ -1,8 +1,12 @@
+use std::ffi::{c_int, c_void};
 use std::{convert::TryFrom, marker::PhantomData, panic::RefUnwindSafe};
 
+use anyhow::Result;
 use libquickjspp_sys as q;
 
+use crate::utils::create_string;
 use crate::utils::create_undefined;
+use crate::ExecutionError;
 use crate::OwnedJsValue;
 use crate::ValueError;
 
@@ -191,4 +195,81 @@ where
         let res = (self)(Arguments(args));
         Ok(res.into_callback_res(context))
     }
+}
+
+/// Helper for executing a callback closure.
+pub fn exec_callback<F>(
+    context: *mut q::JSContext,
+    argc: c_int,
+    argv: *mut q::JSValue,
+    callback: &impl Callback<F>,
+) -> Result<q::JSValue, ExecutionError> {
+    let result = std::panic::catch_unwind(|| {
+        let arg_slice = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
+
+        let args = arg_slice
+            .iter()
+            .map(|raw| OwnedJsValue::own(context, raw))
+            .collect::<Vec<_>>();
+
+        match callback.call(context, args) {
+            Ok(Ok(result)) => {
+                let serialized = unsafe { result.extract() };
+                Ok(serialized)
+            }
+            // TODO: better error reporting.
+            Ok(Err(e)) => Err(ExecutionError::Exception(OwnedJsValue::new(
+                context,
+                create_string(context, &e).unwrap(),
+            ))),
+            Err(e) => Err(e.into()),
+        }
+    });
+
+    match result {
+        Ok(r) => r,
+        Err(_e) => Err(ExecutionError::Internal("Callback panicked!".to_string())),
+    }
+}
+
+pub type CustomCallback = fn(*mut q::JSContext, &[q::JSValue]) -> Result<Option<q::JSValue>>;
+pub type WrappedCallback = dyn Fn(c_int, *mut q::JSValue) -> q::JSValue;
+
+/// Taken from: https://s3.amazonaws.com/temp.michaelfbryan.com/callbacks/index.html
+///
+/// Create a C wrapper function for a Rust closure to enable using it as a
+/// callback function in the Quickjs runtime.
+///
+/// Both the boxed closure and the boxed data are returned and must be stored
+/// by the caller to guarantee they stay alive.
+pub unsafe fn build_closure_trampoline<F>(
+    closure: F,
+) -> ((Box<WrappedCallback>, Box<q::JSValue>), q::JSCFunctionData)
+where
+    F: Fn(c_int, *mut q::JSValue) -> q::JSValue + 'static,
+{
+    unsafe extern "C" fn trampoline<F>(
+        _ctx: *mut q::JSContext,
+        _this: q::JSValue,
+        argc: c_int,
+        argv: *mut q::JSValue,
+        _magic: c_int,
+        data: *mut q::JSValue,
+    ) -> q::JSValue
+    where
+        F: Fn(c_int, *mut q::JSValue) -> q::JSValue,
+    {
+        let closure_ptr = q::JS_VALUE_GET_PTR(*data);
+        let closure: &mut F = &mut *(closure_ptr as *mut F);
+        (*closure)(argc, argv)
+    }
+
+    let boxed_f = Box::new(closure);
+
+    let data = Box::new(q::JS_NewPointer(
+        q::JS_TAG_NULL,
+        (&*boxed_f) as *const F as *mut c_void,
+    ));
+
+    ((boxed_f, data), Some(trampoline::<F>))
 }

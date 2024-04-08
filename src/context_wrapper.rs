@@ -1,95 +1,24 @@
 #![allow(missing_docs)]
 
-mod callback;
-mod compile;
-mod module;
-mod value;
-
 use std::{
-    ffi::{c_int, c_void, CString},
+    ffi::{c_int, c_void},
     ptr::null_mut,
     sync::{Arc, Mutex},
 };
 
 use libquickjspp_sys as q;
 
-use crate::{
-    callback::{Arguments, Callback},
-    console::ConsoleBackend,
-    utils::{create_string, ensure_no_excpetion, get_exception},
-    ContextError, ExecutionError, ValueError,
+use crate::callback::{
+    build_closure_trampoline, exec_callback, Arguments, Callback, CustomCallback, WrappedCallback,
 };
-
-pub use value::*;
-
-pub use self::callback::*;
-use self::module::{js_module_loader, js_module_normalize, ModuleLoader};
-pub use self::module::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
-
-/// Helper for creating CStrings.
-fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
-    CString::new(value).map_err(ValueError::StringWithZeroBytes)
-}
-
-type WrappedCallback = dyn Fn(c_int, *mut q::JSValue) -> q::JSValue;
-
-/// Taken from: https://s3.amazonaws.com/temp.michaelfbryan.com/callbacks/index.html
-///
-/// Create a C wrapper function for a Rust closure to enable using it as a
-/// callback function in the Quickjs runtime.
-///
-/// Both the boxed closure and the boxed data are returned and must be stored
-/// by the caller to guarantee they stay alive.
-unsafe fn build_closure_trampoline<F>(
-    closure: F,
-) -> ((Box<WrappedCallback>, Box<q::JSValue>), q::JSCFunctionData)
-where
-    F: Fn(c_int, *mut q::JSValue) -> q::JSValue + 'static,
-{
-    unsafe extern "C" fn trampoline<F>(
-        _ctx: *mut q::JSContext,
-        _this: q::JSValue,
-        argc: c_int,
-        argv: *mut q::JSValue,
-        _magic: c_int,
-        data: *mut q::JSValue,
-    ) -> q::JSValue
-    where
-        F: Fn(c_int, *mut q::JSValue) -> q::JSValue,
-    {
-        let closure_ptr = q::JS_VALUE_GET_PTR(*data);
-        let closure: &mut F = &mut *(closure_ptr as *mut F);
-        (*closure)(argc, argv)
-    }
-
-    let boxed_f = Box::new(closure);
-
-    let data = Box::new(q::JS_NewPointer(
-        q::JS_TAG_NULL,
-        (&*boxed_f) as *const F as *mut c_void,
-    ));
-
-    ((boxed_f, data), Some(trampoline::<F>))
-}
-
-/*
-type ModuleInit = dyn Fn(*mut q::JSContext, *mut q::JSModuleDef);
-
-thread_local! {
-    static NATIVE_MODULE_INIT: RefCell<Option<Box<ModuleInit>>> = RefCell::new(None);
-}
-
-unsafe extern "C" fn native_module_init(
-    ctx: *mut q::JSContext,
-    m: *mut q::JSModuleDef,
-) -> ::std::os::raw::c_int {
-    NATIVE_MODULE_INIT.with(|init| {
-        let init = init.replace(None).unwrap();
-        init(ctx, m);
-    });
-    0
-}
-*/
+use crate::console::ConsoleBackend;
+use crate::module_loader::{
+    js_module_loader, js_module_normalize, JSModuleLoaderFunc, JSModuleNormalizeFunc, ModuleLoader,
+};
+use crate::utils::{create_string, ensure_no_excpetion, get_exception, make_cstring};
+use crate::value::*;
+use crate::ContextError;
+use crate::ExecutionError;
 
 /// Wraps a quickjs context.
 ///

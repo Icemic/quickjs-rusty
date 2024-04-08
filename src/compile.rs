@@ -4,10 +4,9 @@ use std::os::raw::c_void;
 
 use libquickjspp_sys as q;
 
-use crate::utils::{ensure_no_excpetion, get_exception};
+use crate::utils::{ensure_no_excpetion, get_exception, make_cstring};
+use crate::value::{JsCompiledFunction, OwnedJsValue};
 use crate::ExecutionError;
-
-use super::{make_cstring, value::JsCompiledFunction, ContextWrapper, OwnedJsValue};
 
 /// compile a script, will result in a JSValueRef with tag JS_TAG_FUNCTION_BYTECODE or JS_TAG_MODULE.
 ///  It can be executed with run_compiled_function().
@@ -131,6 +130,7 @@ pub fn from_bytecode(
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use crate::ContextWrapper;
 
     #[test]
     fn test_compile_function() {

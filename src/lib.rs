@@ -30,28 +30,30 @@
 
 // #![deny(missing_docs)]
 
-#[cfg(feature = "bigint")]
-pub(crate) mod bigint;
-mod bindings;
 mod callback;
+pub mod compile;
 pub mod console;
+mod context_wrapper;
 pub mod errors;
+pub mod module_loader;
 #[cfg(feature = "serde")]
 pub mod serde;
 pub mod utils;
+pub mod value;
 
 use std::{convert::TryFrom, error, ffi::c_void, fmt};
 
+use context_wrapper::ContextWrapper;
 use libquickjspp_sys::JSHostPromiseRejectionTracker;
 pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
+use module_loader::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
+use self::callback::CustomCallback;
+pub use self::value::*;
 pub use self::{
-    bindings::*,
     callback::{Arguments, Callback},
     errors::ValueError,
 };
-#[cfg(feature = "bigint")]
-pub use bigint::BigInt;
 
 /// Error on Javascript execution.
 #[derive(Debug)]
@@ -176,7 +178,7 @@ impl ContextBuilder {
 
     /// Finalize the builder and build a JS Context.
     pub fn build(self) -> Result<Context, ContextError> {
-        let wrapper = bindings::ContextWrapper::new(self.memory_limit)?;
+        let wrapper = ContextWrapper::new(self.memory_limit)?;
         if let Some(be) = self.console_backend {
             wrapper.set_console(be).map_err(ContextError::Execution)?;
         }
@@ -192,11 +194,11 @@ impl ContextBuilder {
 /// different contexts in different threads, but each
 /// `Context` instance must be used only from a single thread.
 pub struct Context {
-    wrapper: bindings::ContextWrapper,
+    wrapper: ContextWrapper,
 }
 
 impl Context {
-    fn from_wrapper(wrapper: bindings::ContextWrapper) -> Self {
+    fn from_wrapper(wrapper: ContextWrapper) -> Self {
         Self { wrapper }
     }
 
@@ -216,7 +218,7 @@ impl Context {
 
     /// Create a new Javascript context with default settings.
     pub fn new() -> Result<Self, ContextError> {
-        let wrapper = bindings::ContextWrapper::new(None)?;
+        let wrapper = ContextWrapper::new(None)?;
         Ok(Self::from_wrapper(wrapper))
     }
 

@@ -1,11 +1,11 @@
 use libquickjspp_sys::{JSContext, JSValue};
 use serde::{ser, Serialize};
 
-use crate::bindings::{OwnedJsArray, OwnedJsObject, OwnedJsValue};
 use crate::utils::{
     create_bool, create_empty_array, create_empty_object, create_float, create_int, create_null,
     create_string, create_undefined, own_raw_value,
 };
+use crate::value::{OwnedJsArray, OwnedJsObject, OwnedJsValue};
 
 use super::error::{Error, Result};
 

@@ -7,8 +7,8 @@ use serde::de::{
 };
 use serde::{forward_to_deserialize_any, Deserialize};
 
-use crate::bindings::{JsTag, OwnedJsArray, OwnedJsObject, OwnedJsPropertyIterator, OwnedJsValue};
 use crate::utils::deserialize_borrowed_str;
+use crate::value::{JsTag, OwnedJsArray, OwnedJsObject, OwnedJsPropertyIterator, OwnedJsValue};
 
 use super::error::{Error, Result};
 
@@ -186,15 +186,14 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
             JsTag::BigInt => {
                 let bigint = current.to_bigint()?;
                 visitor.visit_i64(bigint.as_i64().ok_or(Error::BigIntOverflow)?)
-            }
-            // _ => {
-            //     #[cfg(debug_assertions)]
-            //     {
-            //         println!("current type: {:?}", current.tag());
-            //         println!("current: {}", current.to_json_string(0).unwrap());
-            //     }
-            //     unreachable!("unreachable tag: {:?}", current.tag());
-            // }
+            } // _ => {
+              //     #[cfg(debug_assertions)]
+              //     {
+              //         println!("current type: {:?}", current.tag());
+              //         println!("current: {}", current.to_json_string(0).unwrap());
+              //     }
+              //     unreachable!("unreachable tag: {:?}", current.tag());
+              // }
         }
     }
 

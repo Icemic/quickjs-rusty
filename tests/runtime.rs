@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use quickjspp::value::*;
 use quickjspp::*;
 
 // #[test]

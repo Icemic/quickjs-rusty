@@ -4,8 +4,8 @@ use std::ffi::CString;
 
 use libquickjspp_sys as q;
 
-use crate::bindings::OwnedJsValue;
-use crate::{JsFunction, ValueError};
+use crate::value::{JsFunction, OwnedJsValue};
+use crate::ValueError;
 
 pub(crate) fn deserialize_borrowed_str<'a>(
     context: *mut q::JSContext,
@@ -45,7 +45,8 @@ pub(crate) fn deserialize_borrowed_str<'a>(
 }
 
 /// Helper for creating CStrings.
-fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
+#[inline]
+pub fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
     CString::new(value).map_err(ValueError::StringWithZeroBytes)
 }
 
@@ -229,7 +230,7 @@ pub fn create_bigint(
 ) -> Result<q::JSValue, ValueError> {
     use std::ffi::c_char;
 
-    use crate::bigint::BigIntOrI64;
+    use crate::value::BigIntOrI64;
 
     let val = match int.inner {
         BigIntOrI64::Int(int) => unsafe { q::JS_NewBigInt64(context, int) },
