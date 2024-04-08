@@ -208,9 +208,7 @@ fn eval_async() {
 fn test_set_global() {
     let context = Context::builder().build().unwrap();
     let ctx = context.context_raw();
-    context
-        .set_global("someGlobalVariable", (ctx, 42).into())
-        .unwrap();
+    context.set_global("someGlobalVariable", 42).unwrap();
     let value = context.eval_as::<i32>("someGlobalVariable").unwrap();
     assert_eq!(value, 42,);
 }
@@ -220,8 +218,10 @@ fn test_call() {
     let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
 
+    let arg: OwnedJsValue = (ctx, "22").into();
+
     assert_eq!(
-        c.call_function("parseInt", vec![(ctx, "22").into()])
+        c.call_function("parseInt", vec![arg])
             .unwrap()
             .to_int()
             .unwrap(),
@@ -237,7 +237,7 @@ fn test_call() {
     )
     .unwrap();
     assert_eq!(
-        c.call_function("add", vec![owned!(ctx, 5), owned!(ctx, 7)])
+        c.call_function("add", vec![5, 7])
             .unwrap()
             .to_int()
             .unwrap(),

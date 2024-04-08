@@ -182,8 +182,8 @@ impl Context {
     /// Set a global variable.
     ///
     /// ```rust
-    /// use quickjspp::{Context, JsValue};
-    /// let context = Context::new().unwrap();
+    /// use quickjspp::Context;
+    /// let context = Context::builder().build().unwrap();
     ///
     /// context.set_global("someGlobalVariable", 42).unwrap();
     /// let value = context.eval_as::<i32>("someGlobalVariable").unwrap();
@@ -192,9 +192,12 @@ impl Context {
     ///     42,
     /// );
     /// ```
-    pub fn set_global(&self, name: &str, value: OwnedJsValue) -> Result<(), ExecutionError> {
+    pub fn set_global<T>(&self, name: &str, value: T) -> Result<(), ExecutionError>
+    where
+        T: ToOwnedJsValue,
+    {
         let global = self.global()?;
-        global.set_property(name, value)?;
+        global.set_property(name, (self.context, value).into())?;
         Ok(())
     }
 
@@ -305,8 +308,8 @@ impl Context {
     /// promise failed.
     ///
     /// ```rust
-    /// use quickjspp::{Context, JsValue};
-    /// let context = Context::new().unwrap();
+    /// use quickjspp::Context;
+    /// let context = Context::builder().build().unwrap();
     ///
     /// let value = context.eval(" 1 + 2 + 3 ").unwrap();
     /// assert_eq!(
@@ -356,8 +359,8 @@ impl Context {
     /// Return value will always be undefined on module mode.
     ///
     /// ```ignore
-    /// use quickjspp::{Context, JsValue};
-    /// let context = Context::new().unwrap();
+    /// use quickjspp::Context;
+    /// let context = Context::builder().build().unwrap();
     ///
     /// let value = context.eval_module("import {foo} from 'bar'; foo();");
     /// ```
@@ -390,7 +393,7 @@ impl Context {
     ///
     /// ```rust
     /// use quickjspp::{Context};
-    /// let context = Context::new().unwrap();
+    /// let context = Context::builder().build().unwrap();
     ///
     /// let res = context.eval_as::<bool>(" 100 > 10 ");
     /// assert_eq!(
@@ -424,8 +427,8 @@ impl Context {
     /// promise failed.
     ///
     /// ```ignore
-    /// use quickjspp::{Context, JsValue};
-    /// let context = Context::new().unwrap();
+    /// use quickjspp::Context;
+    /// let context = Context::builder().build().unwrap();
     ///
     /// let value = context.run_module("./module");
     /// ```
@@ -503,8 +506,8 @@ impl Context {
     /// promise failed.
     ///
     /// ```rust
-    /// use quickjspp::{Context, JsValue};
-    /// let context = Context::new().unwrap();
+    /// use quickjspp::Context;
+    /// let context = Context::builder().build().unwrap();
     ///
     /// let res = context.call_function("encodeURIComponent", vec!["a=b"]).unwrap();
     /// assert_eq!(
@@ -515,9 +518,12 @@ impl Context {
     pub fn call_function(
         &self,
         function_name: &str,
-        args: impl IntoIterator<Item = OwnedJsValue>,
+        args: impl IntoIterator<Item = impl ToOwnedJsValue>,
     ) -> Result<OwnedJsValue, ExecutionError> {
-        let qargs = args.into_iter().collect::<Vec<OwnedJsValue>>();
+        let qargs = args
+            .into_iter()
+            .map(|v| (self.context, v).into())
+            .collect::<Vec<OwnedJsValue>>();
 
         let global = self.global()?;
         let func = global
@@ -543,22 +549,19 @@ impl Context {
     ///     if Err(e) is returned, a Javascript exception will be raised
     ///
     /// ```rust
-    /// use quickjspp::{Context, JsValue};
+    /// use quickjspp::{Context, OwnedJsValue};
     /// use std::collections::HashMap;
     ///
-    /// let context = Context::new().unwrap();
+    /// let context = Context::builder().build().unwrap();
     ///
     /// // Register an object.
-    /// let mut obj = HashMap::<String, JsValue>::new();
-
-    /// // insert add function into the object.
-    /// obj.insert(
-    ///     "add".to_string(),
-    ///     context
+    /// let mut obj = HashMap::<String, OwnedJsValue>::new();
+    /// let func = context
     ///         .create_callback(|a: i32, b: i32| a + b)
-    ///         .unwrap()
-    ///         .into(),
-    /// );
+    ///         .unwrap();
+    /// let func = OwnedJsValue::from((context.context_raw(), func));
+    /// // insert add function into the object.
+    /// obj.insert("add".to_string(), func);
     /// // insert the myObj to global.
     /// context.set_global("myObj", obj).unwrap();
     /// // Now we try out the 'myObj.add' function via eval.    
@@ -615,8 +618,8 @@ impl Context {
     ///     if Err(e) is returned, a Javascript exception will be raised
     ///
     /// ```rust
-    /// use quickjspp::{Context, JsValue};
-    /// let context = Context::new().unwrap();
+    /// use quickjspp::Context;
+    /// let context = Context::builder().build().unwrap();
     ///
     /// // Register a closue as a callback under the "add" name.
     /// // The 'add' function can now be called from Javascript code.

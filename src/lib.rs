@@ -6,9 +6,9 @@
 //! ## Quickstart:
 //!
 //! ```rust
-//! use quickjspp::{Context, JsValue};
+//! use quickjspp::Context;
 //!
-//! let context = Context::new().unwrap();
+//! let context = Context::builder().build().unwrap();
 //!
 //! // Eval.
 //!
