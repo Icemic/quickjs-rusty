@@ -41,7 +41,7 @@ pub mod serde;
 pub mod utils;
 pub mod value;
 
-use std::{convert::TryFrom, error, ffi::c_void, fmt};
+use std::{convert::TryFrom, ffi::c_void};
 
 use context_wrapper::ContextWrapper;
 use libquickjspp_sys::JSHostPromiseRejectionTracker;
@@ -49,91 +49,9 @@ pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
 use module_loader::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
 use self::callback::CustomCallback;
+pub use self::callback::{Arguments, Callback};
+pub use self::errors::*;
 pub use self::value::*;
-pub use self::{
-    callback::{Arguments, Callback},
-    errors::ValueError,
-};
-
-/// Error on Javascript execution.
-#[derive(Debug)]
-pub enum ExecutionError {
-    /// Code to be executed contained zero-bytes.
-    InputWithZeroBytes,
-    /// Value conversion failed. (either input arguments or result value).
-    Conversion(ValueError),
-    /// Internal error.
-    Internal(String),
-    /// JS Exception was thrown.
-    Exception(OwnedJsValue),
-    /// JS Runtime exceeded the memory limit.
-    OutOfMemory,
-    #[doc(hidden)]
-    __NonExhaustive,
-}
-
-impl fmt::Display for ExecutionError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use ExecutionError::*;
-        match self {
-            InputWithZeroBytes => write!(f, "Invalid script input: code contains zero byte (\\0)"),
-            Conversion(e) => e.fmt(f),
-            Internal(e) => write!(f, "Internal error: {}", e),
-            Exception(e) => {
-                if e.is_string() {
-                    write!(f, "{:?}", e.to_string().unwrap())
-                } else {
-                    write!(f, "JS Exception: {:?}", e)
-                }
-            }
-            OutOfMemory => write!(f, "Out of memory: runtime memory limit exceeded"),
-            __NonExhaustive => unreachable!(),
-        }
-    }
-}
-
-impl PartialEq for ExecutionError {
-    fn eq(&self, other: &Self) -> bool {
-        let left = self.to_string();
-        let right = other.to_string();
-        left == right
-    }
-}
-
-impl error::Error for ExecutionError {}
-
-impl From<ValueError> for ExecutionError {
-    fn from(v: ValueError) -> Self {
-        ExecutionError::Conversion(v)
-    }
-}
-
-/// Error on context creation.
-#[derive(Debug)]
-pub enum ContextError {
-    /// Runtime could not be created.
-    RuntimeCreationFailed,
-    /// Context could not be created.
-    ContextCreationFailed,
-    /// Execution error while building.
-    Execution(ExecutionError),
-    #[doc(hidden)]
-    __NonExhaustive,
-}
-
-impl fmt::Display for ContextError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use ContextError::*;
-        match self {
-            RuntimeCreationFailed => write!(f, "Could not create runtime"),
-            ContextCreationFailed => write!(f, "Could not create context"),
-            Execution(e) => e.fmt(f),
-            __NonExhaustive => unreachable!(),
-        }
-    }
-}
-
-impl error::Error for ContextError {}
 
 /// A builder for [Context](Context).
 ///
