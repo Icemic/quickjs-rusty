@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::convert::TryInto;
-use std::fmt::Debug;
 use std::hash::Hash;
 
 #[cfg(feature = "chrono")]
@@ -591,78 +590,78 @@ impl TryFrom<OwnedJsValue> for JsModule {
     }
 }
 
-/// to avoid infinite recursion, we need to implement a PrimitiveToOwnedJsValue trait for T,
-/// and then implement the `From<(*mut q::JSContext, T)>` trait for T and XXX<T> where T: PrimitiveToOwnedJsValue
+/// to avoid infinite recursion, we need to implement a ToOwnedJsValue trait for T,
+/// and then implement the `From<(*mut q::JSContext, T)>` trait for T and XXX<T> where T: ToOwnedJsValue
 ///
 /// This trait should not be public, use the `From<(*mut q::JSContext, T)>` trait outside of this module.
-trait PrimitiveToOwnedJsValue {
+pub trait ToOwnedJsValue {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue;
 }
 
-impl PrimitiveToOwnedJsValue for bool {
+impl ToOwnedJsValue for bool {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_bool(context, self);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for i32 {
+impl ToOwnedJsValue for i32 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_int(context, self);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for i8 {
+impl ToOwnedJsValue for i8 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_int(context, self as i32);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for i16 {
+impl ToOwnedJsValue for i16 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_int(context, self as i32);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for u8 {
+impl ToOwnedJsValue for u8 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_int(context, self as i32);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for u16 {
+impl ToOwnedJsValue for u16 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_int(context, self as i32);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for f64 {
+impl ToOwnedJsValue for f64 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_float(context, self);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for u32 {
+impl ToOwnedJsValue for u32 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_float(context, self as f64);
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for &str {
+impl ToOwnedJsValue for &str {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_string(context, self).unwrap();
         OwnedJsValue::new(context, val)
     }
 }
 
-impl PrimitiveToOwnedJsValue for String {
+impl ToOwnedJsValue for String {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_string(context, &self).unwrap();
         OwnedJsValue::new(context, val)
@@ -670,7 +669,7 @@ impl PrimitiveToOwnedJsValue for String {
 }
 
 #[cfg(feature = "chrono")]
-impl PrimitiveToOwnedJsValue for DateTime<Utc> {
+impl ToOwnedJsValue for DateTime<Utc> {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_date(context, self).unwrap();
         OwnedJsValue::new(context, val)
@@ -678,7 +677,7 @@ impl PrimitiveToOwnedJsValue for DateTime<Utc> {
 }
 
 #[cfg(feature = "bigint")]
-impl PrimitiveToOwnedJsValue for crate::BigInt {
+impl ToOwnedJsValue for crate::BigInt {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_bigint(context, self).unwrap();
         OwnedJsValue::new(context, val)
@@ -686,7 +685,7 @@ impl PrimitiveToOwnedJsValue for crate::BigInt {
 }
 
 #[cfg(feature = "bigint")]
-impl PrimitiveToOwnedJsValue for num_bigint::BigInt {
+impl ToOwnedJsValue for num_bigint::BigInt {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_bigint(context, self.into()).unwrap();
         OwnedJsValue::new(context, val)
@@ -694,7 +693,7 @@ impl PrimitiveToOwnedJsValue for num_bigint::BigInt {
 }
 
 #[cfg(feature = "bigint")]
-impl PrimitiveToOwnedJsValue for i64 {
+impl ToOwnedJsValue for i64 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_bigint(context, self.into()).unwrap();
         OwnedJsValue::new(context, val)
@@ -702,7 +701,7 @@ impl PrimitiveToOwnedJsValue for i64 {
 }
 
 #[cfg(feature = "bigint")]
-impl PrimitiveToOwnedJsValue for u64 {
+impl ToOwnedJsValue for u64 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let bigint: num_bigint::BigInt = self.into();
         let val = create_bigint(context, bigint.into()).unwrap();
@@ -711,7 +710,7 @@ impl PrimitiveToOwnedJsValue for u64 {
 }
 
 #[cfg(feature = "bigint")]
-impl PrimitiveToOwnedJsValue for i128 {
+impl ToOwnedJsValue for i128 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let bigint: num_bigint::BigInt = self.into();
         let val = create_bigint(context, bigint.into()).unwrap();
@@ -720,7 +719,7 @@ impl PrimitiveToOwnedJsValue for i128 {
 }
 
 #[cfg(feature = "bigint")]
-impl PrimitiveToOwnedJsValue for u128 {
+impl ToOwnedJsValue for u128 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let bigint: num_bigint::BigInt = self.into();
         let val = create_bigint(context, bigint.into()).unwrap();
@@ -728,7 +727,7 @@ impl PrimitiveToOwnedJsValue for u128 {
     }
 }
 
-impl PrimitiveToOwnedJsValue for JsFunction {
+impl ToOwnedJsValue for JsFunction {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_function(context, self).unwrap();
         OwnedJsValue::new(context, val)
@@ -736,41 +735,19 @@ impl PrimitiveToOwnedJsValue for JsFunction {
 }
 
 /// for some cases like HashMap<String, OwnedJsValue>
-impl PrimitiveToOwnedJsValue for OwnedJsValue {
+impl ToOwnedJsValue for OwnedJsValue {
     fn to_owned(self, _: *mut q::JSContext) -> OwnedJsValue {
         self
     }
 }
 
-impl<T> From<(*mut q::JSContext, T)> for OwnedJsValue
+impl<T> ToOwnedJsValue for Vec<T>
 where
-    T: PrimitiveToOwnedJsValue,
+    T: ToOwnedJsValue,
 {
-    fn from((context, value): (*mut q::JSContext, T)) -> Self {
-        value.to_owned(context)
-    }
-}
-
-impl<T> From<(*mut q::JSContext, Option<T>)> for OwnedJsValue
-where
-    T: PrimitiveToOwnedJsValue,
-{
-    fn from((context, value): (*mut q::JSContext, Option<T>)) -> Self {
-        if let Some(val) = value {
-            (context, val).into()
-        } else {
-            OwnedJsValue::new(context, create_null())
-        }
-    }
-}
-
-impl<T: Debug> From<(*mut q::JSContext, Vec<T>)> for OwnedJsValue
-where
-    T: PrimitiveToOwnedJsValue,
-{
-    fn from((context, values): (*mut q::JSContext, Vec<T>)) -> Self {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let arr = create_empty_array(context).unwrap();
-        let _ = values.into_iter().enumerate().for_each(|(idx, val)| {
+        let _ = self.into_iter().enumerate().for_each(|(idx, val)| {
             let val: OwnedJsValue = (context, val).into();
             add_array_element(context, arr, idx as u32, unsafe { val.extract() }).unwrap();
         });
@@ -779,19 +756,41 @@ where
     }
 }
 
-impl<K, V> From<(*mut q::JSContext, HashMap<K, V>)> for OwnedJsValue
+impl<K, V> ToOwnedJsValue for HashMap<K, V>
 where
     K: Into<String>,
-    V: PrimitiveToOwnedJsValue,
+    V: ToOwnedJsValue,
 {
-    fn from((context, values): (*mut q::JSContext, HashMap<K, V>)) -> Self {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let obj = create_empty_object(context).unwrap();
-        let _ = values.into_iter().for_each(|(key, val)| {
+        let _ = self.into_iter().for_each(|(key, val)| {
             let val: OwnedJsValue = (context, val).into();
             add_object_property(context, obj, key.into().as_str(), unsafe { val.extract() })
                 .unwrap();
         });
 
         OwnedJsValue::new(context, obj)
+    }
+}
+
+impl<T> ToOwnedJsValue for Option<T>
+where
+    T: ToOwnedJsValue,
+{
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        if let Some(val) = self {
+            (context, val).into()
+        } else {
+            OwnedJsValue::new(context, create_null())
+        }
+    }
+}
+
+impl<T> From<(*mut q::JSContext, T)> for OwnedJsValue
+where
+    T: ToOwnedJsValue,
+{
+    fn from((context, value): (*mut q::JSContext, T)) -> Self {
+        value.to_owned(context)
     }
 }
