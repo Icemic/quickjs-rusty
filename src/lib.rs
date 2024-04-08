@@ -41,13 +41,8 @@ pub mod serde;
 pub mod utils;
 pub mod value;
 
-use std::{convert::TryFrom, ffi::c_void};
-
-use libquickjspp_sys::JSHostPromiseRejectionTracker;
 pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
-use module_loader::{JSModuleLoaderFunc, JSModuleNormalizeFunc};
 
-use self::callback::CustomCallback;
 pub use self::callback::{Arguments, Callback};
 pub use self::context::*;
 pub use self::errors::*;
