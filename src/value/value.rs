@@ -27,11 +27,16 @@ use super::OwnedJsObject;
 /// OwnedJsValue wraps a Javascript value owned by the QuickJs runtime.
 ///
 /// Guarantees cleanup of resources by dropping the value from the runtime.
-#[derive(PartialEq)]
 pub struct OwnedJsValue {
     context: *mut q::JSContext,
     // FIXME: make private again, just for testing
     pub(crate) value: q::JSValue,
+}
+
+impl PartialEq for OwnedJsValue {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { q::JS_VALUE_GET_PTR(self.value) == q::JS_VALUE_GET_PTR(other.value) }
+    }
 }
 
 impl OwnedJsValue {
@@ -366,7 +371,7 @@ impl OwnedJsValue {
     #[cfg(test)]
     pub(crate) fn get_ref_count(&self) -> i32 {
         let tag = unsafe { q::JS_ValueGetTag(self.value) };
-        if tag >= 8 {
+        if tag >= q::JS_TAG_FIRST {
             // This transmute is OK since if tag < 0, the union will be a refcount
             // pointer.
             let ptr = unsafe { q::JS_VALUE_GET_PTR(self.value) as *mut q::JSRefCountHeader };

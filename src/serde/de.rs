@@ -176,9 +176,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
             }
             JsTag::Symbol => visitor.visit_unit(),
             JsTag::Module => visitor.visit_unit(),
-            JsTag::BigFloat => todo!("unimplemented deserialize_any for BigFloat"),
             JsTag::Exception => self.deserialize_map(visitor),
-            JsTag::BigDecimal => todo!("unimplemented deserialize_any for BigDecimal"),
             JsTag::CatchOffset => visitor.visit_unit(),
             JsTag::Uninitialized => visitor.visit_unit(),
             JsTag::FunctionBytecode => visitor.visit_unit(),

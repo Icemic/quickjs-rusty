@@ -74,8 +74,7 @@ fn main() {
     .expect("Could not copy static-functions.c");
 
     eprintln!("Compiling quickjs...");
-    let quickjs_version =
-        std::fs::read_to_string(code_dir.join("VERSION")).expect("failed to read quickjs version");
+
     cc::Build::new()
         .files(
             [
@@ -90,16 +89,14 @@ fn main() {
             .iter()
             .map(|f| code_dir.join(f)),
         )
-        // .define("_GNU_SOURCE", None)
-        .define(
-            "CONFIG_VERSION",
-            format!("\"{}\"", quickjs_version.trim()).as_str(),
-        )
+        .define("_GNU_SOURCE", None)
+        .define("WIN32_LEAN_AND_MEAN", "_WIN32_WINNT=0x0602")
         // .define("NDEBUG", None)
         .define("_CRT_SECURE_NO_WARNINGS", None)
-        .define("JS_STRICT_NAN_BOXING", None)
+        // .define("JS_NAN_BOXING", None)
         .define("CONFIG_BIGNUM", None)
-        .flag_if_supported("/std:c++latest")
+        .flag_if_supported("/std:c11")
+        .flag_if_supported("/experimental:c11atomics")
         // The below flags are used by the official Makefile.
         .flag_if_supported("-fno-exceptions")
         .flag_if_supported("-Wchar-subscripts")
@@ -117,6 +114,8 @@ fn main() {
         // platforms.
         .flag_if_supported("-Wno-cast-function-type")
         .flag_if_supported("-Wno-implicit-fallthrough")
+        .flag_if_supported("-Wno-shorten-64-to-32")
+        .flag_if_supported("-Wno-implicit-int-conversion")
         .flag_if_supported("-Wno-enum-conversion")
         // cc uses the OPT_LEVEL env var by default, but we hardcode it to -O2
         // since release builds use -O3 which might be problematic for quickjs,
@@ -143,6 +142,7 @@ fn apply_patches(code_dir: &PathBuf) {
             .current_dir(&code_dir)
             .arg("-i")
             .arg(patch.path())
+            .arg("--binary")
             .spawn()
             .expect("Could not apply patches")
             .wait()

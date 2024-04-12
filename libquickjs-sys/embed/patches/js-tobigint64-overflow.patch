@@ -2,13 +2,13 @@ diff --git libquickjs-sys/embed/quickjs/libbf.c libquickjs-sys/embed/quickjs/lib
 index cbabf95..f0625f9 100644
 --- libquickjs-sys/embed/quickjs/libbf.c
 +++ libquickjs-sys/embed/quickjs/libbf.c
-@@ -2261,14 +2261,17 @@ int bf_get_int64(int64_t *pres, const bf_t *a, int flags)
+@@ -2636,14 +2636,17 @@ int bf_get_int64(int64_t *pres, const bf_t *a, int flags)
              v = INT64_MAX;
          }
      } else {
 +        ret = BF_ST_OVERFLOW;
          slimb_t bit_pos = a->len * LIMB_BITS - a->expn;
-         v = get_bits(a->tab, a->len, bit_pos); 
+         v = get_bits(a->tab, a->len, bit_pos);
  #if LIMB_BITS == 32
          v |= (uint64_t)get_bits(a->tab, a->len, bit_pos + 32) << 32;
  #endif
@@ -26,7 +26,7 @@ diff --git libquickjs-sys/embed/quickjs/quickjs.c libquickjs-sys/embed/quickjs/q
 index 7bb20cb..ad5811c 100644
 --- libquickjs-sys/embed/quickjs/quickjs.c
 +++ libquickjs-sys/embed/quickjs/quickjs.c
-@@ -11244,15 +11244,16 @@ static void JS_FreeBigInt(JSContext *ctx, bf_t *a, bf_t *buf)
+@@ -11977,15 +11977,16 @@ static void JS_FreeBigInt(JSContext *ctx, bf_t *a, bf_t *buf)
  static int JS_ToBigInt64Free(JSContext *ctx, int64_t *pres, JSValue val)
  {
      bf_t a_s, *a;

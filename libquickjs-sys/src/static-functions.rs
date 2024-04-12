@@ -1,7 +1,7 @@
 extern "C" {
-    fn JS_ValueGetTag_real(v: JSValue) -> u32;
-    fn JS_NewSpecialValue_real(tag: u32, val: i32) -> JSValue;
-    fn JS_NewPointer_real(tag: u32, ptr: *mut ::std::os::raw::c_void) -> JSValue;
+    fn JS_ValueGetTag_real(v: JSValue) -> i32;
+    fn JS_NewSpecialValue_real(tag: i32, val: i32) -> JSValue;
+    fn JS_NewPointer_real(tag: i32, ptr: *mut ::std::os::raw::c_void) -> JSValue;
     fn JS_DupValue_real(ctx: *mut JSContext, v: JSValue);
     fn JS_DupValueRT_real(rt: *mut JSRuntime, v: JSValue);
     fn JS_FreeValue_real(ctx: *mut JSContext, v: JSValue);
@@ -17,8 +17,8 @@ extern "C" {
     fn JS_VALUE_GET_NORM_TAG_real(v: JSValue) -> ::std::os::raw::c_int;
     fn JS_IsNumber_real(v: JSValue) -> bool;
     fn JS_IsBigInt_real(ctx: *mut JSContext, v: JSValue) -> bool;
-    fn JS_IsBigFloat_real(v: JSValue) -> bool;
-    fn JS_IsBigDecimal_real(v: JSValue) -> bool;
+    // fn JS_IsBigFloat_real(v: JSValue) -> bool;
+    // fn JS_IsBigDecimal_real(v: JSValue) -> bool;
     fn JS_IsBool_real(v: JSValue) -> bool;
     fn JS_IsNull_real(v: JSValue) -> bool;
     fn JS_IsUndefined_real(v: JSValue) -> bool;
@@ -48,17 +48,19 @@ extern "C" {
         cproto: JSCFunctionEnum,
         magic: ::std::os::raw::c_int,
     ) -> JSValue;
+    fn JS_GetPropertyLength_real(ctx: *mut JSContext, pres: *mut i64, obj: JSValue) -> i32;
+    fn js_free_prop_enum_real(ctx: *mut JSContext, tab: *mut JSPropertyEnum, len: u32);
 }
 
-pub unsafe fn JS_ValueGetTag(v: JSValue) -> u32 {
+pub unsafe fn JS_ValueGetTag(v: JSValue) -> i32 {
     JS_ValueGetTag_real(v)
 }
 
-pub unsafe fn JS_NewSpecialValue(tag: u32, val: i32) -> JSValue {
+pub unsafe fn JS_NewSpecialValue(tag: i32, val: i32) -> JSValue {
     JS_NewSpecialValue_real(tag, val)
 }
 
-pub unsafe fn JS_NewPointer(tag: u32, ptr: *mut ::std::os::raw::c_void) -> JSValue {
+pub unsafe fn JS_NewPointer(tag: i32, ptr: *mut ::std::os::raw::c_void) -> JSValue {
     JS_NewPointer_real(tag, ptr)
 }
 
@@ -135,15 +137,15 @@ pub unsafe fn JS_IsBigInt(ctx: *mut JSContext, v: JSValue) -> bool {
     JS_IsBigInt_real(ctx, v)
 }
 
-/// check if a JSValue is a BigFloat
-pub unsafe fn JS_IsBigFloat(v: JSValue) -> bool {
-    JS_IsBigFloat_real(v)
-}
+// /// check if a JSValue is a BigFloat
+// pub unsafe fn JS_IsBigFloat(v: JSValue) -> bool {
+//     JS_IsBigFloat_real(v)
+// }
 
-/// check if a JSValue is a BigDecimal
-pub unsafe fn JS_IsBigDecimal(v: JSValue) -> bool {
-    JS_IsBigDecimal_real(v)
-}
+// /// check if a JSValue is a BigDecimal
+// pub unsafe fn JS_IsBigDecimal(v: JSValue) -> bool {
+//     JS_IsBigDecimal_real(v)
+// }
 
 /// check if a JSValue is a Boolean
 pub unsafe fn JS_IsBool(v: JSValue) -> bool {
@@ -190,15 +192,15 @@ pub unsafe fn JS_ToUint32(ctx: *mut JSContext, pres: u32, val: JSValue) -> u32 {
     JS_ToUint32_real(ctx, pres, val)
 }
 
-/// set a property of an object identified by a JSAtom
-pub unsafe fn JS_SetProperty(
-    ctx: *mut JSContext,
-    this_obj: JSValue,
-    prop: JSAtom,
-    val: JSValue,
-) -> ::std::os::raw::c_int {
-    JS_SetProperty_real(ctx, this_obj, prop, val)
-}
+// /// set a property of an object identified by a JSAtom
+// pub unsafe fn JS_SetProperty(
+//     ctx: *mut JSContext,
+//     this_obj: JSValue,
+//     prop: JSAtom,
+//     val: JSValue,
+// ) -> ::std::os::raw::c_int {
+//     JS_SetProperty_real(ctx, this_obj, prop, val)
+// }
 
 /// create a new Function based on a JSCFunction
 pub unsafe fn JS_NewCFunction(
@@ -221,3 +223,11 @@ pub unsafe fn JS_NewCFunctionMagic(
 ) -> JSValue {
     JS_NewCFunctionMagic_real(ctx, func, name, length, cproto, magic)
 }
+
+pub unsafe fn JS_GetPropertyLength(ctx: *mut JSContext, pres: *mut i64, obj: JSValue) -> i32 {
+    JS_GetPropertyLength_real(ctx, pres, obj)
+}
+
+// pub unsafe fn js_free_prop_enum(ctx: *mut JSContext, tab: *mut JSPropertyEnum, len: u32) {
+//     js_free_prop_enum_real(ctx, tab, len)
+// }

@@ -176,15 +176,8 @@ impl Iterator for OwnedJsPropertyIterator {
 
             OwnedJsValue::new(self.context, pair_key)
         } else {
-            let pair_value = unsafe {
-                q::JS_GetPropertyInternal(
-                    self.context,
-                    self.object.value.value,
-                    (*prop).atom,
-                    self.object.value.value,
-                    0,
-                )
-            };
+            let pair_value =
+                unsafe { q::JS_GetProperty(self.context, self.object.value.value, (*prop).atom) };
             let tag = unsafe { q::JS_ValueGetTag(pair_value) };
             if tag == q::JS_TAG_EXCEPTION {
                 return Some(Err(ExecutionError::Internal(
