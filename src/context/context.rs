@@ -143,6 +143,7 @@ impl Context {
                 },
             };
         "#,
+            false,
         )?;
 
         Ok(())
@@ -219,14 +220,21 @@ impl Context {
         Ok(())
     }
 
-    /// If the given value is a promise, run the event loop until it is
-    /// resolved, and return the final value.
-    fn resolve_value(&self, value: OwnedJsValue) -> Result<OwnedJsValue, ExecutionError> {
+    /// Check if the given value is an exception, and return the exception if it is.
+    pub fn check_exception(&self, value: &OwnedJsValue) -> Result<(), ExecutionError> {
         if value.is_exception() {
             let err = get_exception(self.context)
                 .unwrap_or_else(|| ExecutionError::Internal("Unknown exception".to_string()));
             Err(err)
-        } else if value.is_object() {
+        } else {
+            Ok(())
+        }
+    }
+
+    /// If the given value is a promise, run the event loop until it is
+    /// resolved, and return the final value.
+    pub fn resolve_value(&self, value: OwnedJsValue) -> Result<OwnedJsValue, ExecutionError> {
+        if value.is_object() {
             let obj = value.try_into_object()?;
             if obj.is_promise()? {
                 self.eval(
@@ -250,6 +258,7 @@ impl Context {
                             });
                     }
                 "#,
+                    false,
                 )?;
 
                 let global = self.global()?;
@@ -301,6 +310,8 @@ impl Context {
 
     /// Evaluates Javascript code and returns the value of the final expression.
     ///
+    /// resolve: Whether to resolve the returned value if it is a promise. See more details as follows.
+    ///
     /// **Promises**:
     /// If the evaluated code returns a Promise, the event loop
     /// will be executed until the promise is finished. The final value of
@@ -311,7 +322,7 @@ impl Context {
     /// use quickjspp::Context;
     /// let context = Context::builder().build().unwrap();
     ///
-    /// let value = context.eval(" 1 + 2 + 3 ").unwrap();
+    /// let value = context.eval(" 1 + 2 + 3 ", false).unwrap();
     /// assert_eq!(
     ///     value.to_int(),
     ///     Ok(6),
@@ -322,13 +333,13 @@ impl Context {
     ///     let y = f();
     ///     var x = y.toString() + "!"
     ///     x
-    /// "#).unwrap();
+    /// "#, false).unwrap();
     /// assert_eq!(
     ///     value.to_string().unwrap(),
     ///     "165!",
     /// );
     /// ```
-    pub fn eval(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
+    pub fn eval(&self, code: &str, resolve: bool) -> Result<OwnedJsValue, ExecutionError> {
         let filename = "script.js";
         let filename_c = make_cstring(filename)?;
         let code_c = make_cstring(code)?;
@@ -343,11 +354,20 @@ impl Context {
             )
         };
         let value = OwnedJsValue::new(self.context, value_raw);
-        self.resolve_value(value)
+
+        self.check_exception(&value)?;
+
+        if resolve {
+            self.resolve_value(value)
+        } else {
+            Ok(value)
+        }
     }
 
     /// Evaluates Javascript code and returns the value of the final expression
     /// on module mode.
+    ///
+    /// resolve: Whether to resolve the returned value if it is a promise. See more details as follows.
     ///
     /// **Promises**:
     /// If the evaluated code returns a Promise, the event loop
@@ -362,9 +382,9 @@ impl Context {
     /// use quickjspp::Context;
     /// let context = Context::builder().build().unwrap();
     ///
-    /// let value = context.eval_module("import {foo} from 'bar'; foo();");
+    /// let value = context.eval_module("import {foo} from 'bar'; foo();", false).unwrap();
     /// ```
-    pub fn eval_module(&self, code: &str) -> Result<OwnedJsValue, ExecutionError> {
+    pub fn eval_module(&self, code: &str, resolve: bool) -> Result<OwnedJsValue, ExecutionError> {
         let filename = "module.js";
         let filename_c = make_cstring(filename)?;
         let code_c = make_cstring(code)?;
@@ -379,7 +399,14 @@ impl Context {
             )
         };
         let value = OwnedJsValue::new(self.context, value_raw);
-        self.resolve_value(value)
+
+        self.check_exception(&value)?;
+
+        if resolve {
+            self.resolve_value(value)
+        } else {
+            Ok(value)
+        }
     }
 
     /// Evaluates Javascript code and returns the value of the final expression
@@ -412,7 +439,7 @@ impl Context {
         R: TryFrom<OwnedJsValue>,
         R::Error: Into<ValueError>,
     {
-        let value = self.eval(code)?;
+        let value = self.eval(code, true)?;
         let ret = R::try_from(value).map_err(|e| e.into())?;
         Ok(ret)
     }

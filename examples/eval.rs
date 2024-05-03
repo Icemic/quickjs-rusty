@@ -8,7 +8,7 @@ pub fn main() {
         .build()
         .unwrap();
 
-    let value = context.eval("1 + 2").unwrap();
+    let value = context.eval("1 + 2", false).unwrap();
     println!("js: 1 + 2 = {:?}", value);
 
     context.add_callback("myCallback", || 123).unwrap();
@@ -30,11 +30,12 @@ pub fn main() {
        var x = myCallback(10, 20);
        x;
 "#,
+            false,
         )
         .unwrap();
     println!("js: callback = {:?}", value);
 
     context
-        .eval("const f = test(() => { console.log('hello') }); f()")
+        .eval("const f = test(() => { console.log('hello') }); f()", false)
         .unwrap();
 }

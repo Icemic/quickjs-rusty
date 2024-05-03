@@ -23,7 +23,10 @@ pub fn main() {
     context.run_module("./m").unwrap();
 
     let value = context
-        .eval_module("import { add } from './m'; console.log('result:', add(1, 2))")
+        .eval_module(
+            "import { add } from './m'; console.log('result:', add(1, 2))",
+            false,
+        )
         .unwrap();
     println!("js: 1 + 2 = {:?}", value);
 }

@@ -12,7 +12,7 @@
 //!
 //! // Eval.
 //!
-//! let value = context.eval("1 + 2").unwrap();
+//! let value = context.eval("1 + 2", false).unwrap();
 //! assert_eq!(value.to_int(), Ok(3));
 //!
 //! let value = context.eval_as::<String>(" var x = 100 + 250; x.toString() ").unwrap();
@@ -25,7 +25,7 @@
 //! context.eval(r#"
 //!     // x will equal 30
 //!     var x = myCallback(10, 20);
-//! "#).unwrap();
+//! "#, false).unwrap();
 //! ```
 
 // #![deny(missing_docs)]

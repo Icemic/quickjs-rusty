@@ -15,7 +15,7 @@ pub fn main() {
 
     context.set_global("custom_func", owned!(ctx, f)).unwrap();
 
-    if let Err(err) = context.eval("console.log('returns', custom_func(1, 'haha'))") {
+    if let Err(err) = context.eval("console.log('returns', custom_func(1, 'haha'))", false) {
         eprintln!("Error: {}", err);
     };
 }

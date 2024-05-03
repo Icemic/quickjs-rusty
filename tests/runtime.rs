@@ -68,7 +68,7 @@ fn test_eval_pass() {
     ];
 
     for (code, res) in cases.into_iter() {
-        let v = c.eval(code).unwrap();
+        let v = c.eval(code, false).unwrap();
         assert!(res(&v));
     }
 
@@ -121,7 +121,7 @@ fn test_eval_pass() {
             code = code
         );
 
-        let v = c.eval(&full_code).unwrap();
+        let v = c.eval(&full_code, false).unwrap();
         assert!(res(&v));
     }
 
@@ -152,7 +152,8 @@ fn test_eval_syntax_error() {
         c.eval(
             r#"
             !!!!
-        "#
+        "#,
+            false
         ),
         Err(ExecutionError::Exception(owned!(
             ctx,
@@ -172,7 +173,8 @@ fn test_eval_exception() {
                 throw new Error("My Error");
             }
             f();
-        "#
+        "#,
+            false
         ),
         Err(ExecutionError::Exception(owned!(ctx, "Error: My Error")))
     );
@@ -189,6 +191,7 @@ fn eval_async() {
             resolve(33);
         })
     "#,
+            true,
         )
         .unwrap();
     assert_eq!(value.to_int().unwrap(), 33,);
@@ -199,6 +202,7 @@ fn eval_async() {
             reject("Failed...");
         })
     "#,
+        true,
     );
     assert!(res.is_err());
     assert!(res.is_err() && res.unwrap_err().to_string().contains("Failed..."),);
@@ -234,6 +238,7 @@ fn test_call() {
             return a + b;
         }
     "#,
+        false,
     )
     .unwrap();
     assert_eq!(
@@ -254,6 +259,7 @@ fn test_call() {
             return sum;
         }
     "#,
+        false,
     )
     .unwrap();
     assert_eq!(
@@ -274,6 +280,7 @@ fn test_call() {
             return sum;
         }
     "#,
+        false,
     )
     .unwrap();
     let mut obj = std::collections::HashMap::<String, i32>::new();
@@ -293,7 +300,8 @@ fn test_call() {
 fn test_call_large_string() {
     let c = Context::builder().build().unwrap();
     let ctx = c.context_raw();
-    c.eval(" function strLen(s) { return s.length; } ").unwrap();
+    c.eval(" function strLen(s) { return s.length; } ", false)
+        .unwrap();
 
     let s = " ".repeat(200_000);
     let v = c
@@ -323,6 +331,7 @@ fn call_async() {
             });
         }
     "#,
+        false,
     )
     .unwrap();
 
@@ -351,12 +360,15 @@ fn test_callback() {
     assert_eq!(c.eval_as::<bool>("no_arguments()").unwrap(), false);
 
     c.add_callback("cb1", |flag: bool| !flag).unwrap();
-    assert_eq!(c.eval("cb1(true)").unwrap().to_bool().unwrap(), false,);
+    assert_eq!(
+        c.eval("cb1(true)", false).unwrap().to_bool().unwrap(),
+        false,
+    );
 
     c.add_callback("concat2", |a: String, b: String| format!("{}{}", a, b))
         .unwrap();
     assert_eq!(
-        c.eval(r#"concat2("abc", "def")"#)
+        c.eval(r#"concat2("abc", "def")"#, false)
             .unwrap()
             .to_string()
             .unwrap(),
@@ -365,12 +377,15 @@ fn test_callback() {
 
     c.add_callback("add2", |a: i32, b: i32| -> i32 { a + b })
         .unwrap();
-    assert_eq!(c.eval("add2(5, 11)").unwrap().to_int().unwrap(), 16,);
+    assert_eq!(c.eval("add2(5, 11)", false).unwrap().to_int().unwrap(), 16,);
 
     c.add_callback("sum", |items: Vec<i32>| -> i32 { items.iter().sum() })
         .unwrap();
     assert_eq!(
-        c.eval("sum([1, 2, 3, 4, 5, 6])").unwrap().to_int().unwrap(),
+        c.eval("sum([1, 2, 3, 4, 5, 6])", false)
+            .unwrap()
+            .to_int()
+            .unwrap(),
         21,
     );
 
@@ -401,7 +416,7 @@ fn test_callback_argn_variants() {
                     }).unwrap();
 
                     let code = format!("{}( {} )", name, "1,".repeat($len));
-                    let v = c.eval(&code).unwrap();
+                    let v = c.eval(&code,false).unwrap();
                     assert_eq!(v.to_int().unwrap(), $len);
 
                     // Test Result<T, E> return type with OK(_) returns.
@@ -411,7 +426,7 @@ fn test_callback_argn_variants() {
                     }).unwrap();
 
                     let code = format!("{}( {} )", name, "1,".repeat($len));
-                    let v = c.eval(&code).unwrap();
+                    let v = c.eval(&code,false).unwrap();
                     assert_eq!(v.to_int().unwrap(), $len);
 
                     // Test Result<T, E> return type with Err(_) returns.
@@ -421,7 +436,7 @@ fn test_callback_argn_variants() {
                     }).unwrap();
 
                     let code = format!("{}( {} )", name, "1,".repeat($len));
-                    let res = c.eval(&code);
+                    let res = c.eval(&code,false);
                     assert_eq!(res, Err(ExecutionError::Exception(owned!(ctx, "error"))));
                 }
             )*
@@ -470,6 +485,7 @@ fn test_callback_varargs() {
         throw new Error('Expected 111, got ' + x);
         }
     "#,
+        false,
     )
     .unwrap();
 }
@@ -482,7 +498,7 @@ fn test_callback_invalid_argcount() {
     c.add_callback("cb", |a: i32, b: i32| a + b).unwrap();
 
     assert_eq!(
-        c.eval(" cb(5) "),
+        c.eval(" cb(5) ", false),
         Err(ExecutionError::Exception(owned!(
             ctx,
             "Invalid argument count: Expected 2, got 1"
@@ -494,7 +510,7 @@ fn test_callback_invalid_argcount() {
 fn memory_limit_exceeded() {
     let c = Context::builder().memory_limit(100_000).build().unwrap();
     assert_eq!(
-        c.eval("  'abc'.repeat(200_000) "),
+        c.eval("  'abc'.repeat(200_000) ", false),
         Err(ExecutionError::OutOfMemory),
     );
 }
@@ -525,7 +541,7 @@ fn test_create_callback() {
 #[test]
 fn context_reset() {
     let c = Context::builder().build().unwrap();
-    c.eval(" var x = 123; ").unwrap();
+    c.eval(" var x = 123; ", false).unwrap();
     c.add_callback("myCallback", || true).unwrap();
 
     let c2 = c.reset().unwrap();
@@ -537,11 +553,11 @@ fn context_reset() {
     );
 
     // Check old state is gone.
-    let err_msg = c2.eval(" x ").unwrap_err().to_string();
+    let err_msg = c2.eval(" x ", false).unwrap_err().to_string();
     assert!(err_msg.contains("ReferenceError"));
 
     // Check callback is gone.
-    let err_msg = c2.eval(" myCallback() ").unwrap_err().to_string();
+    let err_msg = c2.eval(" myCallback() ", false).unwrap_err().to_string();
     assert!(err_msg.contains("ReferenceError"));
 }
 
@@ -552,7 +568,7 @@ fn build_context() -> Context {
     ctx.add_callback(&name, |a: String| a.repeat(2)).unwrap();
 
     let code = " function f(value) { return cb(value); } ".to_string();
-    ctx.eval(&code).unwrap();
+    ctx.eval(&code, false).unwrap();
 
     ctx
 }
@@ -564,7 +580,7 @@ fn moved_context() {
     let v = c.call_function("f", vec![owned!(ctx, "test")]).unwrap();
     assert_eq!(v.to_string().unwrap(), "testtest");
 
-    let v = c.eval(" f('la') ").unwrap();
+    let v = c.eval(" f('la') ", false).unwrap();
     assert_eq!(v.to_string().unwrap(), "lala");
 }
 
@@ -580,6 +596,7 @@ fn chrono_serialize() {
             return date.getTime();
         }
     ",
+        false,
     )
     .unwrap();
 
@@ -600,7 +617,7 @@ fn chrono_deserialize() {
 
     let c = build_context();
 
-    let value = c.eval(" new Date(1234567555) ").unwrap();
+    let value = c.eval(" new Date(1234567555) ", false).unwrap();
     let datetime = chrono::Utc.timestamp_millis_opt(1234567555).unwrap();
 
     assert_eq!(value.to_date().unwrap(), datetime);
@@ -612,7 +629,8 @@ fn chrono_roundtrip() {
     let c = build_context();
     let ctx = c.context_raw();
 
-    c.eval(" function identity(x) { return x; } ").unwrap();
+    c.eval(" function identity(x) { return x; } ", false)
+        .unwrap();
     let d = chrono::Utc::now();
     let td2 = c
         .call_function("identity", vec![owned!(ctx, d.clone())])
@@ -631,7 +649,7 @@ fn chrono_roundtrip() {
 fn test_bigint_deserialize_i64() {
     for i in vec![0, std::i64::MAX, std::i64::MIN] {
         let c = Context::builder().build().unwrap();
-        let value = c.eval(&format!("{}n", i)).unwrap();
+        let value = c.eval(&format!("{}n", i), false).unwrap();
         assert_eq!(value.to_bigint(), Ok(i.into()));
     }
 }
@@ -646,7 +664,7 @@ fn test_bigint_deserialize_bigint() {
         std::i128::MIN,
     ] {
         let c = Context::builder().build().unwrap();
-        let value = c.eval(&format!("{}n", i)).unwrap();
+        let value = c.eval(&format!("{}n", i), false).unwrap();
         let expected = num_bigint::BigInt::from(i);
         assert_eq!(value.to_bigint(), Ok(expected.into()));
     }
@@ -658,8 +676,11 @@ fn test_bigint_serialize_i64() {
     for i in vec![0, std::i64::MAX, std::i64::MIN] {
         let c = Context::builder().build().unwrap();
         let ctx = c.context_raw();
-        c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
-            .unwrap();
+        c.eval(
+            &format!(" function isEqual(x) {{ return x === {}n }} ", i),
+            false,
+        )
+        .unwrap();
         let bigint: BigInt = i.into();
         assert_eq!(
             c.call_function("isEqual", vec![owned!(ctx, bigint)])
@@ -681,8 +702,11 @@ fn test_bigint_serialize_bigint() {
     ] {
         let c = Context::builder().build().unwrap();
         let ctx = c.context_raw();
-        c.eval(&format!(" function isEqual(x) {{ return x === {}n }} ", i))
-            .unwrap();
+        c.eval(
+            &format!(" function isEqual(x) {{ return x === {}n }} ", i),
+            false,
+        )
+        .unwrap();
         let value: BigInt = num_bigint::BigInt::from(i).into();
         assert_eq!(
             c.call_function("isEqual", vec![owned!(ctx, value)])
@@ -713,6 +737,7 @@ fn test_console() {
         console.log("hi");
         console.error(false);
     "#,
+        false,
     )
     .unwrap();
 
@@ -748,5 +773,5 @@ fn test_global_setter() {
     let ctx = context.context_raw();
 
     context.set_global("a", owned!(ctx, "a")).unwrap();
-    context.eval("a + 1").unwrap();
+    context.eval("a + 1", false).unwrap();
 }

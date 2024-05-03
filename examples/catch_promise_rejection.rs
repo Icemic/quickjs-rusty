@@ -18,7 +18,7 @@ pub fn main() {
 
     context.set_host_promise_rejection_tracker(Some(host_promise_rejection_tracker), null_mut());
 
-    let value = context.eval("1 + 2").unwrap();
+    let value = context.eval("1 + 2", false).unwrap();
     println!("js: 1 + 2 = {:?}", value);
 
     let ret = context.eval(
@@ -39,6 +39,7 @@ pub fn main() {
                 console.log("err " + e);
             });
 "#,
+        false,
     );
 
     if let Err(e) = ret {
