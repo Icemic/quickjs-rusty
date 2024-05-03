@@ -150,7 +150,12 @@ JSValue JS_NewCFunctionMagic_real(JSContext* ctx,
     return JS_NewCFunctionMagic(ctx, func, name, length, cproto, magic);
 }
 
-void js_free_prop_enum_real(JSContext* ctx, JSPropertyEnum* tab, uint32_t len) {
+// Following functions are static inline functions and not defined in quickjs.h,
+// so we have to import them from quickjs.c
+
+#include "quickjs.c"
+
+void JS_FreePropertyEnum_real(JSContext* ctx, JSPropertyEnum* tab, uint32_t len) {
     js_free_prop_enum(ctx, tab, len);
 }
 
@@ -158,11 +163,3 @@ int JS_GetPropertyLength_real(JSContext* ctx, int64_t* pres, JSValueConst obj) {
     return js_get_length64(ctx, pres, obj);
 }
 
-// #include "cutils.h"
-
-// JSValue JS_GetPropertyInternal_real(JSContext *ctx, JSValue obj,
-//                                     JSAtom prop, JSValue this_obj,
-//                                     BOOL throw_ref_error)
-// {
-//     return JS_GetPropertyInternal(ctx, obj, prop, this_obj, throw_ref_error);
-// }

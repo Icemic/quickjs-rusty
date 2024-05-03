@@ -197,7 +197,7 @@ impl Iterator for OwnedJsPropertyIterator {
 impl Drop for OwnedJsPropertyIterator {
     fn drop(&mut self) {
         unsafe {
-            q::js_free_prop_enum(self.context, self.properties, self.length);
+            q::JS_FreePropertyEnum(self.context, self.properties, self.length);
         }
     }
 }
