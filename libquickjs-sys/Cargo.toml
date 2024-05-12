@@ -2,7 +2,7 @@
 edition = "2018"
 name = "libquickjspp-sys"
 description = "QuickJSpp Javascript Engine FFI bindings"
-version = "0.1.0"
+version = "0.6.0-rc.0"
 readme = "README.md"
 documentation = "https://docs.rs/quickjspp-sys"
 repository = "https://github.com/Icemic/quickjspp-rs"
