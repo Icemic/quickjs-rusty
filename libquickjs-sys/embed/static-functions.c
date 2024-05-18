@@ -150,16 +150,3 @@ JSValue JS_NewCFunctionMagic_real(JSContext* ctx,
     return JS_NewCFunctionMagic(ctx, func, name, length, cproto, magic);
 }
 
-// Following functions are static inline functions and not defined in quickjs.h,
-// so we have to import them from quickjs.c
-
-#include "quickjs.c"
-
-void JS_FreePropertyEnum_real(JSContext* ctx, JSPropertyEnum* tab, uint32_t len) {
-    js_free_prop_enum(ctx, tab, len);
-}
-
-int JS_GetPropertyLength_real(JSContext* ctx, int64_t* pres, JSValueConst obj) {
-    return js_get_length64(ctx, pres, obj);
-}
-

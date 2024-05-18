@@ -48,8 +48,6 @@ extern "C" {
         cproto: JSCFunctionEnum,
         magic: ::std::os::raw::c_int,
     ) -> JSValue;
-    fn JS_GetPropertyLength_real(ctx: *mut JSContext, pres: *mut i64, obj: JSValue) -> i32;
-    fn JS_FreePropertyEnum_real(ctx: *mut JSContext, tab: *mut JSPropertyEnum, len: u32);
 }
 
 pub unsafe fn JS_ValueGetTag(v: JSValue) -> i32 {
@@ -222,12 +220,4 @@ pub unsafe fn JS_NewCFunctionMagic(
     magic: ::std::os::raw::c_int,
 ) -> JSValue {
     JS_NewCFunctionMagic_real(ctx, func, name, length, cproto, magic)
-}
-
-pub unsafe fn JS_GetPropertyLength(ctx: *mut JSContext, pres: *mut i64, obj: JSValue) -> i32 {
-    JS_GetPropertyLength_real(ctx, pres, obj)
-}
-
-pub unsafe fn JS_FreePropertyEnum(ctx: *mut JSContext, tab: *mut JSPropertyEnum, len: u32) {
-    JS_FreePropertyEnum_real(ctx, tab, len)
 }

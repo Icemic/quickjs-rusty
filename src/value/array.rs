@@ -20,7 +20,7 @@ impl OwnedJsArray {
     pub fn length(&self) -> u64 {
         let mut next_index: i64 = 0;
         unsafe {
-            q::JS_GetPropertyLength(
+            q::JS_GetLength(
                 self.value.context(),
                 &mut next_index as *mut _,
                 self.value.value,
@@ -66,7 +66,7 @@ impl OwnedJsArray {
     pub fn push(&self, value: OwnedJsValue) -> Result<(), ExecutionError> {
         unsafe {
             let mut next_index: i64 = 0;
-            q::JS_GetPropertyLength(
+            q::JS_GetLength(
                 self.value.context(),
                 &mut next_index as *mut _,
                 self.value.value,

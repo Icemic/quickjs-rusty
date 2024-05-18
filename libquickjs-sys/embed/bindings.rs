@@ -45,6 +45,8 @@ pub const JS_WRITE_OBJ_BYTECODE: u32 = 1;
 pub const JS_WRITE_OBJ_BSWAP: u32 = 0;
 pub const JS_WRITE_OBJ_SAB: u32 = 4;
 pub const JS_WRITE_OBJ_REFERENCE: u32 = 8;
+pub const JS_WRITE_OBJ_STRIP_SOURCE: u32 = 16;
+pub const JS_WRITE_OBJ_STRIP_DEBUG: u32 = 32;
 pub const JS_READ_OBJ_BYTECODE: u32 = 1;
 pub const JS_READ_OBJ_ROM_DATA: u32 = 0;
 pub const JS_READ_OBJ_SAB: u32 = 4;
@@ -63,7 +65,7 @@ pub const JS_INVALID_PROMISE_STATE: i32 = -1;
 pub const QJS_VERSION_MAJOR: u32 = 0;
 pub const QJS_VERSION_MINOR: u32 = 5;
 pub const QJS_VERSION_PATCH: u32 = 0;
-pub const QJS_VERSION_SUFFIX: &[u8; 4] = b"dev\0";
+pub const QJS_VERSION_SUFFIX: &[u8; 4usize] = b"dev\0";
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct JSRuntime {
@@ -1546,6 +1548,10 @@ extern "C" {
     pub fn JS_GetPrototype(ctx: *mut JSContext, val: JSValue) -> JSValue;
 }
 extern "C" {
+    pub fn JS_GetLength(ctx: *mut JSContext, pres: *mut i64, obj: JSValue)
+        -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn JS_GetOwnPropertyNames(
         ctx: *mut JSContext,
         ptab: *mut *mut JSPropertyEnum,
@@ -1561,6 +1567,9 @@ extern "C" {
         obj: JSValue,
         prop: JSAtom,
     ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn JS_FreePropertyEnum(ctx: *mut JSContext, tab: *mut JSPropertyEnum, len: u32);
 }
 extern "C" {
     pub fn JS_Call(
@@ -2012,7 +2021,7 @@ pub const JSCFunctionEnum_JS_CFUNC_setter: JSCFunctionEnum = 9;
 pub const JSCFunctionEnum_JS_CFUNC_getter_magic: JSCFunctionEnum = 10;
 pub const JSCFunctionEnum_JS_CFUNC_setter_magic: JSCFunctionEnum = 11;
 pub const JSCFunctionEnum_JS_CFUNC_iterator_next: JSCFunctionEnum = 12;
-pub type JSCFunctionEnum = ::std::os::raw::c_int;
+pub type JSCFunctionEnum = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union JSCFunctionType {
@@ -2669,7 +2678,7 @@ extern "C" {
 pub const JSPromiseStateEnum_JS_PROMISE_PENDING: JSPromiseStateEnum = 0;
 pub const JSPromiseStateEnum_JS_PROMISE_FULFILLED: JSPromiseStateEnum = 1;
 pub const JSPromiseStateEnum_JS_PROMISE_REJECTED: JSPromiseStateEnum = 2;
-pub type JSPromiseStateEnum = ::std::os::raw::c_int;
+pub type JSPromiseStateEnum = ::std::os::raw::c_uint;
 extern "C" {
     pub fn JS_PromiseState(ctx: *mut JSContext, promise: JSValue) -> JSPromiseStateEnum;
 }
