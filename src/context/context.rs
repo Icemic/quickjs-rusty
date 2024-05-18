@@ -34,6 +34,7 @@ pub struct Context {
     /// the closure.
     // A Mutex is used over a RefCell because it needs to be unwind-safe.
     callbacks: Mutex<Vec<(Box<WrappedCallback>, Box<q::JSValue>)>>,
+    module_loader: Mutex<Option<Box<ModuleLoader>>>,
 }
 
 impl Drop for Context {
@@ -41,6 +42,9 @@ impl Drop for Context {
         unsafe {
             q::JS_FreeContext(self.context);
             q::JS_FreeRuntime(self.runtime);
+
+            // Drop the module loader.
+            let _ = self.module_loader.lock().unwrap().take();
         }
     }
 }
@@ -89,6 +93,7 @@ impl Context {
             context,
             loop_context: Arc::new(Mutex::new(null_mut())),
             callbacks: Mutex::new(Vec::new()),
+            module_loader: Mutex::new(None),
         };
 
         Ok(wrapper)
@@ -491,7 +496,7 @@ impl Context {
         };
 
         let module_loader = Box::new(module_loader);
-        let module_loader_ptr = Box::into_raw(module_loader);
+        let module_loader_ptr = module_loader.as_ref() as *const _ as *mut c_void;
 
         unsafe {
             if has_module_normalize {
@@ -499,17 +504,19 @@ impl Context {
                     self.runtime,
                     Some(js_module_normalize),
                     Some(js_module_loader),
-                    module_loader_ptr as *mut c_void,
+                    module_loader_ptr,
                 );
             } else {
                 q::JS_SetModuleLoaderFunc(
                     self.runtime,
                     None,
                     Some(js_module_loader),
-                    module_loader_ptr as *mut c_void,
+                    module_loader_ptr,
                 );
             }
         }
+
+        *self.module_loader.lock().unwrap() = Some(module_loader);
     }
 
     /// Set the host promise rejection tracker.\
