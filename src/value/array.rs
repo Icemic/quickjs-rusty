@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use libquickjspp_sys as q;
 
 use crate::{ExecutionError, ValueError};
@@ -104,5 +106,13 @@ impl OwnedJsArray {
             ret.push(value_raw);
         }
         ret
+    }
+}
+
+impl Deref for OwnedJsArray {
+    type Target = OwnedJsValue;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
     }
 }

@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::errors::*;
 use crate::value::*;
 
@@ -28,4 +30,12 @@ impl JsModule {
 pub enum JsCompiledValue {
     Function(JsCompiledFunction),
     Module(JsModule),
+}
+
+impl Deref for JsModule {
+    type Target = OwnedJsValue;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
 }

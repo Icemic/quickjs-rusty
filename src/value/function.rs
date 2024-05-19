@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::ops::Deref;
 
 use libquickjspp_sys as q;
 
@@ -42,5 +43,13 @@ impl JsFunction {
             )
         };
         Ok(OwnedJsValue::new(self.value.context(), qres_raw))
+    }
+}
+
+impl Deref for JsFunction {
+    type Target = OwnedJsValue;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
     }
 }

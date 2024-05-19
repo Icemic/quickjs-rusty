@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::ops::Deref;
 
 use libquickjspp_sys as q;
 
@@ -104,6 +105,14 @@ impl OwnedJsObject {
                 Ok(())
             }
         }
+    }
+}
+
+impl Deref for OwnedJsObject {
+    type Target = OwnedJsValue;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
     }
 }
 
