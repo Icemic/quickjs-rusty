@@ -1548,7 +1548,7 @@ extern "C" {
     pub fn JS_GetPrototype(ctx: *mut JSContext, val: JSValue) -> JSValue;
 }
 extern "C" {
-    pub fn JS_GetLength(ctx: *mut JSContext, pres: *mut i64, obj: JSValue)
+    pub fn JS_GetLength(ctx: *mut JSContext, obj: JSValue, pres: *mut i64)
         -> ::std::os::raw::c_int;
 }
 extern "C" {

@@ -24,8 +24,8 @@ impl OwnedJsArray {
         unsafe {
             q::JS_GetLength(
                 self.value.context(),
-                &mut next_index as *mut _,
                 self.value.value,
+                &mut next_index as *mut _,
             );
         }
 
@@ -70,8 +70,8 @@ impl OwnedJsArray {
             let mut next_index: i64 = 0;
             q::JS_GetLength(
                 self.value.context(),
-                &mut next_index as *mut _,
                 self.value.value,
+                &mut next_index as *mut _,
             );
             // NOTE: SetPropertyStr takes ownership of the value.
             // We do not, however, call OwnedJsValue::extract immediately, so
