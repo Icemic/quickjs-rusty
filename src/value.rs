@@ -7,6 +7,7 @@ mod compiled_function;
 mod function;
 mod module;
 mod object;
+mod promise;
 mod tag;
 mod value;
 
@@ -22,5 +23,6 @@ pub use compiled_function::*;
 pub use function::*;
 pub use module::*;
 pub use object::*;
+pub use promise::*;
 pub use tag::*;
 pub use value::*;

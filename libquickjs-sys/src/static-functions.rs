@@ -48,6 +48,7 @@ extern "C" {
         cproto: JSCFunctionEnum,
         magic: ::std::os::raw::c_int,
     ) -> JSValue;
+    pub fn JS_IsPromise(ctx: *mut JSContext, v: JSValue) -> i32;
 }
 
 pub unsafe fn JS_ValueGetTag(v: JSValue) -> i32 {

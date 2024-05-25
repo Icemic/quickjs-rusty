@@ -15,6 +15,7 @@ use crate::utils::{
     add_array_element, add_object_property, create_bool, create_empty_array, create_empty_object,
     create_float, create_function, create_int, create_null, create_string,
 };
+use crate::OwnedJsPromise;
 use crate::{ExecutionError, ValueError};
 
 use super::tag::JsTag;
@@ -143,6 +144,12 @@ impl OwnedJsValue {
     #[inline]
     pub fn is_function(&self) -> bool {
         unsafe { q::JS_IsFunction(self.context, self.value) == 1 }
+    }
+
+    /// Check if this value is a Javascript promise.
+    #[inline]
+    pub fn is_promise(&self) -> bool {
+        unsafe { q::JS_IsPromise(self.context, self.value) == 1 }
     }
 
     /// Check if this value is a Javascript module.
@@ -313,6 +320,11 @@ impl OwnedJsValue {
     /// Try convert this value into a function
     pub fn try_into_function(self) -> Result<JsFunction, ValueError> {
         JsFunction::try_from_value(self)
+    }
+
+    /// Try convert this value into a function
+    pub fn try_into_promise(self) -> Result<OwnedJsPromise, ValueError> {
+        OwnedJsPromise::try_from_value(self)
     }
 
     /// Try convert this value into a compiled function
@@ -563,6 +575,14 @@ impl TryFrom<OwnedJsValue> for JsFunction {
     }
 }
 
+impl TryFrom<OwnedJsValue> for OwnedJsPromise {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        OwnedJsPromise::try_from_value(value)
+    }
+}
+
 impl TryFrom<OwnedJsValue> for OwnedJsArray {
     type Error = ValueError;
 
@@ -735,6 +755,13 @@ impl ToOwnedJsValue for u128 {
 impl ToOwnedJsValue for JsFunction {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let val = create_function(context, self).unwrap();
+        OwnedJsValue::new(context, val)
+    }
+}
+
+impl ToOwnedJsValue for OwnedJsPromise {
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        let val = unsafe { self.into_value().extract() };
         OwnedJsValue::new(context, val)
     }
 }
