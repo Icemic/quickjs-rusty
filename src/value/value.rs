@@ -818,6 +818,15 @@ where
     }
 }
 
+impl<T> ToOwnedJsValue for &T
+where
+    T: ToOwnedJsValue,
+{
+    fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
+        (context, self).into()
+    }
+}
+
 impl<T> From<(*mut q::JSContext, T)> for OwnedJsValue
 where
     T: ToOwnedJsValue,
