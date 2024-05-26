@@ -2686,5 +2686,55 @@ extern "C" {
     pub fn JS_PromiseResult(ctx: *mut JSContext, promise: JSValue) -> JSValue;
 }
 extern "C" {
+    pub fn JS_PromiseResolve(ctx: *mut JSContext, value: JSValue) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseReject(ctx: *mut JSContext, value: JSValue) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseAll(ctx: *mut JSContext, iterable: JSValue) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseAllSettled(ctx: *mut JSContext, iterable: JSValue) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseAny(ctx: *mut JSContext, iterable: JSValue) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseRace(ctx: *mut JSContext, iterable: JSValue) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseWithResolvers(ctx: *mut JSContext) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseThen(
+        ctx: *mut JSContext,
+        promise: JSValue,
+        on_fulfilled_func: JSValue,
+    ) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseThen2(
+        ctx: *mut JSContext,
+        promise: JSValue,
+        on_fulfilled_func: JSValue,
+        on_reject_func: JSValue,
+    ) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseCatch(
+        ctx: *mut JSContext,
+        promise: JSValue,
+        on_reject_func: JSValue,
+    ) -> JSValue;
+}
+extern "C" {
+    pub fn JS_PromiseFinally(
+        ctx: *mut JSContext,
+        promise: JSValue,
+        on_finally_func: JSValue,
+    ) -> JSValue;
+}
+extern "C" {
     pub fn JS_GetVersion() -> *const ::std::os::raw::c_char;
 }
