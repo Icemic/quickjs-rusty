@@ -2,10 +2,12 @@ use std::ops::Deref;
 
 use libquickjspp_sys as q;
 
+use crate::utils::ensure_no_excpetion;
 use crate::{Context, ExecutionError, JsFunction, ValueError};
 
 use super::OwnedJsValue;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct OwnedJsPromise {
     value: OwnedJsValue,
 }
@@ -33,10 +35,6 @@ impl OwnedJsPromise {
         }
     }
 
-    pub fn has_handler(&self) -> bool {
-        todo!()
-    }
-
     /// Returns the result of the promise if the promise's state is in the FULFILLED or REJECTED state,
     /// otherwise returns Undefined.
     pub fn result(&self) -> OwnedJsValue {
@@ -44,69 +42,163 @@ impl OwnedJsPromise {
         OwnedJsValue::new(self.value.context(), result)
     }
 
-    pub fn then(
+    pub fn then(&self, on_fulfilled: &OwnedJsValue) -> Result<OwnedJsPromise, ExecutionError> {
+        let new_promise = unsafe {
+            q::JS_PromiseThen(self.value.context(), self.value.value, on_fulfilled.value)
+        };
+
+        let new_promise = OwnedJsValue::new(self.value.context(), new_promise);
+
+        ensure_no_excpetion(self.value.context())?;
+
+        Ok(OwnedJsPromise::try_from_value(new_promise)?)
+    }
+
+    pub fn then2(
         &self,
         on_fulfilled: &OwnedJsValue,
         on_rejected: &OwnedJsValue,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let new_promise = unsafe {
+            q::JS_PromiseThen2(
+                self.value.context(),
+                self.value.value,
+                on_fulfilled.value,
+                on_rejected.value,
+            )
+        };
+
+        let new_promise = OwnedJsValue::new(self.value.context(), new_promise);
+
+        ensure_no_excpetion(self.value.context())?;
+
+        Ok(OwnedJsPromise::try_from_value(new_promise)?)
     }
 
     pub fn catch(&self, on_rejected: &OwnedJsValue) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let new_promise = unsafe {
+            q::JS_PromiseCatch(self.value.context(), self.value.value, on_rejected.value)
+        };
+
+        let new_promise = OwnedJsValue::new(self.value.context(), new_promise);
+
+        ensure_no_excpetion(self.value.context())?;
+
+        Ok(OwnedJsPromise::try_from_value(new_promise)?)
     }
 
     pub fn finally(&self, on_finally: &OwnedJsValue) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let new_promise = unsafe {
+            q::JS_PromiseFinally(self.value.context(), self.value.value, on_finally.value)
+        };
+
+        let new_promise = OwnedJsValue::new(self.value.context(), new_promise);
+
+        ensure_no_excpetion(self.value.context())?;
+
+        Ok(OwnedJsPromise::try_from_value(new_promise)?)
     }
 
     pub fn resolve(
         context: &Context,
         value: &OwnedJsValue,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let promise = unsafe { q::JS_PromiseResolve(context.context, value.value) };
+        let promise = OwnedJsValue::new(context.context, promise);
+
+        ensure_no_excpetion(context.context)?;
+
+        Ok(OwnedJsPromise::try_from_value(promise)?)
     }
 
     pub fn reject(
         context: &Context,
         value: &OwnedJsValue,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let promise = unsafe { q::JS_PromiseReject(context.context, value.value) };
+        let promise = OwnedJsValue::new(context.context, promise);
+
+        ensure_no_excpetion(context.context)?;
+
+        Ok(OwnedJsPromise::try_from_value(promise)?)
     }
 
     pub fn all(
         context: &Context,
-        values: &[&OwnedJsValue],
+        values: impl IntoIterator<Item = OwnedJsPromise>,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let iterable: OwnedJsValue =
+            (context.context, values.into_iter().collect::<Vec<_>>()).into();
+
+        let promise = unsafe { q::JS_PromiseAll(context.context, iterable.value) };
+        let promise = OwnedJsValue::new(context.context, promise);
+
+        ensure_no_excpetion(context.context)?;
+
+        Ok(OwnedJsPromise::try_from_value(promise)?)
     }
 
     pub fn all_settled(
         context: &Context,
-        values: &[&OwnedJsValue],
+        values: impl IntoIterator<Item = OwnedJsPromise>,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let iterable: OwnedJsValue =
+            (context.context, values.into_iter().collect::<Vec<_>>()).into();
+
+        let promise = unsafe { q::JS_PromiseAllSettled(context.context, iterable.value) };
+        let promise = OwnedJsValue::new(context.context, promise);
+
+        ensure_no_excpetion(context.context)?;
+
+        Ok(OwnedJsPromise::try_from_value(promise)?)
     }
 
     pub fn race(
         context: &Context,
-        values: &[&OwnedJsValue],
+        values: impl IntoIterator<Item = OwnedJsPromise>,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let iterable: OwnedJsValue =
+            (context.context, values.into_iter().collect::<Vec<_>>()).into();
+
+        let promise = unsafe { q::JS_PromiseRace(context.context, iterable.value) };
+        let promise = OwnedJsValue::new(context.context, promise);
+
+        ensure_no_excpetion(context.context)?;
+
+        Ok(OwnedJsPromise::try_from_value(promise)?)
     }
 
     pub fn any(
         context: &Context,
-        values: &[&OwnedJsValue],
+        values: impl IntoIterator<Item = OwnedJsPromise>,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        todo!()
+        let iterable: OwnedJsValue =
+            (context.context, values.into_iter().collect::<Vec<_>>()).into();
+
+        let promise = unsafe { q::JS_PromiseAny(context.context, iterable.value) };
+        let promise = OwnedJsValue::new(context.context, promise);
+
+        ensure_no_excpetion(context.context)?;
+
+        Ok(OwnedJsPromise::try_from_value(promise)?)
     }
 
     pub fn with_resolvers(
         context: &Context,
-        resolver: &OwnedJsValue,
     ) -> Result<(OwnedJsPromise, JsFunction, JsFunction), ExecutionError> {
-        todo!()
+        let obj = unsafe { q::JS_PromiseWithResolvers(context.context) };
+        let obj = OwnedJsValue::new(context.context, obj);
+
+        ensure_no_excpetion(context.context)?;
+
+        let obj = obj.try_into_object()?;
+
+        // use .unwrap() here because the fields are guaranteed to be there
+        let promise = obj.property("promise")?.unwrap().try_into_promise()?;
+        let resolve = obj.property("resolve")?.unwrap().try_into_function()?;
+        let reject = obj.property("reject")?.unwrap().try_into_function()?;
+
+        Ok((promise, resolve, reject))
     }
 }
 
