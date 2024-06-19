@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
-use libquickjspp_sys::JSContext;
-use quickjspp::serde::{from_js, to_js};
-use quickjspp::{value::OwnedJsValue, Context};
+use libquickjs_ng_sys::JSContext;
+use quickjs_rusty::serde::{from_js, to_js};
+use quickjs_rusty::{value::OwnedJsValue, Context};
 use serde_json::{json, Value};
 
 #[test]

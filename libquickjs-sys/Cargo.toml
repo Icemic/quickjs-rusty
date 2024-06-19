@@ -1,26 +1,26 @@
 [package]
-edition = "2018"
-name = "libquickjspp-sys"
-description = "QuickJSpp Javascript Engine FFI bindings"
-version = "0.6.0-rc.1"
-readme = "README.md"
-documentation = "https://docs.rs/quickjspp-sys"
-repository = "https://github.com/Icemic/quickjspp-rs"
-license = "MIT"
 authors = ["Christoph Herzog <chris@theduke.at>", "Icemic J <bingfeng.web@gmail.com>"]
 categories = ["external-ffi-bindings"]
-keywords = ["quickjs", "quickjspp"]
+description = "QuickJS-NG Javascript Engine FFI bindings"
+documentation = "https://docs.rs/libquickjs-ng-sys"
+edition = "2018"
+keywords = ["quickjs", "quickjs-ng", "sys"]
+license = "MIT"
+name = "libquickjs-ng-sys"
+readme = "README.md"
+repository = "https://github.com/Icemic/quickjs-rusty"
+version = "0.6.0-rc.1"
 
 build = "build.rs"
 
 [features]
 bundled = ["cc", "copy_dir"]
-patched = ["bundled"]
 default = ["bundled"]
+patched = ["bundled"]
 
 system = ["bindgen"]
 
 [build-dependencies]
-bindgen = { version = "0.64.0", optional = true }
-cc = { version = "1.0.66", optional = true }
-copy_dir = { version = "0.1.2", optional = true }
+bindgen = {version = "0.64.0", optional = true}
+cc = {version = "1.0.66", optional = true}
+copy_dir = {version = "0.1.2", optional = true}

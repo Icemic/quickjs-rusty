@@ -1,26 +1,22 @@
-# quickjspp-rs
+![quickjs-rusty](https://socialify.git.ci/Icemic/quickjs-rusty/image?description=1&language=1&name=1&owner=1&stargazers=1&theme=Light)
 
-[![Crates.io](https://img.shields.io/crates/v/quick-js.svg?maxAge=3600)](https://crates.io/crates/quickjspp)
-[![docs.rs](https://docs.rs/quick-js/badge.svg)](https://docs.rs/quickjspp)
+[![Crates.io](https://img.shields.io/crates/v/quickjs-rusty.svg?maxAge=3600)](https://crates.io/crates/quickjs-rusty)
+[![docs.rs](https://docs.rs/quickjs-rusty/badge.svg)](https://docs.rs/quickjs-rusty)
 
-**This is a fork of [quickjs-rs](https://github.com/theduke/quickjs-rs) but replaces the binding to the original [quickjs](https://bellard.org/quickjs/) by Fabrice Bellard with its fork [quickjspp](https://github.com/c-smile/quickjspp) by Andrew Fedoniouk, which is MSVC compatible/compileable.**
+QuickJS is a small and embeddable Javascript engine by Fabrice Bellard and Charlie Gordon. It supports the ES2023 specification including modules, asynchronous generators, proxies and BigInt.  
+Quickjs-NG is one of the most active forks of QuickJS, and it is maintained by the community focused on reigniting the project.
 
-QuickJS is a new, small Javascript engine by Fabrice Bellard and Charlie Gordon.
-It is fast and supports the full ES2020 specification.
-
-QuickJSpp is a fork of Quickjs By Andrew Fedoniouk (a.k.a. c-smile).
-
-This crate allows you to easily run and integrate with Javascript code from Rust.
+This crate allows you to easily access and use all the features of QuickJS from Rust. It also provides robust Rust-JS type conversion and interoperability capabilities.
 
 ## Quickstart
 
 ```toml
 [dependencies]
-quickjspp = "0.5.0"
+quickjs-rusty = "0.6.0"
 ```
 
 ```rust
-use quickjspp::{Context, JsValue};
+use quickjs_rusty::{Context, JsValue};
 
 let context = Context::new().unwrap();
 
@@ -42,21 +38,16 @@ context.eval(r#"
 "#).unwrap();
 ```
 
+Note: This project is derived from [quickjs-rs](https://github.com/theduke/quickjs-rs), but it has undergone significant restructuring. It features a completely different code structure and functional design compared to the original project.
+
 ## Optional Features
 
 The crate supports the following features:
 
 - `serde`: _(default enabled)._ enable serde method `from_js` and `to_js` to transform between Rust types and js value in quickjs context. It should compatible with `serde_json` but not tested yet. See more on the [example](/examples/serde.rs).
-- `chrono`: chrono integration
+- `chrono`: _(default enabled)._ chrono integration
   - adds a `JsValue::Date` variant that can be (de)serialized to/from a JS `Date`
-- `bigint`: arbitrary precision integer support via [num-bigint](https://github.com/rust-num/num-bigint)
-- `log`: allows forwarding `console.log` messages to the `log` crate.
-  Note: must be enabled with `ContextBuilder::console(quickjspp::console::LogConsole);`
-
-- `patched`
-  Enabled automatically for some other features, like `bigint`.
-  You should not need to enable this manually.
-  Applies QuickJS patches that can be found in `libquickjs-sys/embed/patches` directory.
+- `bigint`: _(default enabled)._ arbitrary precision integer support via [num-bigint](https://github.com/rust-num/num-bigint)
 
 ## Installation
 
@@ -65,7 +56,7 @@ automatically compiled, assuming you have the appropriate dependencies.
 
 ### Windows Support
 
-quickjspp-rs can be used under target `x86_64-pc-windows-msvc`, 
+quickjspp-rs can be used under target `x86_64-pc-windows-msvc`,
 
 ### System installation
 

@@ -2,7 +2,7 @@
 
 use std::ffi::CString;
 
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 use crate::value::{JsFunction, OwnedJsValue};
 use crate::ValueError;

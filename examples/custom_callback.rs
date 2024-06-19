@@ -1,6 +1,6 @@
 use anyhow::Result;
-use quickjspp::serde::to_js;
-use quickjspp::{owned, Context, JSContext, JsTag, OwnedJsValue, RawJSValue};
+use quickjs_rusty::serde::to_js;
+use quickjs_rusty::{owned, Context, JSContext, JsTag, OwnedJsValue, RawJSValue};
 
 pub fn main() {
     let context = Context::builder()

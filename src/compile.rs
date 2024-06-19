@@ -2,7 +2,7 @@
 
 use std::os::raw::c_void;
 
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 use crate::utils::{ensure_no_excpetion, get_exception, make_cstring};
 use crate::value::{JsCompiledFunction, OwnedJsValue};

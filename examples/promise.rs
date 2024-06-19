@@ -1,4 +1,4 @@
-use quickjspp::{Context, OwnedJsPromise};
+use quickjs_rusty::{Context, OwnedJsPromise};
 
 ///
 /// This example demonstrates how to create a promise, chain it with callbacks, and handle errors.
@@ -14,7 +14,7 @@ use quickjspp::{Context, OwnedJsPromise};
 /// ```
 pub fn main() {
     let context = Context::builder()
-        .console(|level, args: Vec<quickjspp::OwnedJsValue>| {
+        .console(|level, args: Vec<quickjs_rusty::OwnedJsValue>| {
             println!(
                 "{}: {:?}",
                 level,

@@ -1,4 +1,4 @@
-use quickjspp::Context;
+use quickjs_rusty::Context;
 
 struct Custom {
     pub foo: i32,

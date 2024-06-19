@@ -6,7 +6,7 @@
 //! ## Quickstart:
 //!
 //! ```rust
-//! use quickjspp::Context;
+//! use quickjs_rusty::Context;
 //!
 //! let context = Context::builder().build().unwrap();
 //!
@@ -41,7 +41,7 @@ pub mod serde;
 pub mod utils;
 pub mod value;
 
-pub use libquickjspp_sys::{JSContext, JSValue as RawJSValue};
+pub use libquickjs_ng_sys::{JSContext, JSValue as RawJSValue};
 
 pub use self::callback::{Arguments, Callback};
 pub use self::context::*;

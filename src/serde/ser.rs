@@ -1,4 +1,4 @@
-use libquickjspp_sys::{JSContext, JSValue};
+use libquickjs_ng_sys::{JSContext, JSValue};
 use serde::{ser, Serialize};
 
 use crate::utils::{

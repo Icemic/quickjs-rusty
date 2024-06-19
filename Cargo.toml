@@ -1,28 +1,28 @@
 [package]
 authors = ["Christoph Herzog <chris@theduke.at>", "Icemic J <bingfeng.web@gmail.com>"]
-description = "QuickJS Javascript engine wrapper using quickjs fork named quickjspp"
-documentation = "https://docs.rs/quickjspp"
+description = "A rusty QuickJS (QuickJS-NG) Javascript engine wrapper, and more."
+documentation = "https://docs.rs/quickjs-rusty"
 edition = "2018"
-keywords = ["quickjs", "javascript", "js", "engine", "interpreter"]
+keywords = ["quickjs", "quickjs-ng", "javascript", "js", "engine", "interpreter", "runtime", "jsruntime"]
 license = "MIT"
-name = "quickjspp"
+name = "quickjs-rusty"
 readme = "README.md"
-repository = "https://github.com/Icemic/quickjspp-rs"
+repository = "https://github.com/Icemic/quickjs-rusty"
 version = "0.6.0-rc.1"
 
 [package.metadata.docs.rs]
 features = ["chrono", "bigint", "log"]
 
 [features]
-bigint = ["num-bigint", "num-traits", "libquickjspp-sys/patched"]
+bigint = ["num-bigint", "num-traits", "libquickjs-ng-sys/patched"]
 default = ["chrono", "serde", "bigint"]
-patched = ["libquickjspp-sys/patched"]
+patched = ["libquickjs-ng-sys/patched"]
 serde = ["thiserror", "dep:serde"]
 
 [dependencies]
 anyhow = {version = "1"}
 chrono = {version = "0.4.7", optional = true}
-libquickjspp-sys = {version = "0.6.0-rc.1", path = "./libquickjs-sys"}
+libquickjs-ng-sys = {version = "0.6.0-rc.1", path = "./libquickjs-sys"}
 log = {version = "0.4.8", optional = true}
 num-bigint = {version = "0.4.4", optional = true}
 num-traits = {version = "0.2.0", optional = true}

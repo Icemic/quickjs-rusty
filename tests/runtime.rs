@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use quickjspp::value::*;
-use quickjspp::*;
+use quickjs_rusty::value::*;
+use quickjs_rusty::*;
 
 // #[test]
 // fn test_global_properties() {

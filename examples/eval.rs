@@ -1,4 +1,4 @@
-use quickjspp::{Context, JsFunction};
+use quickjs_rusty::{Context, JsFunction};
 
 pub fn main() {
     let context = Context::builder()

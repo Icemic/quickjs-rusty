@@ -1,6 +1,6 @@
 use std::mem::transmute;
 
-use libquickjspp_sys::JSContext;
+use libquickjs_ng_sys::JSContext;
 use serde::de::{
     self, DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, SeqAccess, VariantAccess,
     Visitor,

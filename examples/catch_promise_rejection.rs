@@ -1,7 +1,7 @@
 use std::ffi::{c_int, c_void};
 use std::ptr::null_mut;
 
-use quickjspp::{Context, JSContext, OwnedJsValue, RawJSValue};
+use quickjs_rusty::{Context, JSContext, OwnedJsValue, RawJSValue};
 
 /// There's a bug on set_host_promise_rejection_tracker that any rejection no matter if it's handled or not will emit the callback.
 ///

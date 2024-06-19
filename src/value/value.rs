@@ -5,7 +5,7 @@ use std::hash::Hash;
 
 #[cfg(feature = "chrono")]
 use chrono::{DateTime, Utc};
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 #[cfg(feature = "bigint")]
 use crate::utils::create_bigint;

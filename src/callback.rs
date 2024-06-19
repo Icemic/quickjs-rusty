@@ -2,7 +2,7 @@ use std::ffi::{c_int, c_void};
 use std::{convert::TryFrom, marker::PhantomData, panic::RefUnwindSafe};
 
 use anyhow::Result;
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 use crate::utils::create_string;
 use crate::utils::create_undefined;

@@ -1,4 +1,4 @@
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 pub struct OwnedJsAtom {
     context: *mut q::JSContext,

@@ -1,5 +1,5 @@
-use quickjspp::value::*;
-use quickjspp::*;
+use quickjs_rusty::value::*;
+use quickjs_rusty::*;
 
 #[test]
 fn test_promise_noresolve() {

@@ -1,7 +1,7 @@
 use std::ffi::{c_char, c_void, CStr};
 use std::ptr::null_mut;
 
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 use super::compile::compile_module;
 

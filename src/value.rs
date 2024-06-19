@@ -13,7 +13,7 @@ mod value;
 
 use std::fmt::Debug;
 
-pub use libquickjspp_sys as q;
+pub use libquickjs_ng_sys as q;
 
 pub use array::OwnedJsArray;
 pub use atom::*;

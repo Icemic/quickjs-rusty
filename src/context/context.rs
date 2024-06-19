@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 use crate::callback::*;
 use crate::console::ConsoleBackend;
@@ -55,7 +55,7 @@ impl Context {
     /// For details, see the methods on `ContextBuilder`.
     ///
     /// ```rust
-    /// let _context = quickjspp::Context::builder()
+    /// let _context = quickjs_rusty::Context::builder()
     ///     .memory_limit(100_000)
     ///     .build()
     ///     .unwrap();
@@ -188,7 +188,7 @@ impl Context {
     /// Set a global variable.
     ///
     /// ```rust
-    /// use quickjspp::Context;
+    /// use quickjs_rusty::Context;
     /// let context = Context::builder().build().unwrap();
     ///
     /// context.set_global("someGlobalVariable", 42).unwrap();
@@ -324,7 +324,7 @@ impl Context {
     /// promise failed.
     ///
     /// ```rust
-    /// use quickjspp::Context;
+    /// use quickjs_rusty::Context;
     /// let context = Context::builder().build().unwrap();
     ///
     /// let value = context.eval(" 1 + 2 + 3 ", false).unwrap();
@@ -384,7 +384,7 @@ impl Context {
     /// Return value will always be undefined on module mode.
     ///
     /// ```ignore
-    /// use quickjspp::Context;
+    /// use quickjs_rusty::Context;
     /// let context = Context::builder().build().unwrap();
     ///
     /// let value = context.eval_module("import {foo} from 'bar'; foo();", false).unwrap();
@@ -424,7 +424,7 @@ impl Context {
     /// promise failed.
     ///
     /// ```rust
-    /// use quickjspp::{Context};
+    /// use quickjs_rusty::{Context};
     /// let context = Context::builder().build().unwrap();
     ///
     /// let res = context.eval_as::<bool>(" 100 > 10 ");
@@ -459,7 +459,7 @@ impl Context {
     /// promise failed.
     ///
     /// ```ignore
-    /// use quickjspp::Context;
+    /// use quickjs_rusty::Context;
     /// let context = Context::builder().build().unwrap();
     ///
     /// let value = context.run_module("./module");
@@ -540,7 +540,7 @@ impl Context {
     /// promise failed.
     ///
     /// ```rust
-    /// use quickjspp::Context;
+    /// use quickjs_rusty::Context;
     /// let context = Context::builder().build().unwrap();
     ///
     /// let res = context.call_function("encodeURIComponent", vec!["a=b"]).unwrap();
@@ -583,7 +583,7 @@ impl Context {
     ///     if Err(e) is returned, a Javascript exception will be raised
     ///
     /// ```rust
-    /// use quickjspp::{Context, OwnedJsValue};
+    /// use quickjs_rusty::{Context, OwnedJsValue};
     /// use std::collections::HashMap;
     ///
     /// let context = Context::builder().build().unwrap();
@@ -652,7 +652,7 @@ impl Context {
     ///     if Err(e) is returned, a Javascript exception will be raised
     ///
     /// ```rust
-    /// use quickjspp::Context;
+    /// use quickjs_rusty::Context;
     /// let context = Context::builder().build().unwrap();
     ///
     /// // Register a closue as a callback under the "add" name.

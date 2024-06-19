@@ -1,25 +1,9 @@
 # libquickjs-sys
 
-FFI Bindings for [quickjspp](https://github.com/c-smile/quickjspp), a fork of [quickjs](https://bellard.org/quickjs/), which is a Javascript engine.
+FFI Bindings for [quickjs-ng](https://github.com/quickjs-ng/quickjs), a fork of [quickjs](https://bellard.org/quickjs/), which is a Javascript engine.
 
-See the [quickjspp](https://crates.io/crates/quickjspp) crate for a high-level
+See the [quickjspp](https://crates.io/crates/quickjs-rusty) crate for a high-level
 wrapper.
-
-
-*Version 0.9.0*
-**Embedded VERSION: 2021-03-27**
-
-## Embedded vs system
-
-By default, an embedded version of quickjs is used.
-
-If you want to use a version installed on your system, use:
-
-
-```toml
-libquickjs-sys = { version = "...", default-features = false, features = ["system"] }
-```
-
 
 ## Updating the embedded bindings
 
@@ -27,7 +11,7 @@ QuickJS sources and a pre-generated `bindings.rs` are included in the repo.
 
 They are used if the `embedded` feature is enabled.
 
-To updat the bindings, follow these steps:
+To update the bindings, follow these steps:
 
 * (Install [just](https://github.com/casey/just))
 * (Install [bindgen-cli](https://rust-lang.github.io/rust-bindgen/command-line-usage.html))

@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::ops::Deref;
 
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 use crate::utils::make_cstring;
 use crate::{ExecutionError, ValueError};

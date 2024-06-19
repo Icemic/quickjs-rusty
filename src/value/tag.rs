@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use libquickjspp_sys as q;
+use libquickjs_ng_sys as q;
 
 #[repr(i32)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
