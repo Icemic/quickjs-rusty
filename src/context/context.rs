@@ -468,7 +468,7 @@ impl Context {
         let filename_c = make_cstring(filename)?;
 
         unsafe {
-            q::JS_RunModule(
+            q::JS_LoadModule(
                 self.context,
                 ".\0".as_ptr() as *const i8,
                 filename_c.as_ptr(),
