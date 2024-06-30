@@ -464,10 +464,10 @@ impl Context {
     ///
     /// let value = context.run_module("./module");
     /// ```
-    pub fn run_module(&self, filename: &str) -> Result<(), ExecutionError> {
+    pub fn run_module(&self, filename: &str) -> Result<OwnedJsPromise, ExecutionError> {
         let filename_c = make_cstring(filename)?;
 
-        unsafe {
+        let ret = unsafe {
             q::JS_LoadModule(
                 self.context,
                 ".\0".as_ptr() as *const i8,
@@ -475,9 +475,17 @@ impl Context {
             )
         };
 
+        let ret = OwnedJsValue::new(self.context, ret);
+
         ensure_no_excpetion(self.context)?;
 
-        Ok(())
+        if ret.is_promise() {
+            Ok(ret.try_into_promise()?)
+        } else {
+            Err(ExecutionError::Internal(
+                "Module did not return a promise".to_string(),
+            ))
+        }
     }
 
     /// register module loader function, giving module name as input and return module code as output.
