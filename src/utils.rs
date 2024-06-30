@@ -7,10 +7,10 @@ use libquickjs_ng_sys as q;
 use crate::value::{JsFunction, OwnedJsValue};
 use crate::ValueError;
 
-pub(crate) fn deserialize_borrowed_str<'a>(
+pub(crate) fn deserialize_borrowed_str(
     context: *mut q::JSContext,
-    value: &'a q::JSValue,
-) -> Result<&'a str, ValueError> {
+    value: &q::JSValue,
+) -> Result<&str, ValueError> {
     let r = value;
     let tag = unsafe { q::JS_ValueGetTag(*r) };
 

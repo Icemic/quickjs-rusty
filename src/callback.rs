@@ -127,7 +127,7 @@ where
         context: *mut q::JSContext,
         args: Vec<OwnedJsValue>,
     ) -> Result<Result<OwnedJsValue, String>, ValueError> {
-        if args.len() != 0 {
+        if !args.is_empty() {
             return Ok(Err(format!(
                 "Invalid argument count: Expected 0, got {}",
                 args.len(),

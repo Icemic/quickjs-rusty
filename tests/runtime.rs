@@ -103,7 +103,7 @@ fn test_eval_pass() {
                             .unwrap()
                             .try_into_object()
                             .unwrap();
-                        if c.property("c1").unwrap().unwrap().to_bool().unwrap() == false {
+                        if !c.property("c1").unwrap().unwrap().to_bool().unwrap() {
                             return true;
                         }
                     }
@@ -125,7 +125,7 @@ fn test_eval_pass() {
         assert!(res(&v));
     }
 
-    assert_eq!(c.eval_as::<bool>("true").unwrap(), true,);
+    assert!(c.eval_as::<bool>("true").unwrap(),);
     assert_eq!(c.eval_as::<i32>("1 + 2").unwrap(), 3,);
 
     let value: String = c.eval_as("var x = 44; x.toString()").unwrap();
@@ -354,16 +354,13 @@ fn test_callback() {
     let c = Context::builder().build().unwrap();
 
     c.add_callback("no_arguments", || true).unwrap();
-    assert_eq!(c.eval_as::<bool>("no_arguments()").unwrap(), true);
+    assert!(c.eval_as::<bool>("no_arguments()").unwrap());
 
     c.add_callback("no_arguments", || false).unwrap();
-    assert_eq!(c.eval_as::<bool>("no_arguments()").unwrap(), false);
+    assert!(!c.eval_as::<bool>("no_arguments()").unwrap());
 
     c.add_callback("cb1", |flag: bool| !flag).unwrap();
-    assert_eq!(
-        c.eval("cb1(true)", false).unwrap().to_bool().unwrap(),
-        false,
-    );
+    assert!(!c.eval("cb1(true)", false).unwrap().to_bool().unwrap(),);
 
     c.add_callback("concat2", |a: String, b: String| format!("{}{}", a, b))
         .unwrap();
@@ -456,22 +453,20 @@ fn test_callback_varargs() {
     c.add_callback("cb", |args: Arguments| {
         let args = args.into_vec();
         assert_eq!(args.len(), 3);
-        assert_eq!(args.get(0).unwrap().to_string(), Ok("hello".to_string()));
+        assert_eq!(args.first().unwrap().to_string(), Ok("hello".to_string()));
         assert_eq!(args.get(1).unwrap().to_bool(), Ok(true));
         assert_eq!(args.get(2).unwrap().to_int(), Ok(100));
     })
     .unwrap();
-    assert_eq!(
-        c.eval_as::<bool>("cb('hello', true, 100) === undefined")
-            .unwrap(),
-        true
-    );
+    assert!(c
+        .eval_as::<bool>("cb('hello', true, 100) === undefined")
+        .unwrap());
 
     // With return.
     c.add_callback("cb2", |args: Arguments| -> u32 {
         let args = args.into_vec();
         assert_eq!(args.len(), 3);
-        assert_eq!(args.get(0).unwrap().to_int(), Ok(1));
+        assert_eq!(args.first().unwrap().to_int(), Ok(1));
         assert_eq!(args.get(1).unwrap().to_int(), Ok(10));
         assert_eq!(args.get(2).unwrap().to_int(), Ok(100));
 
@@ -604,7 +599,7 @@ fn chrono_serialize() {
     let now_millis = now.timestamp_millis();
 
     let timestamp = c
-        .call_function("dateToTimestamp", vec![owned!(ctx, now.clone())])
+        .call_function("dateToTimestamp", vec![owned!(ctx, now)])
         .unwrap();
 
     assert_eq!(timestamp.to_float().unwrap(), now_millis as f64);
@@ -632,9 +627,7 @@ fn chrono_roundtrip() {
     c.eval(" function identity(x) { return x; } ", false)
         .unwrap();
     let d = chrono::Utc::now();
-    let td2 = c
-        .call_function("identity", vec![owned!(ctx, d.clone())])
-        .unwrap();
+    let td2 = c.call_function("identity", vec![owned!(ctx, d)]).unwrap();
     let d2 = if let Ok(x) = td2.to_date() {
         x
     } else {
@@ -647,7 +640,7 @@ fn chrono_roundtrip() {
 #[cfg(feature = "bigint")]
 #[test]
 fn test_bigint_deserialize_i64() {
-    for i in vec![0, std::i64::MAX, std::i64::MIN] {
+    for i in [0, std::i64::MAX, std::i64::MIN] {
         let c = Context::builder().build().unwrap();
         let value = c.eval(&format!("{}n", i), false).unwrap();
         assert_eq!(value.to_bigint(), Ok(i.into()));
@@ -657,7 +650,7 @@ fn test_bigint_deserialize_i64() {
 #[cfg(feature = "bigint")]
 #[test]
 fn test_bigint_deserialize_bigint() {
-    for i in vec![
+    for i in [
         std::i64::MAX as i128 + 1,
         std::i64::MIN as i128 - 1,
         std::i128::MAX,
@@ -673,7 +666,7 @@ fn test_bigint_deserialize_bigint() {
 #[cfg(feature = "bigint")]
 #[test]
 fn test_bigint_serialize_i64() {
-    for i in vec![0, std::i64::MAX, std::i64::MIN] {
+    for i in [0, std::i64::MAX, std::i64::MIN] {
         let c = Context::builder().build().unwrap();
         let ctx = c.context_raw();
         c.eval(
@@ -694,7 +687,7 @@ fn test_bigint_serialize_i64() {
 #[cfg(feature = "bigint")]
 #[test]
 fn test_bigint_serialize_bigint() {
-    for i in vec![
+    for i in [
         std::i64::MAX as i128 + 1,
         std::i64::MIN as i128 - 1,
         std::i128::MAX,
@@ -745,23 +738,24 @@ fn test_console() {
         let m = messages.lock().unwrap();
 
         assert_eq!(m.len(), 2);
-        assert_eq!(m.get(0).unwrap().0, Level::Log);
+        assert_eq!(m.first().unwrap().0, Level::Log);
         assert_eq!(m.get(1).unwrap().0, Level::Error);
-        assert_eq!(m.get(0).unwrap().1.len(), 1);
+        assert_eq!(m.first().unwrap().1.len(), 1);
         assert_eq!(m.get(1).unwrap().1.len(), 1);
         assert_eq!(
-            m.get(0).unwrap().1.get(0).unwrap().to_string().unwrap(),
+            m.first().unwrap().1.first().unwrap().to_string().unwrap(),
             "hi"
         );
-        assert_eq!(
-            m.get(1).unwrap().1.get(0).unwrap().to_bool().unwrap(),
+        assert!(
+            m.get(1).unwrap().1.first().unwrap().to_bool().unwrap(),
+            "{}",
             false
         );
     }
 
     // release OwnedJsValue before the Context is dropped,
     // or it will cause a double free error.
-    for (level, args) in messages.lock().unwrap().drain(..).into_iter() {
+    for (level, args) in messages.lock().unwrap().drain(..) {
         println!("{:?} {:?}", level, args);
         drop(args);
     }

@@ -9,8 +9,8 @@ fn test_promise_noresolve() {
         .eval("(() => Promise.resolve(123))()", false)
         .unwrap();
 
-    assert_eq!(value.is_object(), true);
-    assert_eq!(value.is_promise(), true);
+    assert!(value.is_object());
+    assert!(value.is_promise());
 }
 
 #[test]
@@ -21,8 +21,8 @@ fn test_promise_resolve() {
         .eval("(() => Promise.resolve(123))()", true)
         .unwrap();
 
-    assert_eq!(value.is_int(), true);
-    assert_eq!(value.is_promise(), false);
+    assert!(value.is_int());
+    assert!(!value.is_promise());
 }
 
 #[test]

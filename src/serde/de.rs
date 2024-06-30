@@ -85,7 +85,7 @@ impl<'de> Deserializer<'de> {
     }
 
     fn guard_circular_reference(&self, current: &OwnedJsValue) -> Result<()> {
-        if let Some(_) = self.paths.iter().find(|(p, _, _)| p == current) {
+        if self.paths.iter().any(|(p, _, _)| p == current) {
             Err(Error::CircularReference)
         } else {
             Ok(())

@@ -264,7 +264,7 @@ impl OwnedJsValue {
             };
 
             let tag = unsafe { q::JS_ValueGetTag(timestamp_raw) };
-            let res = if tag == q::JS_TAG_FLOAT64 {
+            if tag == q::JS_TAG_FLOAT64 {
                 let f = unsafe { q::JS_VALUE_GET_FLOAT64(timestamp_raw) } as i64;
                 let datetime = chrono::Utc.timestamp_millis_opt(f).unwrap();
                 Ok(datetime)
@@ -276,8 +276,7 @@ impl OwnedJsValue {
                 Err(ValueError::Internal(
                     "Could not convert 'Date' instance to timestamp".into(),
                 ))
-            };
-            return res;
+            }
         } else {
             unsafe { q::JS_FreeValue(self.context, date_constructor) };
             Err(ValueError::UnexpectedType)
@@ -779,7 +778,7 @@ where
 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let arr = create_empty_array(context).unwrap();
-        let _ = self.into_iter().enumerate().for_each(|(idx, val)| {
+        self.into_iter().enumerate().for_each(|(idx, val)| {
             let val: OwnedJsValue = (context, val).into();
             add_array_element(context, arr, idx as u32, unsafe { val.extract() }).unwrap();
         });
@@ -795,7 +794,7 @@ where
 {
     fn to_owned(self, context: *mut q::JSContext) -> OwnedJsValue {
         let obj = create_empty_object(context).unwrap();
-        let _ = self.into_iter().for_each(|(key, val)| {
+        self.into_iter().for_each(|(key, val)| {
             let val: OwnedJsValue = (context, val).into();
             add_object_property(context, obj, key.into().as_str(), unsafe { val.extract() })
                 .unwrap();

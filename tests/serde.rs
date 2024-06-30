@@ -217,9 +217,7 @@ fn parse_from_js<T: serde::de::DeserializeOwned>(value: Value) -> T {
     let js_value = to_js(context.context_raw(), &value).unwrap();
 
     match from_js::<T>(context.context_raw(), &js_value) {
-        Ok(v) => {
-            return v;
-        }
+        Ok(v) => v,
         Err(err) => {
             panic!("{}", err);
         }
@@ -231,9 +229,7 @@ fn parse_from_js_borrowed<'a, T: serde::de::Deserialize<'a>>(
     value: &'a OwnedJsValue,
 ) -> T {
     match from_js::<T>(context, value) {
-        Ok(v) => {
-            return v;
-        }
+        Ok(v) => v,
         Err(err) => {
             panic!("{}", err);
         }
@@ -246,7 +242,7 @@ fn serde_de_bool() {
     // for simplicity, we use serde_json::json! macro here,
     // please note that it is still a rust format value.
     let value = json!(true);
-    assert_eq!(parse_from_js::<bool>(value), true);
+    assert!(parse_from_js::<bool>(value));
 }
 
 #[test]

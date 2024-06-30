@@ -92,7 +92,7 @@ pub fn to_bytecode(context: *mut q::JSContext, compiled_func: &JsCompiledFunctio
             *compiled_func.as_value().as_inner(),
             q::JS_WRITE_OBJ_BYTECODE as i32,
         );
-        let slice = std::slice::from_raw_parts(raw, len as usize);
+        let slice = std::slice::from_raw_parts(raw, len);
         let data = slice.to_vec();
         q::js_free(context, raw as *mut c_void);
         data
@@ -211,7 +211,7 @@ pub mod tests {
             "{the changes of me compil1ng a're slim to 0-0}",
             "test_func_fail.es",
         );
-        func_res.err().expect("func compiled unexpectedly");
+        func_res.expect_err("func compiled unexpectedly");
     }
 
     #[test]
@@ -252,9 +252,7 @@ pub mod tests {
 
         assert_eq!(1, func2.as_value().get_ref_count());
 
-        let _run_res2 = run_compiled_function(&func2)
-            .err()
-            .expect("run 2 succeeded unexpectedly");
+        let _run_res2 = run_compiled_function(&func2).expect_err("run 2 succeeded unexpectedly");
 
         assert_eq!(1, func2.as_value().get_ref_count());
     }

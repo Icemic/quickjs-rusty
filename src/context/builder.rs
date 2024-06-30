@@ -4,6 +4,7 @@ use crate::{console, ContextError};
 /// A builder for [Context](Context).
 ///
 /// Create with [Context::builder](Context::builder).
+#[derive(Default)]
 pub struct ContextBuilder {
     memory_limit: Option<usize>,
     console_backend: Option<Box<dyn console::ConsoleBackend>>,

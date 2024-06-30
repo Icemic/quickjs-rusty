@@ -20,7 +20,7 @@ pub fn main() {
     context
         .add_callback("test", |func: JsFunction| {
             func.call(vec![]).unwrap();
-            return func;
+            func
         })
         .unwrap();
 

@@ -91,8 +91,8 @@ mod tests {
 
     #[test]
     fn test_bigint_into_bigint() {
-        for i in vec![
-            0 as i128,
+        for i in [
+            0_i128,
             std::i64::MAX as i128,
             std::i64::MIN as i128,
             std::i128::MAX,

@@ -38,12 +38,8 @@ fn parse_from_js<'a, T: serde::de::Deserialize<'a> + Debug>(
     value: &'a OwnedJsValue,
 ) -> T {
     match from_js::<T>(context, value) {
-        Ok(v) => {
-            return v;
-        }
-        Err(err) => {
-            panic!("{}", err);
-        }
+        Ok(v) => v,
+        Err(err) => panic!("{}", err),
     }
 }
 
