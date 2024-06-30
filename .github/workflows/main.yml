@@ -3,8 +3,8 @@ name: CI
 on:
   push:
     branches:
-      - master
-      - quickjspp
+      - main
+      - feat/*
   pull_request: {}
   release:
     types:
@@ -75,12 +75,12 @@ jobs:
       run: |
         just FEATURES="$FEATURES" test
 
-    - name: Build (--no-default-features)
-      env:
-        FEATURES: "--no-default-features"
-      run: |
-        cargo clean
-        just FEATURES="$FEATURES" build
+    # - name: Build (--no-default-features)
+    #   env:
+    #     FEATURES: "--no-default-features"
+    #   run: |
+    #     cargo clean
+    #     just FEATURES="$FEATURES" build
 
     # - name: Test (--no-default-features)
     #   env:

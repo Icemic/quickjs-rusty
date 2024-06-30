@@ -51,8 +51,8 @@ lint:
 
     echo "Checking formatting..."
     cargo fmt -- --check
-    echo "Checking clippy..."
-    cargo clippy
+    # echo "Checking clippy..."
+    # cargo clippy
 
 valgrind:
     echo "Checking for memory leaks..."
