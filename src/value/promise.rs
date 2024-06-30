@@ -210,6 +210,7 @@ impl Deref for OwnedJsPromise {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum PromiseState {
     Pending,
     Fulfilled,
