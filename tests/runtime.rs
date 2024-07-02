@@ -211,7 +211,6 @@ fn eval_async() {
 #[test]
 fn test_set_global() {
     let context = Context::builder().build().unwrap();
-    let ctx = context.context_raw();
     context.set_global("someGlobalVariable", 42).unwrap();
     let value = context.eval_as::<i32>("someGlobalVariable").unwrap();
     assert_eq!(value, 42,);
