@@ -22,7 +22,7 @@ JSValue JS_NewSpecialValue_real(uint32_t tag, uint32_t val)
     return JS_MKVAL(tag, val);
 }
 
-JSValue JS_NewPointer_real(uint32_t tag, intptr_t ptr)
+JSValue JS_NewPointer_real(uint32_t tag, void* ptr)
 {
     return JS_MKPTR(tag, ptr);
 }
@@ -82,7 +82,7 @@ int JS_VALUE_GET_BOOL_real(JSValue v)
     return JS_VALUE_GET_BOOL(v);
 }
 
-uintptr_t JS_VALUE_GET_PTR_real(JSValue v)
+void* JS_VALUE_GET_PTR_real(JSValue v)
 {
     return JS_VALUE_GET_PTR(v);
 }
