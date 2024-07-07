@@ -3,11 +3,10 @@
 use std::{
     convert::TryFrom,
     ffi::{c_char, c_int, c_void},
-    ptr::null_mut,
-    sync::{Arc, Mutex},
+    sync::Mutex,
 };
 
-use libquickjs_ng_sys as q;
+use libquickjs_ng_sys::{self as q, JSContext};
 
 use crate::callback::*;
 use crate::console::ConsoleBackend;
@@ -28,7 +27,6 @@ use super::ContextBuilder;
 pub struct Context {
     runtime: *mut q::JSRuntime,
     pub(crate) context: *mut q::JSContext,
-    pub(crate) loop_context: Arc<Mutex<*mut q::JSContext>>,
     /// Stores callback closures and quickjs data pointers.
     /// This array is write-only and only exists to ensure the lifetime of
     /// the closure.
@@ -91,7 +89,6 @@ impl Context {
         let wrapper = Self {
             runtime,
             context,
-            loop_context: Arc::new(Mutex::new(null_mut())),
             callbacks: Mutex::new(Vec::new()),
             module_loader: Mutex::new(None),
         };
@@ -209,14 +206,16 @@ impl Context {
 
     /// Execute the pending job in the event loop.
     pub fn execute_pending_job(&self) -> Result<(), ExecutionError> {
-        let ctx = &mut *self.loop_context.lock().unwrap();
+        let mut pctx = Box::new(std::ptr::null_mut::<JSContext>());
         unsafe {
             loop {
-                let err = q::JS_ExecutePendingJob(self.runtime, ctx as *mut _);
+                // TODO: is it actually essential to lock the context here?
+                // let _handle = self.context_lock.lock();
+                let err = q::JS_ExecutePendingJob(self.runtime, pctx.as_mut());
 
                 if err <= 0 {
                     if err < 0 {
-                        ensure_no_excpetion(*ctx)?
+                        ensure_no_excpetion(*pctx)?
                     }
                     break;
                 }
