@@ -745,11 +745,7 @@ fn test_console() {
             m.first().unwrap().1.first().unwrap().to_string().unwrap(),
             "hi"
         );
-        assert!(
-            m.get(1).unwrap().1.first().unwrap().to_bool().unwrap(),
-            "{}",
-            false
-        );
+        assert!(!m.get(1).unwrap().1.first().unwrap().to_bool().unwrap());
     }
 
     // release OwnedJsValue before the Context is dropped,
