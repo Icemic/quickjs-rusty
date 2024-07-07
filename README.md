@@ -12,7 +12,7 @@ This crate allows you to easily access and use all the features of QuickJS from 
 
 ```toml
 [dependencies]
-quickjs-rusty = "0.6.2"
+quickjs-rusty = "0.6.3"
 ```
 
 ```rust
