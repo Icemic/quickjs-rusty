@@ -2,7 +2,7 @@
 
 use std::{
     convert::TryFrom,
-    ffi::{c_int, c_void},
+    ffi::{c_char, c_int, c_void},
     ptr::null_mut,
     sync::{Arc, Mutex},
 };
@@ -470,7 +470,7 @@ impl Context {
         let ret = unsafe {
             q::JS_LoadModule(
                 self.context,
-                ".\0".as_ptr() as *const i8,
+                ".\0".as_ptr() as *const c_char,
                 filename_c.as_ptr(),
             )
         };
