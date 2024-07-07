@@ -34,9 +34,6 @@ pub struct OwnedJsValue {
     pub(crate) value: q::JSValue,
 }
 
-unsafe impl Send for OwnedJsValue {}
-unsafe impl Sync for OwnedJsValue {}
-
 impl PartialEq for OwnedJsValue {
     fn eq(&self, other: &Self) -> bool {
         unsafe { q::JS_VALUE_GET_PTR(self.value) == q::JS_VALUE_GET_PTR(other.value) }
