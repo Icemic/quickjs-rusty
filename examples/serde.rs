@@ -23,13 +23,13 @@ pub fn main() {
 
     // use our to_js function to convert rust value to js value
     // now it is a js value in quickjs context
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     // get json string from quickjs's JSON.stringify method
     println!("json output: {}", js_value.to_json_string(2).unwrap());
 
     // parse json back to rust type
-    let ret = parse_from_js::<Person>(context.context_raw(), &js_value);
+    let ret = parse_from_js::<Person>(unsafe { context.context_raw() }, &js_value);
     println!("rust type output: {:#?}", ret);
 }
 

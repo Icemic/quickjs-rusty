@@ -9,7 +9,7 @@ pub fn main() {
         })
         .build()
         .unwrap();
-    let ctx = context.context_raw();
+    let ctx = unsafe { context.context_raw() };
 
     let f = context.create_custom_callback(custom_func).unwrap();
 

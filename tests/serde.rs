@@ -10,7 +10,7 @@ fn serde_ser_bool() {
     let context = Context::builder().build().unwrap();
     // bool
     let value = true;
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "true");
 }
@@ -21,7 +21,7 @@ fn serde_ser_int() {
     // int
     // TODO: should take care of i32, i64, u32, u64, etc.
     let value = 123;
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "123");
 }
@@ -31,7 +31,7 @@ fn serde_ser_float() {
     let context = Context::builder().build().unwrap();
     // float
     let value = 3.1415;
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "3.1415");
 }
@@ -41,7 +41,7 @@ fn serde_ser_char() {
     let context = Context::builder().build().unwrap();
     // char
     let value = 'a';
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "\"a\"");
 }
@@ -51,7 +51,7 @@ fn serde_ser_string() {
     let context = Context::builder().build().unwrap();
     // string
     let value = "哈哈";
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "\"哈哈\"");
 }
@@ -61,7 +61,7 @@ fn serde_ser_null_none() {
     let context = Context::builder().build().unwrap();
     // null (None)
     let value: Option<bool> = None;
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "null");
 }
@@ -71,7 +71,7 @@ fn serde_ser_null_unit_struct() {
     let context = Context::builder().build().unwrap();
     // null (unit struct)
     let value = SimpleUnitStruct;
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "null");
 }
@@ -81,7 +81,7 @@ fn serde_ser_some() {
     let context = Context::builder().build().unwrap();
     // null (None)
     let value: Option<bool> = Some(true);
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "true");
 }
@@ -91,7 +91,7 @@ fn serde_ser_unit_variant() {
     let context = Context::builder().build().unwrap();
     // unit variant
     let value = SimpleEnum::A;
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "\"A\"");
 }
@@ -101,7 +101,7 @@ fn serde_ser_newtype_variant() {
     let context = Context::builder().build().unwrap();
     // newtype variant
     let value = SimpleEnum::Foo("bar".to_string());
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "{\"Foo\":\"bar\"}");
 }
@@ -111,7 +111,7 @@ fn serde_ser_newtype_variant_tuple() {
     let context = Context::builder().build().unwrap();
     // newtype variant tuple
     let value = SimpleEnum::D(true, 2233);
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "{\"D\":[true,2233]}");
 }
@@ -121,7 +121,7 @@ fn serde_ser_newtype_variant_tuple_empty() {
     let context = Context::builder().build().unwrap();
     // newtype variant tuple empty
     let value = SimpleEnum::B();
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "{\"B\":[]}");
 }
@@ -134,7 +134,7 @@ fn serde_ser_newtype_variant_struct() {
         a: 233,
         foo: "Bar".to_string(),
     };
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(
         js_value.to_json_string(0).unwrap(),
@@ -147,7 +147,7 @@ fn serde_ser_newtype_struct() {
     let context = Context::builder().build().unwrap();
     // newtype struct
     let value = SimpleNewTypeStruct(100);
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "100");
 }
@@ -157,7 +157,7 @@ fn serde_ser_tuple_struct() {
     let context = Context::builder().build().unwrap();
     // tuple struct
     let value = SimpleTupleStruct(100, 101);
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "[100,101]");
 }
@@ -167,7 +167,7 @@ fn serde_ser_struct() {
     let context = Context::builder().build().unwrap();
     // simple struct
     let value = SimpleStruct { a: 100, b: 101 };
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "{\"a\":100,\"b\":101}");
 }
@@ -177,7 +177,7 @@ fn serde_ser_vector() {
     let context = Context::builder().build().unwrap();
     // vector
     let value = vec![1, 2, 3, 4, 5];
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "[1,2,3,4,5]");
 }
@@ -187,7 +187,7 @@ fn serde_ser_tuple() {
     let context = Context::builder().build().unwrap();
     // tuple
     let value = (123, 3.14, "hh");
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     assert_eq!(js_value.to_json_string(0).unwrap(), "[123,3.14,\"hh\"]");
 }
@@ -200,7 +200,7 @@ fn serde_ser_map() {
     value.insert("a".to_string(), 1);
     value.insert("b".to_string(), 2);
     value.insert("c".to_string(), 3);
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
     let json_str = js_value.to_json_string(0).unwrap();
 
@@ -214,9 +214,9 @@ fn parse_from_js<T: serde::de::DeserializeOwned>(value: Value) -> T {
     let context = Context::builder().build().unwrap();
     // use our to_js function to convert rust value to js value
     // now it is a js value in quickjs context
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
 
-    match from_js::<T>(context.context_raw(), &js_value) {
+    match from_js::<T>(unsafe { context.context_raw() }, &js_value) {
         Ok(v) => v,
         Err(err) => {
             panic!("{}", err);
@@ -298,9 +298,9 @@ fn serde_de_string() {
 fn serde_de_borrowed_str() {
     let context = Context::builder().build().unwrap();
     let value = json!("😄");
-    let js_value = to_js(context.context_raw(), &value).unwrap();
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
     assert_eq!(
-        parse_from_js_borrowed::<&str>(context.context_raw(), &js_value),
+        parse_from_js_borrowed::<&str>(unsafe { context.context_raw() }, &js_value),
         "😄"
     );
 }

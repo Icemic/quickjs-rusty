@@ -6,7 +6,7 @@ use quickjs_rusty::*;
 // #[test]
 // fn test_global_properties() {
 //     let c = Context::builder().build().unwrap();
-// let ctx = c.context_raw();
+// let ctx = unsafe{c.context_raw()};
 
 //     assert_eq!(
 //         c.global_property("lala"),
@@ -147,7 +147,7 @@ fn test_eval_pass() {
 #[test]
 fn test_eval_syntax_error() {
     let c = Context::builder().build().unwrap();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
     assert_eq!(
         c.eval(
             r#"
@@ -165,7 +165,7 @@ fn test_eval_syntax_error() {
 #[test]
 fn test_eval_exception() {
     let c = Context::builder().build().unwrap();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
     assert_eq!(
         c.eval(
             r#"
@@ -219,7 +219,7 @@ fn test_set_global() {
 #[test]
 fn test_call() {
     let c = Context::builder().build().unwrap();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
 
     let arg: OwnedJsValue = (ctx, "22").into();
 
@@ -298,7 +298,7 @@ fn test_call() {
 #[test]
 fn test_call_large_string() {
     let c = Context::builder().build().unwrap();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
     c.eval(" function strLen(s) { return s.length; } ", false)
         .unwrap();
 
@@ -314,7 +314,7 @@ fn test_call_large_string() {
 #[test]
 fn call_async() {
     let c = Context::builder().build().unwrap();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
 
     c.eval(
         r#"
@@ -406,7 +406,7 @@ fn test_callback_argn_variants() {
                     // Test plain return type.
                     let name = format!("cb{}", $len);
                     let c = Context::builder().build().unwrap();
-                    let ctx = c.context_raw();
+                    let ctx = unsafe{c.context_raw()};
                     c.add_callback(&name, | $( $argn : i32 ),*| -> i32 {
                         $( $argn + )* 0
                     }).unwrap();
@@ -487,7 +487,7 @@ fn test_callback_varargs() {
 #[test]
 fn test_callback_invalid_argcount() {
     let c = Context::builder().build().unwrap();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
 
     c.add_callback("cb", |a: i32, b: i32| a + b).unwrap();
 
@@ -512,7 +512,7 @@ fn memory_limit_exceeded() {
 #[test]
 fn test_create_callback() {
     let context = Context::builder().build().unwrap();
-    let ctx = context.context_raw();
+    let ctx = unsafe { context.context_raw() };
 
     // Register an object.
     let mut obj = HashMap::<String, OwnedJsValue>::new();
@@ -570,7 +570,7 @@ fn build_context() -> Context {
 #[test]
 fn moved_context() {
     let c = build_context();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
     let v = c.call_function("f", vec![owned!(ctx, "test")]).unwrap();
     assert_eq!(v.to_string().unwrap(), "testtest");
 
@@ -582,7 +582,7 @@ fn moved_context() {
 #[test]
 fn chrono_serialize() {
     let c = build_context();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
 
     c.eval(
         "
@@ -621,7 +621,7 @@ fn chrono_deserialize() {
 #[test]
 fn chrono_roundtrip() {
     let c = build_context();
-    let ctx = c.context_raw();
+    let ctx = unsafe { c.context_raw() };
 
     c.eval(" function identity(x) { return x; } ", false)
         .unwrap();
@@ -667,7 +667,7 @@ fn test_bigint_deserialize_bigint() {
 fn test_bigint_serialize_i64() {
     for i in [0, std::i64::MAX, std::i64::MIN] {
         let c = Context::builder().build().unwrap();
-        let ctx = c.context_raw();
+        let ctx = unsafe { c.context_raw() };
         c.eval(
             &format!(" function isEqual(x) {{ return x === {}n }} ", i),
             false,
@@ -693,7 +693,7 @@ fn test_bigint_serialize_bigint() {
         std::i128::MIN,
     ] {
         let c = Context::builder().build().unwrap();
-        let ctx = c.context_raw();
+        let ctx = unsafe { c.context_raw() };
         c.eval(
             &format!(" function isEqual(x) {{ return x === {}n }} ", i),
             false,
@@ -759,7 +759,7 @@ fn test_console() {
 #[test]
 fn test_global_setter() {
     let context = Context::builder().build().unwrap();
-    let ctx = context.context_raw();
+    let ctx = unsafe { context.context_raw() };
 
     context.set_global("a", owned!(ctx, "a")).unwrap();
     context.eval("a + 1", false).unwrap();

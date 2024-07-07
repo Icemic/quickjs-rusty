@@ -172,8 +172,8 @@ impl Context {
         Ok(s)
     }
 
-    /// Get raw pointer to the underlying QuickJS context.
-    pub fn context_raw(&self) -> *mut q::JSContext {
+    // Get raw pointer to the underlying QuickJS context.
+    pub unsafe fn context_raw(&self) -> *mut q::JSContext {
         self.context
     }
 
@@ -601,7 +601,7 @@ impl Context {
     /// let func = context
     ///         .create_callback(|a: i32, b: i32| a + b)
     ///         .unwrap();
-    /// let func = OwnedJsValue::from((context.context_raw(), func));
+    /// let func = OwnedJsValue::from((unsafe{context.context_raw()}, func));
     /// // insert add function into the object.
     /// obj.insert("add".to_string(), func);
     /// // insert the myObj to global.
