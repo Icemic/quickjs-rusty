@@ -502,7 +502,8 @@ fn test_callback_invalid_argcount() {
 
 #[test]
 fn memory_limit_exceeded() {
-    let c = Context::builder().memory_limit(100_000).build().unwrap();
+    // limit should not be set too low, otherwise there's no memory to even create an exception.
+    let c = Context::builder().memory_limit(150_000).build().unwrap();
     assert_eq!(
         c.eval("  'abc'.repeat(200_000) ", false),
         Err(ExecutionError::OutOfMemory),
