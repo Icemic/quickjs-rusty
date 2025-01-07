@@ -27,26 +27,6 @@ JSValue JS_NewPointer_real(uint32_t tag, void* ptr)
     return JS_MKPTR(tag, ptr);
 }
 
-void JS_FreeValue_real(JSContext *ctx, JSValue v)
-{
-    JS_FreeValue(ctx, v);
-}
-
-void JS_FreeValueRT_real(JSRuntime *rt, JSValue v)
-{
-    return JS_FreeValueRT(rt, v);
-}
-
-void JS_DupValue_real(JSContext *ctx, JSValue v)
-{
-    JS_DupValue(ctx, v);
-}
-
-JSValue JS_DupValueRT_real(JSRuntime *rt, JSValueConst v)
-{
-    return JS_DupValueRT(rt, v);
-}
-
 JSValue JS_NewFloat64_real(JSContext *ctx, double d)
 {
     return JS_NewFloat64(ctx, d);
@@ -181,8 +161,8 @@ JSValue JS_NewCFunctionMagic_real(JSContext *ctx,
 
 JS_BOOL JS_IsPromise(JSContext *ctx, JSValue val)
 {
-    // JS_CLASS_PROMISE == 45
-    void *p = JS_GetOpaque(val, 45);
+    // JS_CLASS_PROMISE == 49
+    void *p = JS_GetOpaque(val, 49);
 
     return p != NULL;
 }

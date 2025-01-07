@@ -300,14 +300,16 @@ use crate::ExecutionError;
 
 /// Get the last exception from the runtime, and if present, convert it to a ExceptionError.
 pub(crate) fn get_exception(context: *mut q::JSContext) -> Option<ExecutionError> {
+    if unsafe { q::JS_HasException(context) } == 0 {
+        return None;
+    }
+
     let value = unsafe {
         let raw = q::JS_GetException(context);
         OwnedJsValue::new(context, raw)
     };
 
-    if value.is_null() {
-        None
-    } else if value.is_exception() {
+    if value.is_exception() {
         Some(ExecutionError::Internal(
             "Could get exception from runtime".into(),
         ))

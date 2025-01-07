@@ -2,10 +2,6 @@ extern "C" {
     fn JS_ValueGetTag_real(v: JSValue) -> i32;
     fn JS_NewSpecialValue_real(tag: i32, val: i32) -> JSValue;
     fn JS_NewPointer_real(tag: i32, ptr: *mut ::std::os::raw::c_void) -> JSValue;
-    fn JS_DupValue_real(ctx: *mut JSContext, v: JSValue);
-    fn JS_DupValueRT_real(rt: *mut JSRuntime, v: JSValue);
-    fn JS_FreeValue_real(ctx: *mut JSContext, v: JSValue);
-    fn JS_FreeValueRT_real(rt: *mut JSRuntime, v: JSValue);
     fn JS_NewBool_real(ctx: *mut JSContext, v: bool) -> JSValue;
     fn JS_NewInt32_real(ctx: *mut JSContext, v: i32) -> JSValue;
     fn JS_NewFloat64_real(ctx: *mut JSContext, v: f64) -> JSValue;
@@ -61,26 +57,6 @@ pub unsafe fn JS_NewSpecialValue(tag: i32, val: i32) -> JSValue {
 
 pub unsafe fn JS_NewPointer(tag: i32, ptr: *mut ::std::os::raw::c_void) -> JSValue {
     JS_NewPointer_real(tag, ptr)
-}
-
-/// Increment the refcount of this value
-pub unsafe fn JS_DupValue(ctx: *mut JSContext, v: JSValue) {
-    JS_DupValue_real(ctx, v);
-}
-
-/// Increment the refcount of this value
-pub unsafe fn JS_DupValueRT(rt: *mut JSRuntime, v: JSValue) {
-    JS_DupValueRT_real(rt, v);
-}
-
-/// Decrement the refcount of this value
-pub unsafe fn JS_FreeValue(ctx: *mut JSContext, v: JSValue) {
-    JS_FreeValue_real(ctx, v);
-}
-
-/// Decrement the refcount of this value
-pub unsafe fn JS_FreeValueRT(rt: *mut JSRuntime, v: JSValue) {
-    JS_FreeValueRT_real(rt, v);
 }
 
 /// create a new boolean value
