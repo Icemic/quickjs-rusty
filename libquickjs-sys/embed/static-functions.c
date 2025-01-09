@@ -7,7 +7,11 @@
 
 int JS_ValueGetTag_real(JSValue v)
 {
+#ifdef JS_NAN_BOXING
+    return JS_VALUE_GET_NORM_TAG(v);
+#else
     return JS_VALUE_GET_TAG(v);
+#endif
 }
 
 // used to generate following values:
