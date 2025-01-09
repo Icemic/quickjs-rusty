@@ -75,6 +75,7 @@ fn main() {
     eprintln!("Compiling quickjs...");
 
     cc::Build::new()
+        .compiler("clang")
         .files(
             [
                 "cutils.c",
