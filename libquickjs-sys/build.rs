@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use std::env;
 
@@ -49,7 +49,7 @@ fn apply_patches(code_dir: &PathBuf) {
         let patch = patch.expect("Could not open patch");
         eprintln!("Applying {:?}...", patch.file_name());
         let status = std::process::Command::new("patch")
-            .current_dir(&code_dir)
+            .current_dir(code_dir)
             .arg("-i")
             .arg(patch.path())
             .arg("--binary")
@@ -64,7 +64,7 @@ fn apply_patches(code_dir: &PathBuf) {
     }
 }
 
-fn compile_lib(code_dir: &PathBuf) {
+fn compile_lib(code_dir: &Path) {
     cc::Build::new()
         .compiler("clang")
         .files(
