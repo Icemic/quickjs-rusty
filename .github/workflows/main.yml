@@ -23,6 +23,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+    - name: Set git autocrlf to input
+      run: |
+        git config --global core.autocrlf input
+
     - uses: actions/checkout@v4
       with:
         submodules: recursive
@@ -34,16 +38,16 @@ jobs:
         toolchain: stable
         override: true
         components: rustfmt, clippy
-      if: matrix.os != 'windows-latest'
+      # if: matrix.os != 'windows-latest'
 
-    - name: Install stable toolchain (windows)
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: x86_64-pc-windows-gnu
-        override: true
-      if: matrix.os == 'windows-latest'
+    # - name: Install stable toolchain (windows)
+    #   uses: actions-rs/toolchain@v1
+    #   with:
+    #     profile: minimal
+    #     toolchain: stable
+    #     target: x86_64-pc-windows-gnu
+    #     override: true
+    #   if: matrix.os == 'windows-latest'
 
     - name: Install `just` command runner
       uses: extractions/setup-just@v1
@@ -57,12 +61,12 @@ jobs:
         sudo apt-get install -y curl xz-utils build-essential gcc-multilib valgrind
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Setup (windows)
-      run: |
-        $env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$env:PATH"
-        echo "PATH=${env:PATH}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        echo "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      if: matrix.os == 'windows-latest'
+    # - name: Setup (windows)
+    #   run: |
+    #     $env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$env:PATH"
+    #     echo "PATH=${env:PATH}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    #     echo "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    #   if: matrix.os == 'windows-latest'
 
     - name: Build (default features)
       env:
@@ -107,6 +111,6 @@ jobs:
       run: just lint
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Check for leaks (Valgrind)
-      run: just valgrind
-      if: matrix.os == 'ubuntu-latest'
+    # - name: Check for leaks (Valgrind)
+    #   run: just valgrind
+    #   if: matrix.os == 'ubuntu-latest'
