@@ -38,8 +38,7 @@ test:
     rustc --version
     cargo --version
 
-    # Limit test threads to 1 to show test name before execution.
-    RUST_TEST_THREADS=1 cargo test --verbose {{FEATURES}}
+    cargo test --verbose {{FEATURES}}
 
 lint:
     rustc --version
