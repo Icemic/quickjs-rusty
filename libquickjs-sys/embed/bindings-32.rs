@@ -105,6 +105,36 @@ pub const JS_TAG_CATCH_OFFSET: _bindgen_ty_1 = 5;
 pub const JS_TAG_EXCEPTION: _bindgen_ty_1 = 6;
 pub const JS_TAG_FLOAT64: _bindgen_ty_1 = 7;
 pub type _bindgen_ty_1 = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct JSRefCountHeader {
+    pub ref_count: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_JSRefCountHeader() {
+    const UNINIT: ::std::mem::MaybeUninit<JSRefCountHeader> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<JSRefCountHeader>(),
+        4usize,
+        concat!("Size of: ", stringify!(JSRefCountHeader))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<JSRefCountHeader>(),
+        4usize,
+        concat!("Alignment of ", stringify!(JSRefCountHeader))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).ref_count) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(JSRefCountHeader),
+            "::",
+            stringify!(ref_count)
+        )
+    );
+}
 pub type JSValue = u64;
 pub type JSCFunction = ::std::option::Option<
     unsafe extern "C" fn(
