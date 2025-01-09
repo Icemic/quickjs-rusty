@@ -176,7 +176,7 @@ impl Iterator for OwnedJsPropertyIterator {
 
         let value = if is_key {
             let pair_key = unsafe { q::JS_AtomToString(self.context, (*prop).atom) };
-            let tag = unsafe { q::JS_ValueGetTag(pair_key) };
+            let tag = unsafe { q::JS_Ext_ValueGetTag(pair_key) };
             if tag == q::JS_TAG_EXCEPTION {
                 return Some(Err(ExecutionError::Internal(
                     "Could not get object property name".into(),
@@ -187,7 +187,7 @@ impl Iterator for OwnedJsPropertyIterator {
         } else {
             let pair_value =
                 unsafe { q::JS_GetProperty(self.context, self.object.value.value, (*prop).atom) };
-            let tag = unsafe { q::JS_ValueGetTag(pair_value) };
+            let tag = unsafe { q::JS_Ext_ValueGetTag(pair_value) };
             if tag == q::JS_TAG_EXCEPTION {
                 return Some(Err(ExecutionError::Internal(
                     "Could not get object property".into(),

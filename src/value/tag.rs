@@ -29,7 +29,7 @@ pub enum JsTag {
 impl JsTag {
     #[inline]
     pub(super) fn from_c(value: &q::JSValue) -> JsTag {
-        let inner = unsafe { q::JS_ValueGetTag(*value) };
+        let inner = unsafe { q::JS_Ext_ValueGetTag(*value) };
         match inner {
             q::JS_TAG_INT => JsTag::Int,
             q::JS_TAG_BOOL => JsTag::Bool,

@@ -9,10 +9,6 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-// import the functions from static-functions.c
-
-include!("static-functions.rs");
-
 #[cfg(test)]
 mod tests {
     use std::ffi::CStr;
@@ -37,18 +33,18 @@ mod tests {
                 script.as_ptr(),
                 JS_EVAL_TYPE_GLOBAL as i32,
             );
-            assert_eq!(JS_ValueGetTag(value), JS_TAG_INT);
-            assert_eq!(JS_VALUE_GET_INT(value), 2);
+            assert_eq!(JS_Ext_ValueGetTag(value), JS_TAG_INT);
+            assert_eq!(JS_Ext_GetInt(value), 2);
 
             JS_DupValue(ctx, value);
             JS_FreeValue(ctx, value);
 
-            let ival = JS_NewInt32(ctx, 12);
-            assert_eq!(JS_ValueGetTag(ival), JS_TAG_INT);
-            let fval = JS_NewFloat64(ctx, f64::MAX);
-            assert_eq!(JS_ValueGetTag(fval), JS_TAG_FLOAT64);
-            let bval = JS_NewBool(ctx, true);
-            assert_eq!(JS_ValueGetTag(bval), JS_TAG_BOOL);
+            let ival = JS_Ext_NewInt32(ctx, 12);
+            assert_eq!(JS_Ext_ValueGetTag(ival), JS_TAG_INT);
+            let fval = JS_Ext_NewFloat64(ctx, f64::MAX);
+            assert_eq!(JS_Ext_ValueGetTag(fval), JS_TAG_FLOAT64);
+            let bval = JS_Ext_NewBool(ctx, 1);
+            assert_eq!(JS_Ext_ValueGetTag(bval), JS_TAG_BOOL);
         }
     }
 }

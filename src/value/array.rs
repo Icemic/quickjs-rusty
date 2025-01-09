@@ -35,7 +35,7 @@ impl OwnedJsArray {
     pub fn get_index(&self, index: u32) -> Result<Option<OwnedJsValue>, ExecutionError> {
         let value_raw =
             unsafe { q::JS_GetPropertyUint32(self.value.context(), self.value.value, index) };
-        let tag = unsafe { q::JS_ValueGetTag(value_raw) };
+        let tag = unsafe { q::JS_Ext_ValueGetTag(value_raw) };
         if tag == q::JS_TAG_EXCEPTION {
             return Err(ExecutionError::Internal("Could not build array".into()));
         } else if tag == q::JS_TAG_UNDEFINED {

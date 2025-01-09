@@ -44,7 +44,7 @@ impl OwnedJsPromise {
 
     pub fn then(&self, on_fulfilled: &OwnedJsValue) -> Result<OwnedJsPromise, ExecutionError> {
         let new_promise = unsafe {
-            q::JS_PromiseThen(self.value.context(), self.value.value, on_fulfilled.value)
+            q::JS_Ext_PromiseThen(self.value.context(), self.value.value, on_fulfilled.value)
         };
 
         let new_promise = OwnedJsValue::new(self.value.context(), new_promise);
@@ -60,7 +60,7 @@ impl OwnedJsPromise {
         on_rejected: &OwnedJsValue,
     ) -> Result<OwnedJsPromise, ExecutionError> {
         let new_promise = unsafe {
-            q::JS_PromiseThen2(
+            q::JS_Ext_PromiseThen2(
                 self.value.context(),
                 self.value.value,
                 on_fulfilled.value,
@@ -77,7 +77,7 @@ impl OwnedJsPromise {
 
     pub fn catch(&self, on_rejected: &OwnedJsValue) -> Result<OwnedJsPromise, ExecutionError> {
         let new_promise = unsafe {
-            q::JS_PromiseCatch(self.value.context(), self.value.value, on_rejected.value)
+            q::JS_Ext_PromiseCatch(self.value.context(), self.value.value, on_rejected.value)
         };
 
         let new_promise = OwnedJsValue::new(self.value.context(), new_promise);
@@ -89,7 +89,7 @@ impl OwnedJsPromise {
 
     pub fn finally(&self, on_finally: &OwnedJsValue) -> Result<OwnedJsPromise, ExecutionError> {
         let new_promise = unsafe {
-            q::JS_PromiseFinally(self.value.context(), self.value.value, on_finally.value)
+            q::JS_Ext_PromiseFinally(self.value.context(), self.value.value, on_finally.value)
         };
 
         let new_promise = OwnedJsValue::new(self.value.context(), new_promise);
@@ -103,7 +103,7 @@ impl OwnedJsPromise {
         context: &Context,
         value: &OwnedJsValue,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        let promise = unsafe { q::JS_PromiseResolve(context.context, value.value) };
+        let promise = unsafe { q::JS_Ext_PromiseResolve(context.context, value.value) };
         let promise = OwnedJsValue::new(context.context, promise);
 
         ensure_no_excpetion(context.context)?;
@@ -115,7 +115,7 @@ impl OwnedJsPromise {
         context: &Context,
         value: &OwnedJsValue,
     ) -> Result<OwnedJsPromise, ExecutionError> {
-        let promise = unsafe { q::JS_PromiseReject(context.context, value.value) };
+        let promise = unsafe { q::JS_Ext_PromiseReject(context.context, value.value) };
         let promise = OwnedJsValue::new(context.context, promise);
 
         ensure_no_excpetion(context.context)?;
@@ -130,7 +130,7 @@ impl OwnedJsPromise {
         let iterable: OwnedJsValue =
             (context.context, values.into_iter().collect::<Vec<_>>()).into();
 
-        let promise = unsafe { q::JS_PromiseAll(context.context, iterable.value) };
+        let promise = unsafe { q::JS_Ext_PromiseAll(context.context, iterable.value) };
         let promise = OwnedJsValue::new(context.context, promise);
 
         ensure_no_excpetion(context.context)?;
@@ -145,7 +145,7 @@ impl OwnedJsPromise {
         let iterable: OwnedJsValue =
             (context.context, values.into_iter().collect::<Vec<_>>()).into();
 
-        let promise = unsafe { q::JS_PromiseAllSettled(context.context, iterable.value) };
+        let promise = unsafe { q::JS_Ext_PromiseAllSettled(context.context, iterable.value) };
         let promise = OwnedJsValue::new(context.context, promise);
 
         ensure_no_excpetion(context.context)?;
@@ -160,7 +160,7 @@ impl OwnedJsPromise {
         let iterable: OwnedJsValue =
             (context.context, values.into_iter().collect::<Vec<_>>()).into();
 
-        let promise = unsafe { q::JS_PromiseRace(context.context, iterable.value) };
+        let promise = unsafe { q::JS_Ext_PromiseRace(context.context, iterable.value) };
         let promise = OwnedJsValue::new(context.context, promise);
 
         ensure_no_excpetion(context.context)?;
@@ -175,7 +175,7 @@ impl OwnedJsPromise {
         let iterable: OwnedJsValue =
             (context.context, values.into_iter().collect::<Vec<_>>()).into();
 
-        let promise = unsafe { q::JS_PromiseAny(context.context, iterable.value) };
+        let promise = unsafe { q::JS_Ext_PromiseAny(context.context, iterable.value) };
         let promise = OwnedJsValue::new(context.context, promise);
 
         ensure_no_excpetion(context.context)?;
@@ -186,7 +186,7 @@ impl OwnedJsPromise {
     pub fn with_resolvers(
         context: &Context,
     ) -> Result<(OwnedJsPromise, JsFunction, JsFunction), ExecutionError> {
-        let obj = unsafe { q::JS_PromiseWithResolvers(context.context) };
+        let obj = unsafe { q::JS_Ext_PromiseWithResolvers(context.context) };
         let obj = OwnedJsValue::new(context.context, obj);
 
         ensure_no_excpetion(context.context)?;

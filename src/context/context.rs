@@ -629,7 +629,7 @@ impl Context {
                         q::JS_Throw(context, js_exception_value);
                     }
 
-                    unsafe { q::JS_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
+                    unsafe { q::JS_Ext_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
                 }
             }
         };
@@ -695,7 +695,7 @@ impl Context {
                 let arg_slice = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
                 match callback(context, arg_slice) {
                     Ok(Some(value)) => value,
-                    Ok(None) => unsafe { q::JS_NewSpecialValue(q::JS_TAG_UNDEFINED, 0) },
+                    Ok(None) => unsafe { q::JS_Ext_NewSpecialValue(q::JS_TAG_UNDEFINED, 0) },
                     // TODO: better error reporting.
                     Err(e) => {
                         // TODO: should create an Error type.
@@ -706,7 +706,7 @@ impl Context {
                             q::JS_Throw(context, js_exception_value);
                         }
 
-                        unsafe { q::JS_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
+                        unsafe { q::JS_Ext_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
                     }
                 }
             });
@@ -721,7 +721,7 @@ impl Context {
                         q::JS_Throw(context, js_exception_value);
                     }
 
-                    unsafe { q::JS_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
+                    unsafe { q::JS_Ext_NewSpecialValue(q::JS_TAG_EXCEPTION, 0) }
                 }
             }
         };

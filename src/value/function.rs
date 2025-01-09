@@ -37,7 +37,7 @@ impl JsFunction {
             q::JS_Call(
                 self.value.context(),
                 self.value.value,
-                q::JS_NewSpecialValue(q::JS_TAG_NULL, 0),
+                q::JS_Ext_NewSpecialValue(q::JS_TAG_NULL, 0),
                 qargs.len() as i32,
                 qargs.as_mut_ptr(),
             )

@@ -259,14 +259,14 @@ where
     where
         F: Fn(c_int, *mut q::JSValue) -> q::JSValue,
     {
-        let closure_ptr = q::JS_VALUE_GET_PTR(*data);
+        let closure_ptr = q::JS_Ext_GetPtr(*data);
         let closure: &mut F = &mut *(closure_ptr as *mut F);
         (*closure)(argc, argv)
     }
 
     let boxed_f = Box::new(closure);
 
-    let data = Box::new(q::JS_NewPointer(
+    let data = Box::new(q::JS_Ext_NewPointer(
         q::JS_TAG_NULL,
         (&*boxed_f) as *const F as *mut c_void,
     ));

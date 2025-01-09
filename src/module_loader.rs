@@ -28,7 +28,7 @@ pub unsafe extern "C" fn js_module_loader(
 
     match compile_module(ctx, &module_code, module_name) {
         Ok(v) => {
-            let module_def = q::JS_VALUE_GET_PTR(v.value);
+            let module_def = q::JS_Ext_GetPtr(v.value);
             // q::JS_DupValue(wrapper.context, v.value);
             module_def as *mut q::JSModuleDef
         }

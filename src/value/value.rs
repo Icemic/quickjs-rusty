@@ -46,7 +46,7 @@ unsafe impl Sync for OwnedJsValue {}
 
 impl PartialEq for OwnedJsValue {
     fn eq(&self, other: &Self) -> bool {
-        unsafe { q::JS_VALUE_GET_PTR(self.value) == q::JS_VALUE_GET_PTR(other.value) }
+        unsafe { q::JS_Ext_GetPtr(self.value) == q::JS_Ext_GetPtr(other.value) }
     }
 }
 
@@ -159,7 +159,7 @@ impl OwnedJsValue {
     /// Check if this value is a Javascript promise.
     #[inline]
     pub fn is_promise(&self) -> bool {
-        unsafe { q::JS_IsPromise(self.context, self.value) == 1 }
+        unsafe { q::JS_Ext_IsPromise(self.context, self.value) == 1 }
     }
 
     /// Check if this value is a Javascript module.
@@ -192,21 +192,21 @@ impl OwnedJsValue {
     /// Convert this value into a bool
     pub fn to_bool(&self) -> Result<bool, ValueError> {
         self.check_tag(JsTag::Bool)?;
-        let val = unsafe { q::JS_VALUE_GET_BOOL(self.value) };
-        Ok(val)
+        let val = unsafe { q::JS_Ext_GetBool(self.value) };
+        Ok(val == 1)
     }
 
     /// Convert this value into an i32
     pub fn to_int(&self) -> Result<i32, ValueError> {
         self.check_tag(JsTag::Int)?;
-        let val = unsafe { q::JS_VALUE_GET_INT(self.value) };
+        let val = unsafe { q::JS_Ext_GetInt(self.value) };
         Ok(val)
     }
 
     /// Convert this value into an f64
     pub fn to_float(&self) -> Result<f64, ValueError> {
         self.check_tag(JsTag::Float64)?;
-        let val = unsafe { q::JS_VALUE_GET_FLOAT64(self.value) };
+        let val = unsafe { q::JS_Ext_GetFloat64(self.value) };
         Ok(val)
     }
 
@@ -262,7 +262,7 @@ impl OwnedJsValue {
                         .as_ptr(),
                 )
             };
-            let tag = unsafe { q::JS_ValueGetTag(getter) };
+            let tag = unsafe { q::JS_Ext_ValueGetTag(getter) };
             assert_eq!(tag, q::JS_TAG_OBJECT);
 
             let timestamp_raw =
@@ -273,13 +273,13 @@ impl OwnedJsValue {
                 q::JS_FreeValue(self.context, date_constructor);
             };
 
-            let tag = unsafe { q::JS_ValueGetTag(timestamp_raw) };
+            let tag = unsafe { q::JS_Ext_ValueGetTag(timestamp_raw) };
             if tag == q::JS_TAG_FLOAT64 {
-                let f = unsafe { q::JS_VALUE_GET_FLOAT64(timestamp_raw) } as i64;
+                let f = unsafe { q::JS_Ext_GetFloat64(timestamp_raw) } as i64;
                 let datetime = chrono::Utc.timestamp_millis_opt(f).unwrap();
                 Ok(datetime)
             } else if tag == q::JS_TAG_INT {
-                let f = unsafe { q::JS_VALUE_GET_INT(timestamp_raw) } as i64;
+                let f = unsafe { q::JS_Ext_GetInt(timestamp_raw) } as i64;
                 let datetime = chrono::Utc.timestamp_millis_opt(f).unwrap();
                 Ok(datetime)
             } else {
@@ -367,8 +367,8 @@ impl OwnedJsValue {
 
     /// Call the Javascript `JSON.stringify()` method on this value.
     pub fn to_json_string(&self, space: u8) -> Result<String, ExecutionError> {
-        let replacer = unsafe { q::JS_NewSpecialValue(q::JS_TAG_NULL, 0) };
-        let space = unsafe { q::JS_NewInt32(self.context, space as i32) };
+        let replacer = unsafe { q::JS_Ext_NewSpecialValue(q::JS_TAG_NULL, 0) };
+        let space = unsafe { q::JS_Ext_NewInt32(self.context, space as i32) };
         let raw = unsafe { q::JS_JSONStringify(self.context, self.value, replacer, space) };
 
         let value = OwnedJsValue::new(self.context, raw);
@@ -391,16 +391,7 @@ impl OwnedJsValue {
 
     #[cfg(test)]
     pub(crate) fn get_ref_count(&self) -> i32 {
-        let tag = unsafe { q::JS_ValueGetTag(self.value) };
-        if tag >= q::JS_TAG_FIRST {
-            // This transmute is OK since if tag < 0, the union will be a refcount
-            // pointer.
-            let ptr = unsafe { q::JS_VALUE_GET_PTR(self.value) as *mut q::JSRefCountHeader };
-            let pref: &mut q::JSRefCountHeader = &mut unsafe { *ptr };
-            pref.ref_count
-        } else {
-            -1
-        }
+        unsafe { q::JS_Ext_GetRefCount(self.value) }
     }
 }
 

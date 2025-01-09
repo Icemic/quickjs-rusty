@@ -14,9 +14,8 @@ version = "0.6.3"
 features = ["chrono", "bigint", "log"]
 
 [features]
-bigint = ["num-bigint", "num-traits", "libquickjs-ng-sys/patched"]
+bigint = ["num-bigint", "num-traits"]
 default = ["chrono", "serde", "bigint"]
-patched = ["libquickjs-ng-sys/patched"]
 serde = ["thiserror", "dep:serde"]
 
 [dependencies]

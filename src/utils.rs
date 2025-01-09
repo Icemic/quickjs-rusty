@@ -12,7 +12,7 @@ pub(crate) fn deserialize_borrowed_str(
     value: &q::JSValue,
 ) -> Result<&str, ValueError> {
     let r = value;
-    let tag = unsafe { q::JS_ValueGetTag(*r) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(*r) };
 
     match tag {
         q::JS_TAG_STRING => {
@@ -53,7 +53,7 @@ pub fn make_cstring(value: impl Into<Vec<u8>>) -> Result<CString, ValueError> {
 #[cfg(feature = "chrono")]
 pub fn js_date_constructor(context: *mut q::JSContext) -> q::JSValue {
     let global = unsafe { q::JS_GetGlobalObject(context) };
-    let tag = unsafe { q::JS_ValueGetTag(global) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(global) };
     assert_eq!(tag, q::JS_TAG_OBJECT);
 
     let date_constructor = unsafe {
@@ -65,7 +65,7 @@ pub fn js_date_constructor(context: *mut q::JSContext) -> q::JSValue {
                 .as_ptr(),
         )
     };
-    let tag = unsafe { q::JS_ValueGetTag(date_constructor) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(date_constructor) };
     assert_eq!(tag, q::JS_TAG_OBJECT);
     unsafe { q::JS_FreeValue(context, global) };
     date_constructor
@@ -74,7 +74,7 @@ pub fn js_date_constructor(context: *mut q::JSContext) -> q::JSValue {
 #[cfg(feature = "bigint")]
 fn js_create_bigint_function(context: *mut q::JSContext) -> q::JSValue {
     let global = unsafe { q::JS_GetGlobalObject(context) };
-    let tag = unsafe { q::JS_ValueGetTag(global) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(global) };
     assert_eq!(tag, q::JS_TAG_OBJECT);
 
     let bigint_function = unsafe {
@@ -86,37 +86,37 @@ fn js_create_bigint_function(context: *mut q::JSContext) -> q::JSValue {
                 .as_ptr(),
         )
     };
-    let tag = unsafe { q::JS_ValueGetTag(bigint_function) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(bigint_function) };
     assert_eq!(tag, q::JS_TAG_OBJECT);
     unsafe { q::JS_FreeValue(context, global) };
     bigint_function
 }
 
 pub fn create_undefined() -> q::JSValue {
-    unsafe { q::JS_NewSpecialValue(q::JS_TAG_UNDEFINED, 0) }
+    unsafe { q::JS_Ext_NewSpecialValue(q::JS_TAG_UNDEFINED, 0) }
 }
 
 pub fn create_null() -> q::JSValue {
-    unsafe { q::JS_NewSpecialValue(q::JS_TAG_NULL, 0) }
+    unsafe { q::JS_Ext_NewSpecialValue(q::JS_TAG_NULL, 0) }
 }
 
 pub fn create_bool(context: *mut q::JSContext, value: bool) -> q::JSValue {
-    unsafe { q::JS_NewBool(context, value) }
+    unsafe { q::JS_Ext_NewBool(context, value as u8) }
 }
 
 pub fn create_int(context: *mut q::JSContext, value: i32) -> q::JSValue {
-    unsafe { q::JS_NewInt32(context, value) }
+    unsafe { q::JS_Ext_NewInt32(context, value) }
 }
 
 pub fn create_float(context: *mut q::JSContext, value: f64) -> q::JSValue {
-    unsafe { q::JS_NewFloat64(context, value) }
+    unsafe { q::JS_Ext_NewFloat64(context, value) }
 }
 
 pub fn create_string(context: *mut q::JSContext, value: &str) -> Result<q::JSValue, ValueError> {
     // although rust string is not null-terminated, but quickjs not require it to be null-terminated
     let qval = unsafe { q::JS_NewStringLen(context, value.as_ptr() as *const _, value.len()) };
 
-    let tag = unsafe { q::JS_ValueGetTag(qval) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(qval) };
 
     if tag == q::JS_TAG_EXCEPTION {
         return Err(ValueError::Internal(
@@ -130,7 +130,7 @@ pub fn create_string(context: *mut q::JSContext, value: &str) -> Result<q::JSVal
 pub fn create_empty_array(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
     // Allocate a new array in the runtime.
     let arr = unsafe { q::JS_NewArray(context) };
-    let tag = unsafe { q::JS_ValueGetTag(arr) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(arr) };
     if tag == q::JS_TAG_EXCEPTION {
         return Err(ValueError::Internal(
             "Could not create array in runtime".into(),
@@ -158,7 +158,7 @@ pub fn add_array_element(
 
 pub fn create_empty_object(context: *mut q::JSContext) -> Result<q::JSValue, ValueError> {
     let obj = unsafe { q::JS_NewObject(context) };
-    let tag = unsafe { q::JS_ValueGetTag(obj) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(obj) };
     if tag == q::JS_TAG_EXCEPTION {
         return Err(ValueError::Internal("Could not create object".into()));
     }
@@ -198,7 +198,7 @@ pub fn create_date(
 
     let f = datetime.timestamp_millis() as f64;
 
-    let timestamp = unsafe { q::JS_NewFloat64(context, f) };
+    let timestamp = unsafe { q::JS_Ext_NewFloat64(context, f) };
 
     let mut args = vec![timestamp];
 
@@ -214,7 +214,7 @@ pub fn create_date(
         q::JS_FreeValue(context, date_constructor);
     }
 
-    let tag = unsafe { q::JS_ValueGetTag(value) };
+    let tag = unsafe { q::JS_Ext_ValueGetTag(value) };
     if tag != q::JS_TAG_OBJECT {
         return Err(ValueError::Internal(
             "Could not construct Date object".into(),
@@ -244,7 +244,7 @@ pub fn create_bigint(
                 )
             };
 
-            let s_tag = unsafe { q::JS_ValueGetTag(s) };
+            let s_tag = unsafe { q::JS_Ext_ValueGetTag(s) };
             if s_tag != q::JS_TAG_STRING {
                 return Err(ValueError::Internal(
                     "Could not construct String object needed to create BigInt object".into(),
@@ -265,7 +265,7 @@ pub fn create_bigint(
                 q::JS_FreeValue(context, null);
             }
 
-            let js_bigint_tag = unsafe { q::JS_ValueGetTag(js_bigint) };
+            let js_bigint_tag = unsafe { q::JS_Ext_ValueGetTag(js_bigint) };
 
             if js_bigint_tag != q::JS_TAG_BIG_INT {
                 return Err(ValueError::Internal(
