@@ -39,7 +39,6 @@ fn main() {
     };
 
     // Instruct cargo to statically link quickjs.
-    println!("cargo:rustc-link-search=native=D:\\Workspace\\quickjspp\\.bin\\Release\\x64\\");
     println!("cargo:rustc-link-search=native={}", lib);
     println!("cargo:rustc-link-lib=static={}", LIB_NAME);
 
@@ -124,8 +123,18 @@ fn main() {
         .opt_level(2)
         .compile(LIB_NAME);
 
-    std::fs::copy(embed_path.join("bindings.rs"), out_path.join("bindings.rs"))
-        .expect("Could not copy bindings.rs");
+    // if in 32bit target copy bindings-32.rs, else copy bindings.rs
+    let target = env::var("TARGET").unwrap();
+    if target.contains("i686") {
+        std::fs::copy(
+            embed_path.join("bindings-32.rs"),
+            out_path.join("bindings.rs"),
+        )
+        .expect("Could not copy bindings-32.rs");
+    } else {
+        std::fs::copy(embed_path.join("bindings.rs"), out_path.join("bindings.rs"))
+            .expect("Could not copy bindings.rs");
+    }
 }
 
 #[cfg(feature = "patched")]
