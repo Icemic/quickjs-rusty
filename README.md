@@ -10,9 +10,8 @@ This crate allows you to easily access and use all the features of QuickJS from 
 
 ## Quickstart
 
-```toml
-[dependencies]
-quickjs-rusty = "0.6.3"
+```bash
+cargo add quickjs-rusty
 ```
 
 ```rust
@@ -22,11 +21,11 @@ let context = Context::new().unwrap();
 
 // Eval.
 
-let value = context.eval("1 + 2").unwrap();
-assert_eq!(value, JsValue::Int(3));
+let value: String = c.eval_as("var x = 44; x.toString()").unwrap();
+assert_eq!(&value, "44");
 
-let value = context.eval_as::<String>(" var x = 100 + 250; x.toString() ").unwrap();
-assert_eq!(&value, "350");
+let value = context.eval_as::<u32>("1 + 2").unwrap();
+assert_eq!(&value, 3);
 
 // Callbacks.
 
@@ -51,17 +50,10 @@ The crate supports the following features:
 
 ## Installation
 
-By default, quickjs is **bundled** with the `libquickjs-sys` crate and
-automatically compiled, assuming you have the appropriate dependencies.
+We have a builtin quickjs-ng submodule, so you don't need to install quickjs-ng manually. We'll be at best effort to keep the submodule up-to-date with the latest quickjs-ng version.
+
+Make sure you have `Clang` installed on your system.
 
 ### Windows Support
 
-quickjspp-rs can be used under target `x86_64-pc-windows-msvc`,
-
-### System installation
-
-To use the system installation, without the bundled feature, first install the required
-dependencies, and then compile and install quickjspp.
-
-You then need to disable the `bundled` feature in the `libquickjs-sys` crate to
-force using the system version.
+quickjspp-rs can be used under target `x86_64-pc-windows-msvc` with `Clang` installed.
