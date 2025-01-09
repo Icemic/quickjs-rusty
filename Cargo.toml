@@ -2,7 +2,7 @@
 authors = ["Christoph Herzog <chris@theduke.at>", "Icemic J <bingfeng.web@gmail.com>"]
 description = "A rusty QuickJS (QuickJS-NG) Javascript engine wrapper, and more."
 documentation = "https://docs.rs/quickjs-rusty"
-edition = "2018"
+edition = "2021"
 keywords = ["quickjs", "javascript", "js", "interpreter", "runtime"]
 license = "MIT"
 name = "quickjs-rusty"
