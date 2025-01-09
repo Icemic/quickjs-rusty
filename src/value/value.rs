@@ -28,13 +28,13 @@ use super::OwnedJsObject;
 /// OwnedJsValue wraps a Javascript value owned by the QuickJs runtime.
 ///
 /// Guarantees cleanup of resources by dropping the value from the runtime.
-/// 
+///
 /// **Safety**:
-/// 
+///
 /// This type is `Send` and `Sync` only for convenience, since [OwnedJsValue](crate::OwnedJsValue)
 /// itself is just a wrapper around a raw pointer. But any operation on the underlying raw pointer is unsafe.
 /// Make sure using it in a same thread.
-/// 
+///
 pub struct OwnedJsValue {
     context: *mut q::JSContext,
     // FIXME: make private again, just for testing
