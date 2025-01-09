@@ -5,13 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.7.0 (2025-01-10)
+
+<csr-id-65bf6cb7a8176c67ef1669465a52cc8694e3be88/>
+<csr-id-657d42ccc888b183e33f47c237a34cdeee305137/>
+<csr-id-9dad3a324624a1822476a0b44a57c86c836625a8/>
+<csr-id-3f65492ed4852921c880770871f5d84d16766418/>
 
 ### Chore
 
  - <csr-id-65bf6cb7a8176c67ef1669465a52cc8694e3be88/> rename old CHANGELOG.md
  - <csr-id-657d42ccc888b183e33f47c237a34cdeee305137/> update edition in Cargo.toml to 2021
  - <csr-id-9dad3a324624a1822476a0b44a57c86c836625a8/> fix lint of build.rs
+
+### Chore
+
+ - <csr-id-a1a7927ad2b88700746d2a80911df4ed540490fd/> add new changelog files
 
 ### New Features
 
@@ -32,9 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 10 commits contributed to the release over the course of 2 calendar days.
+ - 11 commits contributed to the release over the course of 2 calendar days.
  - 186 days passed between releases.
- - 9 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 10 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
 ### Commit Details
@@ -44,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Add new changelog files ([`a1a7927`](https://github.com/Icemic/quickjs-rusty/commit/a1a7927ad2b88700746d2a80911df4ed540490fd))
     - Rename old CHANGELOG.md ([`65bf6cb`](https://github.com/Icemic/quickjs-rusty/commit/65bf6cb7a8176c67ef1669465a52cc8694e3be88))
     - Update edition in Cargo.toml to 2021 ([`657d42c`](https://github.com/Icemic/quickjs-rusty/commit/657d42ccc888b183e33f47c237a34cdeee305137))
     - Fix lint of build.rs ([`9dad3a3`](https://github.com/Icemic/quickjs-rusty/commit/9dad3a324624a1822476a0b44a57c86c836625a8))
@@ -57,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.6.1 (2024-07-08)
+
+<csr-id-e89081e8eee4c188ecc06336a42b30e5b0a74f2a/>
 
 ### Chore
 
@@ -87,6 +99,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.6.0 (2024-06-20)
+
+<csr-id-80b6c93ef819b303cd328f02f781eaa1efa91bd9/>
+<csr-id-e636641a365add28ccb3f6b824ba56d186ae8f0d/>
+<csr-id-efa4b7375e53bb746021eaceab246a34cc27879f/>
+<csr-id-23231eef7264900761eebd3232675a16b5a26800/>
+<csr-id-e9f0d239b6798fa86e99e0f0d238e800f8b4993d/>
+<csr-id-094faba594805610d838619cfe9066fd2b876c0d/>
 
 ### Chore
 
@@ -153,6 +172,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.1.0 (2021-08-10)
+
+<csr-id-ff6e5a5bc1f000fe8c477410ada1a9c8fc8b6510/>
+<csr-id-7dc5d352e8e907c040648b689e6588a1273abcbd/>
+<csr-id-6c144258b6415d97bb44bad6e4defd735c39f2af/>
+<csr-id-f01400a5523359801b95874037050e8634d150c4/>
+<csr-id-ebf71e465392bf93fde1662299ef0deda6e93a3b/>
+<csr-id-83cd850782efc081b2aa55dd7bb8f52d951f2d72/>
+<csr-id-d705b7f85f226b8bd4ae3b6706fffdbc5b2cda40/>
+<csr-id-306835e393d7e49f36efbca0a727b96fdb2601c1/>
+<csr-id-ef0e6399ca24f68c32649e3f660f989f6a269adf/>
+<csr-id-a89c6fd9300114afb6cf91cbf274224adc7ae88c/>
+<csr-id-d5d77f8f278b815204a6deaef9b3aec28fa28e9f/>
 
 ### Documentation
 

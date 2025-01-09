@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.7.0 (2025-01-10)
+
+<csr-id-3f65492ed4852921c880770871f5d84d16766418/>
 
 ### Bug Fixes
 
@@ -99,6 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.6.1 (2024-06-30)
 
+<csr-id-68d328b982f4c5297a13877d68dc0e423a1de055/>
+
 ### Chore
 
  - <csr-id-68d328b982f4c5297a13877d68dc0e423a1de055/> clippy fix
@@ -130,6 +134,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.6.0 (2024-06-20)
+
+<csr-id-e636641a365add28ccb3f6b824ba56d186ae8f0d/>
 
 ### Chore
 
@@ -216,6 +222,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.5.0 (2024-04-09)
+
+<csr-id-7e922b5323bc68e82fb988c444a86a90d2065533/>
+<csr-id-487663c0dcb542130ad256d0c61c751418d6638d/>
 
 ### Other
 
@@ -471,6 +480,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.2.0 (2023-06-23)
 
+<csr-id-86f229fd49a527b6608aaad5e38dc2208f89a363/>
+
 ### New Features
 
  - <csr-id-5e742dffc2cb49ac181e3df54fbf351e3984e2a5/> run module error handling
@@ -506,6 +517,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.1.1 (2023-06-22)
+
+<csr-id-e9f0d239b6798fa86e99e0f0d238e800f8b4993d/>
+<csr-id-d82c8526909e6574807f602bba19faac26b85d9f/>
 
 ### New Features
 
@@ -546,6 +560,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 </details>
 
 ## v0.1.0 (2021-08-10)
+
+<csr-id-870d45fb3db02791a4810b5e8a17a8b0c768cf7c/>
+<csr-id-4307fd83a8681a8ce5f84695cbca4e02d8d3795b/>
+<csr-id-142af5003ae4f984f0537535a2713f7f14cdfbce/>
+<csr-id-10a53ad3afb5586d58cc97913419434daebf71ab/>
+<csr-id-8f4b124b00c46dce5ba12eb05d615cae5448ead8/>
 
 ### Chore
 
