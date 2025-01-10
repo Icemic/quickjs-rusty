@@ -5,12 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.7.1 (2025-01-10)
+
+### Bug Fixes
+
+ - <csr-id-8d5c593e0d09193fd1a5e6e8668f11c9dedbd45a/> improve cross-compilation support for Android in build script
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Improve cross-compilation support for Android in build script ([`8d5c593`](https://github.com/Icemic/quickjs-rusty/commit/8d5c593e0d09193fd1a5e6e8668f11c9dedbd45a))
+</details>
+
 ## 0.7.0 (2025-01-10)
 
 <csr-id-65bf6cb7a8176c67ef1669465a52cc8694e3be88/>
 <csr-id-657d42ccc888b183e33f47c237a34cdeee305137/>
 <csr-id-9dad3a324624a1822476a0b44a57c86c836625a8/>
 <csr-id-3f65492ed4852921c880770871f5d84d16766418/>
+<csr-id-a1a7927ad2b88700746d2a80911df4ed540490fd/>
 
 ### Chore
 
@@ -41,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 11 commits contributed to the release over the course of 2 calendar days.
+ - 12 commits contributed to the release over the course of 2 calendar days.
  - 186 days passed between releases.
  - 10 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -53,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.7.0, quickjs-rusty v0.7.0, safety bump quickjs-rusty v0.7.0 ([`4d1dc54`](https://github.com/Icemic/quickjs-rusty/commit/4d1dc54cef443ddb2af527b5576abf2d8f52a361))
     - Add new changelog files ([`a1a7927`](https://github.com/Icemic/quickjs-rusty/commit/a1a7927ad2b88700746d2a80911df4ed540490fd))
     - Rename old CHANGELOG.md ([`65bf6cb`](https://github.com/Icemic/quickjs-rusty/commit/65bf6cb7a8176c67ef1669465a52cc8694e3be88))
     - Update edition in Cargo.toml to 2021 ([`657d42c`](https://github.com/Icemic/quickjs-rusty/commit/657d42ccc888b183e33f47c237a34cdeee305137))
