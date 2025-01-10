@@ -65,8 +65,14 @@ fn apply_patches(code_dir: &PathBuf) {
 }
 
 fn compile_lib(code_dir: &Path) {
-    cc::Build::new()
-        .compiler("clang")
+    let mut builder = cc::Build::new();
+
+    // android ndk has its own clang compiler, so we can't use the default one
+    if !is_cargo_ndk() {
+        builder.compiler("clang");
+    }
+
+    builder
         .files(
             [
                 // extensions.c has included quickjs.c
@@ -105,16 +111,34 @@ fn compile_lib(code_dir: &Path) {
 fn do_bindgen() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    bindgen::Builder::default()
+    let builder = bindgen::Builder::default()
         .header("embed/extensions.h")
         .allowlist_item("js_.+")
         .allowlist_item("JS.+")
         .clang_arg("-std=c11")
-        .clang_arg(format!("-I{}", "embed/quickjs"))
+        .clang_arg(format!("-I{}", "embed/quickjs"));
+
+    // detect if we are cross-compiling for android using cargo-ndk
+    let builder = if is_cargo_ndk() {
+        let target = env::var("TARGET").unwrap();
+        let ndk_sysroot_path = env::var("CARGO_NDK_SYSROOT_PATH").unwrap();
+        builder
+            .clang_arg(format!("--sysroot={ndk_sysroot_path}"))
+            .clang_arg(format!("--target={}", target))
+    } else {
+        builder
+    };
+
+    builder
         .default_enum_style(bindgen::EnumVariation::Consts {})
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+}
+
+fn is_cargo_ndk() -> bool {
+    // cargo-ndk sets this variable so we use it to detect if we are cross-compiling for android
+    env::var("CARGO_NDK_ANDROID_PLATFORM").is_ok()
 }
