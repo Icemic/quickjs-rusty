@@ -1,3 +1,4 @@
+use anyhow::Result;
 use quickjs_rusty::Context;
 
 struct Custom {
@@ -31,20 +32,20 @@ pub fn main() {
     println!("js: 1 + 2 = {:?}", value);
 }
 
-fn module_loader(module_name: &str, opaque: *mut std::ffi::c_void) -> String {
+fn module_loader(module_name: &str, opaque: *mut std::ffi::c_void) -> Result<String> {
     println!("module_loader: {:?}", module_name);
     let custom = unsafe { &*(opaque as *mut Custom) };
     assert!(custom.foo == 123);
-    "export function add(a, b) { return a + b; }; console.log('module loaded.')".to_string()
+    Ok("export function add(a, b) { return a + b; }; console.log('module loaded.')".to_string())
 }
 
 fn module_normalize(
     module_base_name: &str,
     module_name: &str,
     opaque: *mut std::ffi::c_void,
-) -> String {
+) -> Result<String> {
     println!("module_normalize: {:?} {:?}", module_base_name, module_name);
     let custom = unsafe { &*(opaque as *mut Custom) };
     assert!(custom.foo == 123);
-    module_name.to_string()
+    Ok(module_name.to_string())
 }
