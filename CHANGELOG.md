@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.7.1 (2025-01-24)
+
+### New Features
+
+ - <csr-id-e5a5e8685dd7aa46b2cd9737a404ba5420da1643/> update module loader and normalize functions to return Result type for better error handling
+
+### Bug Fixes
+
+ - <csr-id-4fd8ee417022f09223e082294a44e30cacc20fcc/> improve error message formatting in ExecutionError
+ - <csr-id-93217de16770aa927ca24f11fb4653752da878a5/> improve error handling in module loader and normalizer
+ - <csr-id-6afb0cc790f133c6fd143569d9a1be3712bb3f63/> makes BigInt conversion conform to the specification
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 6 commits contributed to the release.
+ - 14 days passed between releases.
+ - 4 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Merge pull request #6 from Icemic/bigint_fix ([`09492cb`](https://github.com/Icemic/quickjs-rusty/commit/09492cb5eeeec05a540c89aef6324a25f70c473a))
+    - Merge pull request #5 from Icemic/module_loader_result ([`18baaf8`](https://github.com/Icemic/quickjs-rusty/commit/18baaf83d50425a57263f10988a7a313974f252d))
+    - Improve error message formatting in ExecutionError ([`4fd8ee4`](https://github.com/Icemic/quickjs-rusty/commit/4fd8ee417022f09223e082294a44e30cacc20fcc))
+    - Improve error handling in module loader and normalizer ([`93217de`](https://github.com/Icemic/quickjs-rusty/commit/93217de16770aa927ca24f11fb4653752da878a5))
+    - Makes BigInt conversion conform to the specification ([`6afb0cc`](https://github.com/Icemic/quickjs-rusty/commit/6afb0cc790f133c6fd143569d9a1be3712bb3f63))
+    - Update module loader and normalize functions to return Result type for better error handling ([`e5a5e86`](https://github.com/Icemic/quickjs-rusty/commit/e5a5e8685dd7aa46b2cd9737a404ba5420da1643))
+</details>
+
 ## 0.7.0 (2025-01-10)
 
 <csr-id-3f65492ed4852921c880770871f5d84d16766418/>
