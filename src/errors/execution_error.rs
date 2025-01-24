@@ -30,7 +30,7 @@ impl fmt::Display for ExecutionError {
             Internal(e) => write!(f, "Internal error: {}", e),
             Exception(e) => {
                 if e.is_string() {
-                    write!(f, "{:?}", e.to_string().unwrap())
+                    write!(f, "{}", e.to_string().unwrap())
                 } else {
                     write!(f, "JS Exception: {:?}", e)
                 }
