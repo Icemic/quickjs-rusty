@@ -1,12 +1,17 @@
 use std::ffi::{c_char, c_void, CStr};
 use std::ptr::null_mut;
 
+use anyhow::Result;
 use libquickjs_ng_sys as q;
 
 use super::compile::compile_module;
 
-pub type JSModuleLoaderFunc = Box<dyn Fn(&str, *mut c_void) -> String>;
-pub type JSModuleNormalizeFunc = Box<dyn Fn(&str, &str, *mut c_void) -> String>;
+/// Custom module loader function, passes (module_name, opaque) and returns module code
+/// If the module code is not found, return None
+pub type JSModuleLoaderFunc = Box<dyn Fn(&str, *mut c_void) -> Result<String>>;
+/// Custom module normalize function, passes (module_base_name, module_name, opaque)
+/// and returns normalized module name (or None if not found)
+pub type JSModuleNormalizeFunc = Box<dyn Fn(&str, &str, *mut c_void) -> Result<String>>;
 
 pub struct ModuleLoader {
     pub loader: JSModuleLoaderFunc,
@@ -23,17 +28,22 @@ pub unsafe extern "C" fn js_module_loader(
     let opaque = wrapper.opaque;
     let loader = &wrapper.loader;
 
-    let module_name = CStr::from_ptr(module_name).to_str().unwrap();
-    let module_code = loader(module_name, opaque);
+    let module_name = CStr::from_ptr(module_name).to_string_lossy().to_string();
+    let module_code = match loader(&module_name, opaque) {
+        Ok(v) => v,
+        Err(err) => {
+            log::error!("module loader error: {:?}", err);
+            return null_mut() as *mut q::JSModuleDef;
+        }
+    };
 
-    match compile_module(ctx, &module_code, module_name) {
+    match compile_module(ctx, &module_code, &module_name) {
         Ok(v) => {
             let module_def = q::JS_Ext_GetPtr(v.value);
-            // q::JS_DupValue(wrapper.context, v.value);
             module_def as *mut q::JSModuleDef
         }
         Err(e) => {
-            eprintln!("compile module error: {:?}", e);
+            log::error!("module compiling error: {:?}", e);
             null_mut() as *mut q::JSModuleDef
         }
     }
@@ -54,7 +64,13 @@ pub unsafe extern "C" fn js_module_normalize(
 
     if let Some(module_normalize_func) = normalize {
         let mut normalized_module_name =
-            module_normalize_func(module_base_name, module_name, opaque);
+            match module_normalize_func(module_base_name, module_name, opaque) {
+                Ok(v) => v,
+                Err(err) => {
+                    log::error!("module normalize error: {:?}", err);
+                    return null_mut() as *mut c_char;
+                }
+            };
         normalized_module_name.push('\0');
         let m = q::js_malloc(ctx, normalized_module_name.len());
         std::ptr::copy(
@@ -64,7 +80,7 @@ pub unsafe extern "C" fn js_module_normalize(
         );
         m as *mut c_char
     } else {
-        eprintln!("module normalize func not set");
+        log::warn!("module normalize func not set");
         null_mut() as *mut c_char
     }
 }
