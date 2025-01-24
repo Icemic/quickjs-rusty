@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_void, CStr};
+use std::ffi::{c_char, c_void, CStr, CString};
 use std::ptr::null_mut;
 
 use anyhow::Result;
@@ -32,7 +32,7 @@ pub unsafe extern "C" fn js_module_loader(
     let module_code = match loader(&module_name, opaque) {
         Ok(v) => v,
         Err(err) => {
-            log::error!("module loader error: {:?}", err);
+            throw_internal_error(ctx, &err.to_string());
             return null_mut() as *mut q::JSModuleDef;
         }
     };
@@ -43,7 +43,7 @@ pub unsafe extern "C" fn js_module_loader(
             module_def as *mut q::JSModuleDef
         }
         Err(e) => {
-            log::error!("module compiling error: {:?}", e);
+            throw_internal_error(ctx, &e.to_string());
             null_mut() as *mut q::JSModuleDef
         }
     }
@@ -67,7 +67,7 @@ pub unsafe extern "C" fn js_module_normalize(
             match module_normalize_func(module_base_name, module_name, opaque) {
                 Ok(v) => v,
                 Err(err) => {
-                    log::error!("module normalize error: {:?}", err);
+                    throw_internal_error(ctx, &err.to_string());
                     return null_mut() as *mut c_char;
                 }
             };
@@ -82,5 +82,13 @@ pub unsafe extern "C" fn js_module_normalize(
     } else {
         log::warn!("module normalize func not set");
         null_mut() as *mut c_char
+    }
+}
+
+#[inline]
+fn throw_internal_error(ctx: *mut q::JSContext, err: &str) {
+    let err = CString::new(err).unwrap();
+    unsafe {
+        q::JS_ThrowInternalError(ctx, err.as_ptr() as *const i8);
     }
 }
