@@ -4,7 +4,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define _WIN32_WINNT 0x0602
 
-#include "quickjs.h"
+#include "./quickjs/quickjs.h"
 
 #ifndef RUSTY_EXTENSION_H
 #define RUSTY_EXTENSION_H
@@ -64,6 +64,7 @@ extern "C"
   JSValue JS_Ext_PromiseThen2(JSContext *ctx, JSValue promise, JSValue on_fulfilled_func, JSValue on_reject_func);
   JSValue JS_Ext_PromiseCatch(JSContext *ctx, JSValue promise, JSValue on_reject_func);
   JSValue JS_Ext_PromiseFinally(JSContext *ctx, JSValue promise, JSValue on_finally_func);
+  JSValue JS_Ext_BigIntToString1(JSContext *ctx, JSValue val, int radix);
 
 #ifdef __cplusplus
 }

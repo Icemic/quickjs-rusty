@@ -298,32 +298,46 @@ impl OwnedJsValue {
         use crate::value::BigInt;
         use crate::value::BigIntOrI64;
 
-        let mut int: i64 = 0;
-        let ret = unsafe { q::JS_ToBigInt64(self.context, &mut int, self.value) };
-        if ret == 0 {
-            Ok(BigInt {
-                inner: BigIntOrI64::Int(int),
-            })
-        } else {
-            let ptr =
-                unsafe { q::JS_ToCStringLen2(self.context, std::ptr::null_mut(), self.value, 0) };
-
-            if ptr.is_null() {
-                return Err(ValueError::Internal(
-                    "Could not convert BigInt to string: got a null pointer".into(),
-                ));
-            }
-
-            let cstr = unsafe { std::ffi::CStr::from_ptr(ptr) };
-            let bigint = num_bigint::BigInt::parse_bytes(cstr.to_bytes(), 10).unwrap();
-
-            // Free the c string.
-            unsafe { q::JS_FreeCString(self.context, ptr) };
-
-            Ok(BigInt {
-                inner: BigIntOrI64::BigInt(bigint),
-            })
+        if self.is_int() {
+            let int = self.to_int()?;
+            return Ok(BigInt {
+                inner: BigIntOrI64::Int(int as i64),
+            });
         }
+
+        // let mut int: i64 = 0;
+        // let ret = unsafe { q::JS_ToBigInt64(self.context, &mut int, self.value) };
+        // if ret == 0 {
+        //     Ok(BigInt {
+        //         inner: BigIntOrI64::Int(int),
+        //     })
+        // } else {
+        let ret = unsafe { q::JS_Ext_BigIntToString1(self.context, self.value, 16) };
+        let ret = OwnedJsValue::new(self.context, ret);
+
+        if ret.is_exception() {
+            let err = OwnedJsValue::new(self.context, unsafe { q::JS_GetException(self.context) });
+
+            return Err(ValueError::Internal(format!(
+                "Could not convert BigInt to string: {}",
+                err.js_to_string().unwrap()
+            )));
+        }
+
+        if !ret.is_string() {
+            return Err(ValueError::Internal(
+                "Could not convert BigInt: unexpected error".into(),
+            ));
+        }
+
+        let ret_str = ret.to_string().unwrap();
+
+        let bigint = num_bigint::BigInt::parse_bytes(ret_str.as_bytes(), 16).unwrap();
+
+        Ok(BigInt {
+            inner: BigIntOrI64::BigInt(bigint),
+        })
+        // }
     }
 
     /// Try convert this value into a function
@@ -474,7 +488,13 @@ impl TryFrom<OwnedJsValue> for i64 {
     type Error = ValueError;
 
     fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
-        value.to_bigint().map(|v| v.as_i64().unwrap())
+        if value.is_int() {
+            value.to_int().map(|v| v as i64)
+        } else {
+            value
+                .to_bigint()
+                .and_then(|v| v.as_i64().ok_or(ValueError::BigIntOverflow))
+        }
     }
 }
 
