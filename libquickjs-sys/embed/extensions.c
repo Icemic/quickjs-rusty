@@ -237,3 +237,8 @@ JSValue JS_Ext_PromiseFinally(JSContext *ctx, JSValue promise, JSValue on_finall
     JSValue argv[1] = {on_finally_func};
     return js_promise_finally(ctx, promise, 1, argv);
 }
+
+JSValue JS_Ext_BigIntToString1(JSContext *ctx, JSValue val, int radix)
+{
+    return js_bigint_to_string1(ctx, val, radix);
+}

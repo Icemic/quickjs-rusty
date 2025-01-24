@@ -64,6 +64,7 @@ extern "C"
   JSValue JS_Ext_PromiseThen2(JSContext *ctx, JSValue promise, JSValue on_fulfilled_func, JSValue on_reject_func);
   JSValue JS_Ext_PromiseCatch(JSContext *ctx, JSValue promise, JSValue on_reject_func);
   JSValue JS_Ext_PromiseFinally(JSContext *ctx, JSValue promise, JSValue on_finally_func);
+  JSValue JS_Ext_BigIntToString1(JSContext *ctx, JSValue val, int radix);
 
 #ifdef __cplusplus
 }
