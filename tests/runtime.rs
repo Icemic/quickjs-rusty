@@ -138,10 +138,34 @@ fn test_eval_pass() {
     );
 
     #[cfg(feature = "bigint")]
+    assert_eq!(
+        c.eval_as::<num_bigint::BigInt>("1 << 30").unwrap(),
+        num_bigint::BigInt::from(1u128 << 30)
+    );
+
+    #[cfg(feature = "bigint")]
+    assert_eq!(
+        c.eval_as::<num_bigint::BigInt>("1n << 30n").unwrap(),
+        num_bigint::BigInt::from(1i64 << 30)
+    );
+
+    #[cfg(feature = "bigint")]
     assert_eq!(c.eval_as::<i64>("1 << 30").unwrap(), 1i64 << 30);
 
     #[cfg(feature = "bigint")]
+    assert_eq!(c.eval_as::<i64>("1n << 30n").unwrap(), 1i64 << 30);
+
+    #[cfg(feature = "bigint")]
+    assert_eq!(
+        c.eval_as::<i64>("1n << 300n"),
+        Err::<i64, _>(ExecutionError::Conversion(ValueError::BigIntOverflow))
+    );
+
+    #[cfg(feature = "bigint")]
     assert_eq!(c.eval_as::<u128>("1n << 100n").unwrap(), 1u128 << 100);
+
+    #[cfg(feature = "bigint")]
+    assert_eq!(c.eval_as::<u128>("1 << 30").unwrap(), 1u128 << 30);
 }
 
 #[test]
