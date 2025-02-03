@@ -1,4 +1,5 @@
 ![quickjs-rusty](https://socialify.git.ci/Icemic/quickjs-rusty/image?description=1&language=1&name=1&owner=1&stargazers=1&theme=Light)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FIcemic%2Fquickjs-rusty.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FIcemic%2Fquickjs-rusty?ref=badge_shield)
 
 [![Crates.io](https://img.shields.io/crates/v/quickjs-rusty.svg?maxAge=3600)](https://crates.io/crates/quickjs-rusty)
 [![docs.rs](https://docs.rs/quickjs-rusty/badge.svg)](https://docs.rs/quickjs-rusty)
@@ -57,3 +58,7 @@ Make sure you have `Clang` installed on your system.
 ### Windows Support
 
 quickjspp-rs can be used under target `x86_64-pc-windows-msvc` with `Clang` installed.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FIcemic%2Fquickjs-rusty.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FIcemic%2Fquickjs-rusty?ref=badge_large)
