@@ -89,6 +89,6 @@ pub unsafe extern "C" fn js_module_normalize(
 fn throw_internal_error(ctx: *mut q::JSContext, err: &str) {
     let err = CString::new(err).unwrap();
     unsafe {
-        q::JS_ThrowInternalError(ctx, err.as_ptr() as *const i8);
+        q::JS_ThrowInternalError(ctx, err.as_ptr() as *const c_char);
     }
 }
