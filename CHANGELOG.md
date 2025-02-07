@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.7.2 (2025-02-07)
+
+### Bug Fixes
+
+ - <csr-id-4f0ecf22a79b3469045133322fb24658da7fa64e/> compatibility with aarch64 target
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 13 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Compatibility with aarch64 target ([`4f0ecf2`](https://github.com/Icemic/quickjs-rusty/commit/4f0ecf22a79b3469045133322fb24658da7fa64e))
+</details>
+
 ## 0.7.1 (2025-01-24)
 
 ### New Features
