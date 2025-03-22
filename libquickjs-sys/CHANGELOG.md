@@ -5,7 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.8.0 (2025-03-22)
+
+### New Features
+
+ - <csr-id-2a6f7433993826b340bc338bb4fefa8252f4738d/> upgrade quickjs-ng to v0.9.0 and fix compatibility
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 57 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Upgrade quickjs-ng to v0.9.0 and fix compatibility ([`2a6f743`](https://github.com/Icemic/quickjs-rusty/commit/2a6f7433993826b340bc338bb4fefa8252f4738d))
+</details>
+
 ## 0.7.2 (2025-01-24)
+
+<csr-id-13c4d141f6c2ae0f067ff789cded4c038f8e1acc/>
 
 ### Bug Fixes
 
@@ -19,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 3 commits contributed to the release.
+ - 4 commits contributed to the release.
  - 13 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -31,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.7.2, quickjs-rusty v0.7.1 ([`cb9ef72`](https://github.com/Icemic/quickjs-rusty/commit/cb9ef726a5d54d5d3bc1a30ba6117a60ad4022d6))
     - Merge pull request #6 from Icemic/bigint_fix ([`09492cb`](https://github.com/Icemic/quickjs-rusty/commit/09492cb5eeeec05a540c89aef6324a25f70c473a))
     - Remove patch operation; Remove unnecessary source code copy to simplify build process ([`13c4d14`](https://github.com/Icemic/quickjs-rusty/commit/13c4d141f6c2ae0f067ff789cded4c038f8e1acc))
     - Makes BigInt conversion conform to the specification ([`6afb0cc`](https://github.com/Icemic/quickjs-rusty/commit/6afb0cc790f133c6fd143569d9a1be3712bb3f63))
