@@ -16,7 +16,7 @@ pub(crate) fn deserialize_borrowed_str(
 
     match tag {
         q::JS_TAG_STRING => {
-            let ptr = unsafe { q::JS_ToCStringLen2(context, std::ptr::null_mut(), *r, 0) };
+            let ptr = unsafe { q::JS_ToCStringLen2(context, std::ptr::null_mut(), *r, false) };
 
             if ptr.is_null() {
                 return Err(ValueError::Internal(
@@ -300,7 +300,7 @@ use crate::ExecutionError;
 
 /// Get the last exception from the runtime, and if present, convert it to a ExceptionError.
 pub(crate) fn get_exception(context: *mut q::JSContext) -> Option<ExecutionError> {
-    if unsafe { q::JS_HasException(context) } == 0 {
+    if unsafe { !q::JS_HasException(context) } {
         return None;
     }
 

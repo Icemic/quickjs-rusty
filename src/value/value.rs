@@ -147,19 +147,19 @@ impl OwnedJsValue {
     /// Check if this value is a Javascript array.
     #[inline]
     pub fn is_array(&self) -> bool {
-        unsafe { q::JS_IsArray(self.context, self.value) == 1 }
+        unsafe { q::JS_IsArray(self.value) }
     }
 
     /// Check if this value is a Javascript function.
     #[inline]
     pub fn is_function(&self) -> bool {
-        unsafe { q::JS_IsFunction(self.context, self.value) == 1 }
+        unsafe { q::JS_IsFunction(self.context, self.value) }
     }
 
     /// Check if this value is a Javascript promise.
     #[inline]
     pub fn is_promise(&self) -> bool {
-        unsafe { q::JS_Ext_IsPromise(self.context, self.value) == 1 }
+        unsafe { q::JS_Ext_IsPromise(self.context, self.value) }
     }
 
     /// Check if this value is a Javascript module.
@@ -213,7 +213,8 @@ impl OwnedJsValue {
     /// Convert this value into a string
     pub fn to_string(&self) -> Result<String, ValueError> {
         self.check_tag(JsTag::String)?;
-        let ptr = unsafe { q::JS_ToCStringLen2(self.context, std::ptr::null_mut(), self.value, 0) };
+        let ptr =
+            unsafe { q::JS_ToCStringLen2(self.context, std::ptr::null_mut(), self.value, false) };
 
         if ptr.is_null() {
             return Err(ValueError::Internal(

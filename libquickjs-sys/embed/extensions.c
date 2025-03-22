@@ -62,7 +62,7 @@ JSValue JS_Ext_NewBool(JSContext *ctx, uint8_t val)
     return JS_NewBool(ctx, val);
 }
 
-JS_BOOL JS_Ext_IsNan(JSValue v)
+bool JS_Ext_IsNan(JSValue v)
 {
     return JS_VALUE_IS_NAN(v);
 }
@@ -92,12 +92,12 @@ int JS_Ext_GetNormTag(JSValue v)
     return JS_VALUE_GET_NORM_TAG(v);
 }
 
-JS_BOOL JS_Ext_IsNumber(JSValue v)
+bool JS_Ext_IsNumber(JSValue v)
 {
     return JS_IsNumber(v);
 }
 
-JS_BOOL JS_Ext_IsBigInt(JSContext *ctx, JSValue v)
+bool JS_Ext_IsBigInt(JSContext *ctx, JSValue v)
 {
     return JS_IsBigInt(ctx, v);
 }
@@ -110,42 +110,42 @@ JS_BOOL JS_Ext_IsBigInt(JSContext *ctx, JSValue v)
 //     return JS_IsBigDecimal(v);
 // }
 
-JS_BOOL JS_Ext_IsBool(JSValue v)
+bool JS_Ext_IsBool(JSValue v)
 {
     return JS_IsBool(v);
 }
 
-JS_BOOL JS_Ext_IsNull(JSValue v)
+bool JS_Ext_IsNull(JSValue v)
 {
     return JS_IsNull(v);
 }
 
-JS_BOOL JS_Ext_IsUndefined(JSValue v)
+bool JS_Ext_IsUndefined(JSValue v)
 {
     return JS_IsUndefined(v);
 }
 
-JS_BOOL JS_Ext_IsException(JSValue v)
+bool JS_Ext_IsException(JSValue v)
 {
     return JS_IsException(v);
 }
 
-JS_BOOL JS_Ext_IsUninitialized(JSValue v)
+bool JS_Ext_IsUninitialized(JSValue v)
 {
     return JS_IsUninitialized(v);
 }
 
-JS_BOOL JS_Ext_IsString(JSValue v)
+bool JS_Ext_IsString(JSValue v)
 {
     return JS_IsString(v);
 }
 
-JS_BOOL JS_Ext_IsSymbol(JSValue v)
+bool JS_Ext_IsSymbol(JSValue v)
 {
     return JS_IsSymbol(v);
 }
 
-JS_BOOL JS_Ext_IsObject(JSValue v)
+bool JS_Ext_IsObject(JSValue v)
 {
     return JS_IsObject(v);
 }
@@ -173,7 +173,7 @@ JSValue JS_Ext_NewCFunctionMagic(JSContext *ctx,
     return JS_NewCFunctionMagic(ctx, func, name, length, cproto, magic);
 }
 
-JS_BOOL JS_Ext_IsPromise(JSContext *ctx, JSValue val)
+bool JS_Ext_IsPromise(JSContext *ctx, JSValue val)
 {
     void *p = JS_GetOpaque(val, JS_CLASS_PROMISE);
     return p != NULL;
