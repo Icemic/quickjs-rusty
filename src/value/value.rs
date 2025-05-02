@@ -126,6 +126,20 @@ impl OwnedJsValue {
         self.tag() == JsTag::Int
     }
 
+    /// Check if this value is `BigInt`.
+    #[inline]
+    #[cfg(feature = "bigint")]
+    pub fn is_bigint(&self) -> bool {
+        self.tag() == JsTag::BigInt || self.tag() == JsTag::ShortBigInt
+    }
+
+    /// Check if this value is `BigInt`, but short enough to fit in a i32
+    #[inline]
+    #[cfg(feature = "bigint")]
+    pub fn is_short_bigint(&self) -> bool {
+        self.tag() == JsTag::ShortBigInt
+    }
+
     /// Check if this value is `float`.
     #[inline]
     pub fn is_float(&self) -> bool {
