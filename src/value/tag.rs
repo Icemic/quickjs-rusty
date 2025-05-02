@@ -23,6 +23,7 @@ pub enum JsTag {
     Uninitialized = q::JS_TAG_UNINITIALIZED,
     CatchOffset = q::JS_TAG_CATCH_OFFSET,
     Exception = q::JS_TAG_EXCEPTION,
+    ShortBigInt = q::JS_TAG_SHORT_BIG_INT,
     Float64 = q::JS_TAG_FLOAT64,
 }
 
@@ -44,6 +45,8 @@ impl JsTag {
             q::JS_TAG_CATCH_OFFSET => JsTag::CatchOffset,
             q::JS_TAG_UNINITIALIZED => JsTag::Uninitialized,
             q::JS_TAG_FUNCTION_BYTECODE => JsTag::FunctionBytecode,
+            #[cfg(feature = "bigint")]
+            q::JS_TAG_SHORT_BIG_INT => JsTag::ShortBigInt,
             #[cfg(feature = "bigint")]
             q::JS_TAG_BIG_INT => JsTag::BigInt,
             _other => {
@@ -72,6 +75,8 @@ impl JsTag {
             JsTag::Uninitialized => q::JS_TAG_UNINITIALIZED,
             JsTag::CatchOffset => q::JS_TAG_CATCH_OFFSET,
             JsTag::Exception => q::JS_TAG_EXCEPTION,
+            #[cfg(feature = "bigint")]
+            JsTag::ShortBigInt => q::JS_TAG_SHORT_BIG_INT,
             JsTag::Float64 => q::JS_TAG_FLOAT64,
         }
     }
