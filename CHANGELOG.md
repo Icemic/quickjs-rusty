@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.0 (2025-05-03)
+
+### New Features
+
+ - <csr-id-55eb87f8f6705b928cda898325200d0ee63d960c/> optimize BigInt conversion by adding support for short BigInt
+ - <csr-id-8f7d601639af61a967e4a0f4bb4baedecb4cf292/> add methods to check if OwnedJsValue is BigInt and ShortBigInt
+ - <csr-id-8298fcc17de7a2f4545126ec5659c40c4a5ebd84/> add support for ShortBigInt in deserialization
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 3 commits contributed to the release.
+ - 41 days passed between releases.
+ - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Optimize BigInt conversion by adding support for short BigInt ([`55eb87f`](https://github.com/Icemic/quickjs-rusty/commit/55eb87f8f6705b928cda898325200d0ee63d960c))
+    - Add methods to check if OwnedJsValue is BigInt and ShortBigInt ([`8f7d601`](https://github.com/Icemic/quickjs-rusty/commit/8f7d601639af61a967e4a0f4bb4baedecb4cf292))
+    - Add support for ShortBigInt in deserialization ([`8298fcc`](https://github.com/Icemic/quickjs-rusty/commit/8298fcc17de7a2f4545126ec5659c40c4a5ebd84))
+</details>
+
 ## 0.8.0 (2025-03-22)
 
 ### New Features

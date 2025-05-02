@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.0 (2025-05-03)
+
+### New Features
+
+ - <csr-id-55eb87f8f6705b928cda898325200d0ee63d960c/> optimize BigInt conversion by adding support for short BigInt
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 41 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Optimize BigInt conversion by adding support for short BigInt ([`55eb87f`](https://github.com/Icemic/quickjs-rusty/commit/55eb87f8f6705b928cda898325200d0ee63d960c))
+    - Feat: upgrade quickjs-ng to v0.10.0; fix: compile errors ([`5cf751f`](https://github.com/Icemic/quickjs-rusty/commit/5cf751f4f4ca60da776540629ce11fe7cd900c64))
+</details>
+
 ## 0.8.0 (2025-03-22)
 
 ### New Features
@@ -15,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 57 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -27,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.8.0, quickjs-rusty v0.8.0, safety bump quickjs-rusty v0.8.0 ([`eefbcfb`](https://github.com/Icemic/quickjs-rusty/commit/eefbcfb41e471865e0d71b0b920cfb3466fbce3e))
     - Upgrade quickjs-ng to v0.9.0 and fix compatibility ([`2a6f743`](https://github.com/Icemic/quickjs-rusty/commit/2a6f7433993826b340bc338bb4fefa8252f4738d))
 </details>
 
