@@ -19,6 +19,7 @@ extern "C"
   bool JS_Ext_IsNan(JSValue v);
   double JS_Ext_GetFloat64(JSValue v);
   int JS_Ext_GetInt(JSValue v);
+  int JS_Ext_GetShortBigInt(JSValue v);
   int JS_Ext_GetBool(JSValue v);
   void *JS_Ext_GetPtr(JSValue v);
   int JS_Ext_GetNormTag(JSValue v);

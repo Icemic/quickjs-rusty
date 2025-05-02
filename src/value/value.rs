@@ -320,13 +320,13 @@ impl OwnedJsValue {
             });
         }
 
-        // let mut int: i64 = 0;
-        // let ret = unsafe { q::JS_ToBigInt64(self.context, &mut int, self.value) };
-        // if ret == 0 {
-        //     Ok(BigInt {
-        //         inner: BigIntOrI64::Int(int),
-        //     })
-        // } else {
+        if self.is_short_bigint() {
+            let int = unsafe { q::JS_Ext_GetShortBigInt(self.value) };
+            return Ok(BigInt {
+                inner: BigIntOrI64::Int(int as i64),
+            });
+        }
+
         let ret = unsafe { q::JS_Ext_BigIntToString1(self.context, self.value, 16) };
         let ret = OwnedJsValue::new(self.context, ret);
 

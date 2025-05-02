@@ -664,10 +664,16 @@ fn chrono_roundtrip() {
 #[cfg(feature = "bigint")]
 #[test]
 fn test_bigint_deserialize_i64() {
-    for i in [0, std::i64::MAX, std::i64::MIN] {
+    for i in [0, std::i32::MAX as i64 / 2, std::i64::MAX, std::i64::MIN] {
         let c = Context::builder().build().unwrap();
         let value = c.eval(&format!("{}n", i), false).unwrap();
         assert_eq!(value.to_bigint(), Ok(i.into()));
+        if i.unsigned_abs() <= std::i32::MAX as u64 {
+            assert!(value.is_short_bigint());
+        } else {
+            assert!(!value.is_short_bigint());
+            assert!(value.is_bigint());
+        }
     }
 }
 

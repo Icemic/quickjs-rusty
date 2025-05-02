@@ -77,6 +77,11 @@ int JS_Ext_GetInt(JSValue v)
     return JS_VALUE_GET_INT(v);
 }
 
+int JS_Ext_GetShortBigInt(JSValue v)
+{
+    return JS_VALUE_GET_SHORT_BIG_INT(v);
+}
+
 int JS_Ext_GetBool(JSValue v)
 {
     return JS_VALUE_GET_BOOL(v);
