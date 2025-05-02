@@ -24,19 +24,25 @@ fn compile_lib(code_dir: &Path) {
         builder.compiler("clang");
     }
 
+    builder.files(
+        [
+            // extensions.c has included quickjs.c
+            "extensions.c",
+            "./quickjs/cutils.c",
+            "./quickjs/libregexp.c",
+            "./quickjs/libunicode.c",
+            "./quickjs/xsum.c",
+        ]
+        .iter()
+        .map(|f| code_dir.join(f)),
+    );
+
+    if cfg!(target_os = "windows") {
+        builder.define("WIN32_LEAN_AND_MEAN", "_WIN32_WINNT=0x0601");
+    }
+
     builder
-        .files(
-            [
-                // extensions.c has included quickjs.c
-                "extensions.c",
-                "./quickjs/cutils.c",
-                "./quickjs/libbf.c",
-                "./quickjs/libregexp.c",
-                "./quickjs/libunicode.c",
-            ]
-            .iter()
-            .map(|f| code_dir.join(f)),
-        )
+        .define("_GNU_SOURCE", "1")
         // The below flags are used by the official Makefile.
         .flag_if_supported("-fno-exceptions")
         .flag_if_supported("-Wchar-subscripts")
