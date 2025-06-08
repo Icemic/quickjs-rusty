@@ -4,7 +4,7 @@
 [![docs.rs](https://docs.rs/quickjs-rusty/badge.svg)](https://docs.rs/quickjs-rusty)
 
 QuickJS is a small and embeddable Javascript engine by Fabrice Bellard and Charlie Gordon. It supports the ES2023 specification including modules, asynchronous generators, proxies and BigInt.  
-Quickjs-NG is one of the most active forks of QuickJS, and it is maintained by the community focused on reigniting the project.
+[Quickjs-ng](https://github.com/quickjs-ng/quickjs) is one of the most active forks of QuickJS, and it is maintained by the community focused on reigniting the project.
 
 This crate allows you to easily access and use all the features of QuickJS from Rust. It also provides robust Rust-JS type conversion and interoperability capabilities.
 
@@ -56,4 +56,4 @@ Make sure you have `Clang` installed on your system.
 
 ### Windows Support
 
-quickjspp-rs can be used under target `x86_64-pc-windows-msvc` with `Clang` installed.
+quickjs-rusty can be used under target `x86_64-pc-windows-msvc` with `Clang` installed.

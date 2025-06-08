@@ -1,4 +1,4 @@
-//! quickjspp is a a Rust wrapper for [QuickJS / Quickjspp](https://github.com/c-smile/quickjspp), a new Javascript
+//! quickjs-rusty is a a Rust wrapper for [QuickJS-NG](https://github.com/quickjs-ng/quickjs), a new Javascript
 //! engine by Fabrice Bellard.
 //!
 //! It enables easy and straight-forward execution of modern Javascript from Rust.
