@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.1 (2025-06-09)
+
+### Bug Fixes
+
+ - <csr-id-2e64441587cb75542878ffda0f2fb58aeaa12703/> update references to quickjs-ng and quickjs-rusty in documentation
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 36 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Update references to quickjs-ng and quickjs-rusty in documentation ([`2e64441`](https://github.com/Icemic/quickjs-rusty/commit/2e64441587cb75542878ffda0f2fb58aeaa12703))
+</details>
+
 ## 0.9.0 (2025-05-03)
 
 ### New Features

@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.1 (2025-06-09)
+
+### New Features
+
+ - <csr-id-9647c719b7e02f168d3847e67b02ce430abc1522/> upgrade quickjs-ng to v0.10.1
+
+### Bug Fixes
+
+ - <csr-id-2e64441587cb75542878ffda0f2fb58aeaa12703/> update references to quickjs-ng and quickjs-rusty in documentation
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 36 days passed between releases.
+ - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Upgrade quickjs-ng to v0.10.1 ([`9647c71`](https://github.com/Icemic/quickjs-rusty/commit/9647c719b7e02f168d3847e67b02ce430abc1522))
+    - Update references to quickjs-ng and quickjs-rusty in documentation ([`2e64441`](https://github.com/Icemic/quickjs-rusty/commit/2e64441587cb75542878ffda0f2fb58aeaa12703))
+</details>
+
 ## 0.9.0 (2025-05-03)
 
 ### New Features
@@ -15,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 2 commits contributed to the release.
+ - 3 commits contributed to the release.
  - 41 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -27,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.9.0, quickjs-rusty v0.9.0, safety bump quickjs-rusty v0.9.0 ([`8026afd`](https://github.com/Icemic/quickjs-rusty/commit/8026afdcc235e09f1003bdeb5789258d3a2eee4d))
     - Optimize BigInt conversion by adding support for short BigInt ([`55eb87f`](https://github.com/Icemic/quickjs-rusty/commit/55eb87f8f6705b928cda898325200d0ee63d960c))
     - Feat: upgrade quickjs-ng to v0.10.0; fix: compile errors ([`5cf751f`](https://github.com/Icemic/quickjs-rusty/commit/5cf751f4f4ca60da776540629ce11fe7cd900c64))
 </details>
