@@ -25,7 +25,7 @@ extern "C"
   int JS_Ext_GetNormTag(JSValue v);
 
   bool JS_Ext_IsNumber(JSValue v);
-  bool JS_Ext_IsBigInt(JSContext *ctx, JSValue v);
+  bool JS_Ext_IsBigInt(JSValue v);
   bool JS_Ext_IsBool(JSValue v);
   bool JS_Ext_IsNull(JSValue v);
   bool JS_Ext_IsUndefined(JSValue v);

@@ -102,9 +102,9 @@ bool JS_Ext_IsNumber(JSValue v)
     return JS_IsNumber(v);
 }
 
-bool JS_Ext_IsBigInt(JSContext *ctx, JSValue v)
+bool JS_Ext_IsBigInt(JSValue v)
 {
-    return JS_IsBigInt(ctx, v);
+    return JS_IsBigInt(v);
 }
 
 // JS_Ext_BOOL JS_IsBigFloat(JSValue v) {
