@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Bug Fixes
+
+ - <csr-id-f65c0fd118bcba4529c4294007a59eed9013000d/> conditionally compile ShortBigInt tag. Close #13
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 37 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Conditionally compile ShortBigInt tag. Close #13 ([`f65c0fd`](https://github.com/Icemic/quickjs-rusty/commit/f65c0fd118bcba4529c4294007a59eed9013000d))
+</details>
+
 ## 0.9.1 (2025-06-09)
 
 ### Bug Fixes

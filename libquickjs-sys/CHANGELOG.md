@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+Upgrade quickjs-ng to latest master version.
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 37 days passed between releases.
+ - 0 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Fix: upgrade quickjs-ng; fix: remove unused JSContext parameter from IsBigInt ([`0324584`](https://github.com/Icemic/quickjs-rusty/commit/03245841101d2a67e14f99c464dc16449bfc6710))
+</details>
+
 ## 0.9.1 (2025-06-09)
 
 ### New Features
@@ -19,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 2 commits contributed to the release.
+ - 3 commits contributed to the release.
  - 36 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -31,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.9.1, quickjs-rusty v0.9.1 ([`a4fbde3`](https://github.com/Icemic/quickjs-rusty/commit/a4fbde3d18487fd7d3d6d0deb7966ca417ddc1cd))
     - Upgrade quickjs-ng to v0.10.1 ([`9647c71`](https://github.com/Icemic/quickjs-rusty/commit/9647c719b7e02f168d3847e67b02ce430abc1522))
     - Update references to quickjs-ng and quickjs-rusty in documentation ([`2e64441`](https://github.com/Icemic/quickjs-rusty/commit/2e64441587cb75542878ffda0f2fb58aeaa12703))
 </details>
