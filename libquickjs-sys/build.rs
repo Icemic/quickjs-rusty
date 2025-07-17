@@ -24,6 +24,12 @@ fn compile_lib(code_dir: &Path) {
         builder.compiler("clang");
     }
 
+    // however, we respect the environment variable
+    let xcompiler = env::var("TARGET_CC").or_else(|_| env::var("TARGET_CXX"));
+    if let Ok(compiler) = xcompiler {
+        builder.compiler(compiler);
+    }
+
     builder.files(
         [
             // extensions.c has included quickjs.c
@@ -37,7 +43,7 @@ fn compile_lib(code_dir: &Path) {
         .map(|f| code_dir.join(f)),
     );
 
-    if cfg!(target_os = "windows") {
+    if env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
         builder.define("WIN32_LEAN_AND_MEAN", "_WIN32_WINNT=0x0601");
     }
 
