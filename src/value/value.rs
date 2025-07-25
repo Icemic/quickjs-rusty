@@ -600,7 +600,7 @@ impl<K: From<String> + PartialEq + Eq + Hash, V: TryFrom<OwnedJsValue, Error = V
     fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
         let obj = value.try_into_object()?;
         let mut ret: HashMap<K, V> = HashMap::new();
-        let mut iter = obj.properties_iter()?;
+        let mut iter = obj.properties_iter()?.step_by(2);
         while let Some(Ok(key)) = iter.next() {
             let key = key.to_string()?;
             let item = obj.property(&key).unwrap();
