@@ -564,6 +564,17 @@ impl TryFrom<OwnedJsValue> for num_bigint::BigInt {
     }
 }
 
+impl<T: TryFrom<OwnedJsValue, Error = ValueError>> TryFrom<OwnedJsValue> for Option<T> {
+    type Error = ValueError;
+
+    fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
+        if value.is_null() {
+            return Ok(None);
+        }
+        Ok(Some(value.try_into()?))
+    }
+}
+
 impl<T: TryFrom<OwnedJsValue, Error = ValueError>> TryFrom<OwnedJsValue> for Vec<T> {
     type Error = ValueError;
 
