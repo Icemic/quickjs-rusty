@@ -5,17 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.9.3 (2025-07-17)
+## 0.9.4 (2025-08-10)
 
-### New Features
+### Bug Fixes
 
- - <csr-id-ec845f43a3138a7def2805bcfe3562f8d9f0a625/> add cross-compilation support for custom compilers
+ - <csr-id-f6e0a70bed90172a9dbee44023d29e228e02c16a/> update quickjs
 
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
+ - 23 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -26,6 +27,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Update quickjs ([`f6e0a70`](https://github.com/Icemic/quickjs-rusty/commit/f6e0a70bed90172a9dbee44023d29e228e02c16a))
+</details>
+
+## 0.9.3 (2025-07-17)
+
+### New Features
+
+ - <csr-id-ec845f43a3138a7def2805bcfe3562f8d9f0a625/> add cross-compilation support for custom compilers
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release libquickjs-ng-sys v0.9.3 ([`6c4629f`](https://github.com/Icemic/quickjs-rusty/commit/6c4629fd13635ddb452373dc5d2622cf3d7b683f))
     - Add cross-compilation support for custom compilers ([`ec845f4`](https://github.com/Icemic/quickjs-rusty/commit/ec845f43a3138a7def2805bcfe3562f8d9f0a625))
 </details>
 

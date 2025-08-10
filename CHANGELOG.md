@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.3 (2025-08-10)
+
+### New Features
+
+ - <csr-id-44a6ed658d4af53ad45539af9e5ee81f1842e8ed/> add conversion from `OwnedJsValue` for `Option`
+
+### Bug Fixes
+
+ - <csr-id-666986003d9d73a19dc12f44ad2eba2461b23321/> enhance serialization for i64 and u64 types in Serializer
+ - <csr-id-4c53a362d8824d5f8b62653ebded10ab9c88ba6b/> handle u64 conversion for number between MAX_SAFE_INTEGER and i64::MAX
+ - <csr-id-32497e2f02939b2b6ac60960d61ced31011878f3/> wrong impl on TryFrom<OwnedJsValue> for HashMap<K, V>
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 5 commits contributed to the release.
+ - 24 days passed between releases.
+ - 4 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Enhance serialization for i64 and u64 types in Serializer ([`6669860`](https://github.com/Icemic/quickjs-rusty/commit/666986003d9d73a19dc12f44ad2eba2461b23321))
+    - Handle u64 conversion for number between MAX_SAFE_INTEGER and i64::MAX ([`4c53a36`](https://github.com/Icemic/quickjs-rusty/commit/4c53a362d8824d5f8b62653ebded10ab9c88ba6b))
+    - Wrong impl on TryFrom<OwnedJsValue> for HashMap<K, V> ([`32497e2`](https://github.com/Icemic/quickjs-rusty/commit/32497e2f02939b2b6ac60960d61ced31011878f3))
+    - Merge pull request #14 from chmln/feat/add-option-conversion ([`1fc3f7b`](https://github.com/Icemic/quickjs-rusty/commit/1fc3f7bd34f8404bf5c67af0ce7b414b4d690263))
+    - Add conversion from `OwnedJsValue` for `Option` ([`44a6ed6`](https://github.com/Icemic/quickjs-rusty/commit/44a6ed658d4af53ad45539af9e5ee81f1842e8ed))
+</details>
+
 ## 0.9.2 (2025-07-16)
 
 ### Bug Fixes
