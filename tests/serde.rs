@@ -27,6 +27,17 @@ fn serde_ser_int() {
 }
 
 #[test]
+fn serde_ser_int64() {
+    let context = Context::builder().build().unwrap();
+    // int
+    // TODO: should take care of i32, i64, u32, u64, etc.
+    let value: u64 = 1754784747637;
+    let js_value = to_js(unsafe { context.context_raw() }, &value).unwrap();
+
+    assert_eq!(js_value.to_json_string(0).unwrap(), "1754784747637");
+}
+
+#[test]
 fn serde_ser_float() {
     let context = Context::builder().build().unwrap();
     // float
@@ -255,6 +266,14 @@ fn serde_de_unsigned_interger() {
 fn serde_de_signed_interger() {
     let value = json!(-1234);
     assert_eq!(parse_from_js::<i32>(value), -1234);
+}
+
+#[test]
+fn serde_de_i64() {
+    let value = json!(1754784747637 as i64);
+
+    // number larger than i32::MAX is treated as f64 in quickjs
+    assert_eq!(parse_from_js::<f64>(value), 1754784747637.0);
 }
 
 #[test]

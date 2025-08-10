@@ -2,12 +2,14 @@ use libquickjs_ng_sys::{JSContext, JSValue};
 use serde::{ser, Serialize};
 
 use crate::utils::{
-    create_bool, create_empty_array, create_empty_object, create_float, create_int, create_null,
-    create_string, create_undefined, own_raw_value,
+    create_bigint, create_bool, create_empty_array, create_empty_object, create_float, create_int,
+    create_null, create_string, create_undefined, own_raw_value,
 };
 use crate::value::{OwnedJsArray, OwnedJsObject, OwnedJsValue};
 
 use super::error::{Error, Result};
+
+const MAX_SAFE_INTEGER: u64 = 9007199254740991;
 
 /// A structure that serializes Rust values into JS values.
 pub struct Serializer {
@@ -153,39 +155,65 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // will be serialized the same. Other formats, especially compact binary
     // formats, may need independent logic for the different sizes.
     fn serialize_i8(self, v: i8) -> Result<()> {
-        self.serialize_i64(i64::from(v))
+        self.serialize_i32(i32::from(v))
     }
 
     fn serialize_i16(self, v: i16) -> Result<()> {
-        self.serialize_i64(i64::from(v))
+        self.serialize_i32(i32::from(v))
     }
 
     fn serialize_i32(self, v: i32) -> Result<()> {
-        self.serialize_i64(i64::from(v))
+        let value = create_int(self.context, v as i32);
+        self.set_node_value(value)
     }
 
     // Not particularly efficient but this is example code anyway. A more
     // performant approach would be to use the `itoa` crate.
     fn serialize_i64(self, v: i64) -> Result<()> {
-        let value = create_int(self.context, v as i32);
-        self.set_node_value(value)
+        if v > MAX_SAFE_INTEGER as i64 {
+            let value = create_bigint(self.context, (v as i64).into())?;
+            self.set_node_value(value)
+        } else if v > i32::MAX as i64 {
+            let value = create_float(self.context, v as f64);
+            self.set_node_value(value)
+        } else {
+            let value = create_int(self.context, v as i32);
+            self.set_node_value(value)
+        }
     }
 
     fn serialize_u8(self, v: u8) -> Result<()> {
-        self.serialize_u64(u64::from(v))
+        self.serialize_i32(i32::from(v))
     }
 
     fn serialize_u16(self, v: u16) -> Result<()> {
-        self.serialize_u64(u64::from(v))
+        self.serialize_i32(i32::from(v))
     }
 
     fn serialize_u32(self, v: u32) -> Result<()> {
-        self.serialize_u64(u64::from(v))
+        if v > i32::MAX as u32 {
+            let value = create_float(self.context, v as f64);
+            self.set_node_value(value)
+        } else {
+            let value = create_int(self.context, v as i32);
+            self.set_node_value(value)
+        }
     }
 
     fn serialize_u64(self, v: u64) -> Result<()> {
-        let value = create_int(self.context, v as i32);
-        self.set_node_value(value)
+        if v > i64::MAX as u64 {
+            let value = create_bigint(self.context, num_bigint::BigInt::from(v).into())?;
+            self.set_node_value(value)
+        } else if v > MAX_SAFE_INTEGER {
+            let value = create_bigint(self.context, (v as i64).into())?;
+            self.set_node_value(value)
+        } else if v > i32::MAX as u64 {
+            let value = create_float(self.context, v as f64);
+            self.set_node_value(value)
+        } else {
+            let value = create_int(self.context, v as i32);
+            self.set_node_value(value)
+        }
     }
 
     fn serialize_f32(self, v: f32) -> Result<()> {
