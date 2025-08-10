@@ -320,6 +320,14 @@ impl OwnedJsValue {
             });
         }
 
+        // numbers between 2^53 -1 and i64::MAX is treated as float in quickjs
+        if self.is_float() {
+            let float = self.to_float()?;
+            return Ok(BigInt {
+                inner: BigIntOrI64::Int(float as i64),
+            });
+        }
+
         if self.is_short_bigint() {
             let int = unsafe { q::JS_Ext_GetShortBigInt(self.value) };
             return Ok(BigInt {

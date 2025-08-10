@@ -18,6 +18,10 @@ fn test_try_from_owned_js_value() {
     let value: Option<i32> = js_value.try_into().unwrap();
     assert_eq!(value, Some(42));
 
+    let js_value: OwnedJsValue = context.eval("1754784747637", false).unwrap();
+    let value: Option<u64> = js_value.try_into().unwrap();
+    assert_eq!(value, Some(1754784747637));
+
     let js_value: OwnedJsValue = context.eval("true", false).unwrap();
     let value: bool = js_value.try_into().unwrap();
     assert_eq!(value, true);
