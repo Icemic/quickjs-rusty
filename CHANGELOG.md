@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.4 (2025-08-30)
+
+### New Features
+
+ - <csr-id-1056790728be5be56a801cd5d936fa4ddd6ae2e6/> add interrupt handler for JS execution
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 19 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Add interrupt handler for JS execution ([`1056790`](https://github.com/Icemic/quickjs-rusty/commit/1056790728be5be56a801cd5d936fa4ddd6ae2e6))
+</details>
+
 ## 0.9.3 (2025-08-10)
 
 ### New Features
