@@ -538,6 +538,14 @@ impl Context {
         }
     }
 
+    /// Set the interrupt handler.\
+    /// Return != 0 if the JS code needs to be interrupted.
+    pub fn set_interrupt_handler(&self, func: q::JSInterruptHandler, opaque: *mut c_void) {
+        unsafe {
+            q::JS_SetInterruptHandler(self.runtime, func, opaque);
+        }
+    }
+
     /// Call a global function in the Javascript namespace.
     ///
     /// **Promises**:
