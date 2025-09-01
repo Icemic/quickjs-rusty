@@ -12,6 +12,6 @@ repository = "https://github.com/Icemic/quickjs-rusty"
 version = "0.9.4"
 
 [build-dependencies]
-bindgen = "0.71.1"
+bindgen = "0.72.1"
 cc = {version = "1.0.66", features = ["parallel"]}
 copy_dir = "0.1.2"
