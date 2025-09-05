@@ -93,7 +93,11 @@ impl<'de> Deserializer<'de> {
     }
 
     fn enter_array(&mut self) -> Result<()> {
-        let current = self.get_current().clone();
+        let mut current = self.get_current().clone();
+
+        if current.is_proxy() {
+            current = current.get_proxy_target(true)?;
+        }
 
         if current.is_array() {
             self.guard_circular_reference(&current)?;
@@ -105,7 +109,11 @@ impl<'de> Deserializer<'de> {
     }
 
     fn enter_object(&mut self) -> Result<()> {
-        let current = self.get_current().clone();
+        let mut current = self.get_current().clone();
+
+        if current.is_proxy() {
+            current = current.get_proxy_target(true)?;
+        }
 
         if current.is_object() {
             let obj = OwnedJsObject::try_from_value(current.clone()).unwrap();
