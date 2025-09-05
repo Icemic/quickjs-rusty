@@ -65,6 +65,25 @@ fn test_eval_pass() {
                 false
             }),
         ),
+        (
+            "new Proxy([1,2], {})",
+            Box::new(|v| {
+                if v.is_proxy() {
+                    let target = v.get_proxy_target(false).unwrap();
+                    if target.is_array() {
+                        let arr = target.to_array().unwrap();
+                        if arr.length() == 2
+                            && arr.get_index(0).unwrap().unwrap().to_int().unwrap() == 1
+                            && arr.get_index(1).unwrap().unwrap().to_int().unwrap() == 2
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                false
+            }),
+        ),
     ];
 
     for (code, res) in cases.into_iter() {

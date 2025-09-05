@@ -164,6 +164,12 @@ impl OwnedJsValue {
         unsafe { q::JS_IsArray(self.value) }
     }
 
+    /// Check if this value is a Javascript Proxy object.
+    #[inline]
+    pub fn is_proxy(&self) -> bool {
+        unsafe { q::JS_IsProxy(self.value) }
+    }
+
     /// Check if this value is a Javascript function.
     #[inline]
     pub fn is_function(&self) -> bool {
@@ -251,6 +257,21 @@ impl OwnedJsValue {
 
     pub fn to_array(&self) -> Result<OwnedJsArray, ValueError> {
         OwnedJsArray::try_from_value(self.clone())
+    }
+
+    pub fn get_proxy_target(&self, recursive: bool) -> Result<OwnedJsValue, ValueError> {
+        if !self.is_proxy() {
+            return Err(ValueError::UnexpectedType);
+        }
+
+        let target = unsafe { q::JS_GetProxyTarget(self.context, self.value) };
+        let target = OwnedJsValue::new(self.context, target);
+
+        if recursive && target.is_proxy() {
+            target.get_proxy_target(true)
+        } else {
+            Ok(target)
+        }
     }
 
     /// Try convert this value into a object
