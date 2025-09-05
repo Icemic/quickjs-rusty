@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.5 (2025-09-06)
+
+### New Features
+
+ - <csr-id-f40c3a0d4050ab38b7f8981a2e905a67984b26f1/> handle JavaScript Proxy in array and object deserialization
+ - <csr-id-bcf847df07dc580f5d451292168b287a3b1fcc1f/> add methods to check for Javascript Proxy and retrieve its target
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 7 days passed between releases.
+ - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Handle JavaScript Proxy in array and object deserialization ([`f40c3a0`](https://github.com/Icemic/quickjs-rusty/commit/f40c3a0d4050ab38b7f8981a2e905a67984b26f1))
+    - Add methods to check for Javascript Proxy and retrieve its target ([`bcf847d`](https://github.com/Icemic/quickjs-rusty/commit/bcf847df07dc580f5d451292168b287a3b1fcc1f))
+</details>
+
 ## 0.9.4 (2025-08-30)
 
 ### New Features
