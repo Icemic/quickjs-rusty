@@ -489,7 +489,19 @@ impl TryFrom<OwnedJsValue> for i32 {
     type Error = ValueError;
 
     fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
-        value.to_int()
+        if value.is_int() {
+            return value.to_int();
+        } else if value.is_float() {
+            let f = value.to_float()?;
+            if f.fract() != 0.0 {
+                return Err(ValueError::UnexpectedType);
+            }
+            if f < (i32::MIN as f64) || f > (i32::MAX as f64) {
+                return Err(ValueError::OutOfRange);
+            }
+            return Ok(f as i32);
+        }
+        Err(ValueError::UnexpectedType)
     }
 }
 
@@ -497,7 +509,13 @@ impl TryFrom<OwnedJsValue> for f64 {
     type Error = ValueError;
 
     fn try_from(value: OwnedJsValue) -> Result<Self, Self::Error> {
-        value.to_float()
+        if value.is_float() {
+            return value.to_float();
+        } else if value.is_int() {
+            let i = value.to_int()?;
+            return Ok(i as f64);
+        }
+        Err(ValueError::UnexpectedType)
     }
 }
 

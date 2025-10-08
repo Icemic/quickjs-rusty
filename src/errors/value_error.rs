@@ -7,6 +7,8 @@ pub enum ValueError {
     InvalidString(std::str::Utf8Error),
     /// Encountered string with \0 bytes.
     StringWithZeroBytes(std::ffi::NulError),
+    /// Value out of range.
+    OutOfRange,
     /// Internal error.
     Internal(String),
     ///
@@ -35,6 +37,7 @@ impl fmt::Display for ValueError {
                 e
             ),
             StringWithZeroBytes(_) => write!(f, "String contains \\0 bytes",),
+            OutOfRange => write!(f, "Value conversion failed - out of range"),
             Internal(e) => write!(f, "Value conversion failed - internal error: {}", e),
             BigIntOverflow => write!(f, "BigInt overflow"),
             UnexpectedType => write!(f, "Could not convert - received unexpected type"),
