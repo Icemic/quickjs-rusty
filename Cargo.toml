@@ -8,7 +8,7 @@ license = "MIT"
 name = "quickjs-rusty"
 readme = "README.md"
 repository = "https://github.com/Icemic/quickjs-rusty"
-version = "0.9.5"
+version = "0.10.0"
 
 [package.metadata.docs.rs]
 features = ["chrono", "bigint"]
