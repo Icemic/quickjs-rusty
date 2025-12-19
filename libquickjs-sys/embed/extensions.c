@@ -247,3 +247,105 @@ JSValue JS_Ext_BigIntToString1(JSContext *ctx, JSValue val, int radix)
 {
     return js_bigint_to_string1(ctx, val, radix);
 }
+
+JSCFunctionListEntry JS_Ext_CFunc_Def(const char *name, uint8_t length, JSCFunction *func1)
+{
+    JSCFunctionListEntry tmp = JS_CFUNC_DEF(name, length, func1);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_CFunc_Def_C_W_E(const char *name, uint8_t length, JSCFunction *func1)
+{
+    JSCFunctionListEntry tmp = JS_CFUNC_DEF2(name, length, func1, JS_PROP_C_W_E);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_CFunc_Def2(const char *name, uint8_t length, JSCFunction *func1, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_CFUNC_DEF2(name, length, func1, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_CFunc_Magic_Def(const char *name, uint8_t length, JSCFunctionMagic *func1, int16_t magic)
+{
+    JSCFunctionListEntry tmp = JS_CFUNC_MAGIC_DEF(name, length, func1, magic);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Iterator_Next_Def(const char *name, uint8_t length, JSIteratorNextFunc *func1, int16_t magic)
+{
+    JSCFunctionListEntry tmp = JS_ITERATOR_NEXT_DEF(name, length, func1, magic);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_CGetSet_Def(const char *name, JSGetterFunc *fgetter, JSSetterFunc *fsetter)
+{
+    JSCFunctionListEntry tmp = JS_CGETSET_DEF(name, fgetter, fsetter);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_CGetSet_Def2(const char *name, JSGetterFunc *fgetter, JSSetterFunc *fsetter, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_CGETSET_DEF2(name, fgetter, fsetter, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_CGetSet_Magic_Def(const char *name, JSGetterMagicFunc *fgetter, JSSetterMagicFunc *fsetter, int16_t magic)
+{
+    JSCFunctionListEntry tmp = JS_CGETSET_MAGIC_DEF(name, fgetter, fsetter, magic);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Prop_String_Def(const char *name, const char *cstr, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_PROP_STRING_DEF(name, cstr, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Prop_Int32_Def(const char *name, int32_t val, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_PROP_INT32_DEF(name, val, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Prop_Int64_Def(const char *name, int64_t val, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_PROP_INT64_DEF(name, val, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Prop_Double_Def(const char *name, double val, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_PROP_DOUBLE_DEF(name, val, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Prop_U2D_Def(const char *name, uint64_t val, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_PROP_U2D_DEF(name, val, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Prop_Undefined_Def(const char *name, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_PROP_UNDEFINED_DEF(name, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Object_Def(const char *name, const JSCFunctionListEntry *tab, int len, uint8_t prop_flags)
+{
+    JSCFunctionListEntry tmp = JS_OBJECT_DEF(name, tab, len, prop_flags);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Alias_Def(const char *name, const char *from)
+{
+    JSCFunctionListEntry tmp = JS_ALIAS_DEF(name, from);
+    return tmp;
+}
+
+JSCFunctionListEntry JS_Ext_Alias_Base_Def(const char *name, const char *from, int base)
+{
+    JSCFunctionListEntry tmp = JS_ALIAS_BASE_DEF(name, from, base);
+    return tmp;
+}

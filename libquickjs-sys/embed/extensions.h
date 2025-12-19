@@ -61,6 +61,31 @@ extern "C"
   JSValue JS_Ext_PromiseFinally(JSContext *ctx, JSValue promise, JSValue on_finally_func);
   JSValue JS_Ext_BigIntToString1(JSContext *ctx, JSValue val, int radix);
 
+  typedef JSValue JSIteratorNextFunc(JSContext *ctx, JSValueConst this_val,
+                                     int argc, JSValueConst *argv, int *pdone, int magic);
+  typedef JSValue JSGetterFunc(JSContext *ctx, JSValueConst this_val);
+  typedef JSValue JSSetterFunc(JSContext *ctx, JSValueConst this_val, JSValueConst val);
+  typedef JSValue JSGetterMagicFunc(JSContext *ctx, JSValueConst this_val, int magic);
+  typedef JSValue JSSetterMagicFunc(JSContext *ctx, JSValueConst this_val, JSValueConst val, int magic);
+
+  JSCFunctionListEntry JS_Ext_CFunc_Def(const char *name, uint8_t length, JSCFunction *func1);
+  JSCFunctionListEntry JS_Ext_CFunc_Def_C_W_E(const char *name, uint8_t length, JSCFunction *func1);
+  JSCFunctionListEntry JS_Ext_CFunc_Def2(const char *name, uint8_t length, JSCFunction *func1, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_CFunc_Magic_Def(const char *name, uint8_t length, JSCFunctionMagic *func1, int16_t magic);
+  JSCFunctionListEntry JS_Ext_Iterator_Next_Def(const char *name, uint8_t length, JSIteratorNextFunc *func1, int16_t magic);
+  JSCFunctionListEntry JS_Ext_CGetSet_Def(const char *name, JSGetterFunc *fgetter, JSSetterFunc *fsetter);
+  JSCFunctionListEntry JS_Ext_CGetSet_Def2(const char *name, JSGetterFunc *fgetter, JSSetterFunc *fsetter, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_CGetSet_Magic_Def(const char *name, JSGetterMagicFunc *fgetter, JSSetterMagicFunc *fsetter, int16_t magic);
+  JSCFunctionListEntry JS_Ext_Prop_String_Def(const char *name, const char *cstr, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_Prop_Int32_Def(const char *name, int32_t val, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_Prop_Int64_Def(const char *name, int64_t val, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_Prop_Double_Def(const char *name, double val, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_Prop_U2D_Def(const char *name, uint64_t val, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_Prop_Undefined_Def(const char *name, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_Object_Def(const char *name, const JSCFunctionListEntry *tab, int len, uint8_t prop_flags);
+  JSCFunctionListEntry JS_Ext_Alias_Def(const char *name, const char *from);
+  JSCFunctionListEntry JS_Ext_Alias_Base_Def(const char *name, const char *from, int base);
+
 #ifdef __cplusplus
 }
 #endif
