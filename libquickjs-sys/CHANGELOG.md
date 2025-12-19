@@ -5,7 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.6 (2025-12-19)
+
+### New Features
+
+ - <csr-id-2560a66131d9f1c6c858e6a20dff2522f916d591/> add new extension functions for JavaScript interoperability
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 104 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Add new extension functions for JavaScript interoperability ([`2560a66`](https://github.com/Icemic/quickjs-rusty/commit/2560a66131d9f1c6c858e6a20dff2522f916d591))
+</details>
+
 ## 0.9.5 (2025-09-06)
+
+<csr-id-4e72cb6991d8fa93315b13645bbe5da3f09275e8/>
+<csr-id-21416c0a27edaa885853291fd0b6171bd0906fd9/>
+<csr-id-5bfd13dbe1b1bf48523201bf609c2a8f6e96de7a/>
 
 ### Chore
 
@@ -17,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 3 commits contributed to the release over the course of 4 calendar days.
+ - 4 commits contributed to the release over the course of 4 calendar days.
  - 26 days passed between releases.
  - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -29,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.9.5, quickjs-rusty v0.9.5 ([`864759d`](https://github.com/Icemic/quickjs-rusty/commit/864759d0d7770967053b7dcba4319fe43b27f557))
     - Upgrade quickjs-ng ([`4e72cb6`](https://github.com/Icemic/quickjs-rusty/commit/4e72cb6991d8fa93315b13645bbe5da3f09275e8))
     - Update quickjs-ng ([`21416c0`](https://github.com/Icemic/quickjs-rusty/commit/21416c0a27edaa885853291fd0b6171bd0906fd9))
     - Update dependencies ([`5bfd13d`](https://github.com/Icemic/quickjs-rusty/commit/5bfd13dbe1b1bf48523201bf609c2a8f6e96de7a))
