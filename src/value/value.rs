@@ -164,6 +164,12 @@ impl OwnedJsValue {
         unsafe { q::JS_IsArray(self.value) }
     }
 
+    /// Check if this value is a Javascript array.
+    #[inline]
+    pub fn is_array_buffer(&self) -> bool {
+        unsafe { q::JS_IsArrayBuffer(self.value) }
+    }
+
     /// Check if this value is a Javascript Proxy object.
     #[inline]
     pub fn is_proxy(&self) -> bool {
