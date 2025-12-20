@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.2 (2025-12-20)
+
+### Bug Fixes
+
+ - <csr-id-3d7629e3d872b645d0881083620ab1e96bcf1704/> callback module exports
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Callback module exports ([`3d7629e`](https://github.com/Icemic/quickjs-rusty/commit/3d7629e3d872b645d0881083620ab1e96bcf1704))
+</details>
+
 ## 0.10.1 (2025-12-19)
 
 ### New Features
