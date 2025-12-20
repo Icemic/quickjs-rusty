@@ -43,7 +43,7 @@ pub mod value;
 
 pub use libquickjs_ng_sys::{JSContext, JSValue as RawJSValue};
 
-pub use self::callback::{Arguments, Callback};
+pub use self::callback::*;
 pub use self::context::*;
 pub use self::errors::*;
 pub use self::value::*;
