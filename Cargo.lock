@@ -334,7 +334,7 @@ dependencies = [
 
 [[package]]
 name = "quickjs-rusty"
-version = "0.10.2"
+version = "0.10.3"
 dependencies = [
  "anyhow",
  "chrono",

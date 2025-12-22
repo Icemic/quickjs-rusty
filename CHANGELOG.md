@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.3 (2025-12-22)
+
+### New Features
+
+ - <csr-id-fa706312d550bf2adb154251b9bc71bc435acf05/> add additional type checks for Javascript values in OwnedJsValue
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 2 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Add additional type checks for Javascript values in OwnedJsValue ([`fa70631`](https://github.com/Icemic/quickjs-rusty/commit/fa706312d550bf2adb154251b9bc71bc435acf05))
+</details>
+
 ## 0.10.2 (2025-12-20)
 
 ### Bug Fixes
