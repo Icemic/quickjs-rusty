@@ -84,6 +84,10 @@ fn test_eval_pass() {
                 false
             }),
         ),
+        (
+            "new Error('my error')",
+            Box::new(|v| v.is_error() && v.js_to_string().unwrap() == "Error: my error"),
+        ),
     ];
 
     for (code, res) in cases.into_iter() {

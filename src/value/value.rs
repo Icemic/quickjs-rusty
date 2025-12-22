@@ -182,10 +182,64 @@ impl OwnedJsValue {
         unsafe { q::JS_IsFunction(self.context, self.value) }
     }
 
+    /// Check if this value is a Javascript function.
+    #[inline]
+    pub fn is_constructor(&self) -> bool {
+        unsafe { q::JS_IsConstructor(self.context, self.value) }
+    }
+
     /// Check if this value is a Javascript promise.
     #[inline]
     pub fn is_promise(&self) -> bool {
         unsafe { q::JS_Ext_IsPromise(self.context, self.value) }
+    }
+
+    /// Check if this value is a Javascript error.
+    #[inline]
+    pub fn is_error(&self) -> bool {
+        unsafe { q::JS_IsError(self.context, self.value) }
+    }
+
+    /// Check if this value is a Javascript RegExp.
+    #[inline]
+    pub fn is_regexp(&self) -> bool {
+        unsafe { q::JS_IsRegExp(self.value) }
+    }
+
+    /// Check if this value is a Javascript Set.
+    #[inline]
+    pub fn is_set(&self) -> bool {
+        unsafe { q::JS_IsSet(self.value) }
+    }
+
+    /// Check if this value is a Javascript Map.
+    #[inline]
+    pub fn is_map(&self) -> bool {
+        unsafe { q::JS_IsMap(self.value) }
+    }
+
+    /// Check if this value is a Javascript WeakSet.
+    #[inline]
+    pub fn is_weak_set(&self) -> bool {
+        unsafe { q::JS_IsWeakSet(self.value) }
+    }
+
+    /// Check if this value is a Javascript WeakMap.
+    #[inline]
+    pub fn is_weak_map(&self) -> bool {
+        unsafe { q::JS_IsWeakMap(self.value) }
+    }
+
+    /// Check if this value is a Javascript WeakRef.
+    #[inline]
+    pub fn is_weak_ref(&self) -> bool {
+        unsafe { q::JS_IsWeakRef(self.value) }
+    }
+
+    /// Check if this value is a Javascript DataView.
+    #[inline]
+    pub fn is_data_view(&self) -> bool {
+        unsafe { q::JS_IsDataView(self.value) }
     }
 
     /// Check if this value is a Javascript module.
