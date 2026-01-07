@@ -191,13 +191,13 @@ impl OwnedJsValue {
     /// Check if this value is a Javascript promise.
     #[inline]
     pub fn is_promise(&self) -> bool {
-        unsafe { q::JS_Ext_IsPromise(self.context, self.value) }
+        unsafe { q::JS_Ext_IsPromise(self.value) }
     }
 
     /// Check if this value is a Javascript error.
     #[inline]
     pub fn is_error(&self) -> bool {
-        unsafe { q::JS_IsError(self.context, self.value) }
+        unsafe { q::JS_IsError(self.value) }
     }
 
     /// Check if this value is a Javascript RegExp.

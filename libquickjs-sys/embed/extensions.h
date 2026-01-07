@@ -46,7 +46,7 @@ extern "C"
                                    int length,
                                    JSCFunctionEnum cproto,
                                    int magic);
-  bool JS_Ext_IsPromise(JSContext *ctx, JSValue val);
+  bool JS_Ext_IsPromise(JSValue val);
 
   JSValue JS_Ext_PromiseResolve(JSContext *ctx, JSValue value);
   JSValue JS_Ext_PromiseReject(JSContext *ctx, JSValue value);

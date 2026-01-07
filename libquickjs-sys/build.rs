@@ -37,7 +37,7 @@ fn compile_lib(code_dir: &Path) {
             "./quickjs/cutils.c",
             "./quickjs/libregexp.c",
             "./quickjs/libunicode.c",
-            "./quickjs/xsum.c",
+            "./quickjs/dtoa.c",
         ]
         .iter()
         .map(|f| code_dir.join(f)),

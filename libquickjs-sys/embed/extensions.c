@@ -178,7 +178,7 @@ JSValue JS_Ext_NewCFunctionMagic(JSContext *ctx,
     return JS_NewCFunctionMagic(ctx, func, name, length, cproto, magic);
 }
 
-bool JS_Ext_IsPromise(JSContext *ctx, JSValue val)
+bool JS_Ext_IsPromise(JSValue val)
 {
     void *p = JS_GetOpaque(val, JS_CLASS_PROMISE);
     return p != NULL;
