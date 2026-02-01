@@ -33,7 +33,10 @@ fn test_try_from_owned_js_value() {
     // test with rope string
     let js_value: OwnedJsValue = context
         .eval(
-            &format!("var x = `{}`; x + x", include_str!("fixtures/long_string.txt")),
+            &format!(
+                "var x = `{}`; x + x",
+                include_str!("fixtures/long_string.txt")
+            ),
             false,
         )
         .unwrap();
