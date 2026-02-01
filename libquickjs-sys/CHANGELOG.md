@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.0 (2026-02-02)
+
+### New Features
+
+ - <csr-id-60d7ff02a98912d09b7028b15e4f87b64b15f730/> add support for QuickJS rope strings
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release over the course of 25 calendar days.
+ - 44 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Add support for QuickJS rope strings ([`60d7ff0`](https://github.com/Icemic/quickjs-rusty/commit/60d7ff02a98912d09b7028b15e4f87b64b15f730))
+    - Upgrade to latest quickjs-ng ([`588b485`](https://github.com/Icemic/quickjs-rusty/commit/588b485e988b85c6be40a3be5bfb16ad5e1cfb68))
+</details>
+
 ## 0.9.6 (2025-12-19)
 
 ### New Features
@@ -15,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 1 commit contributed to the release.
+ - 2 commits contributed to the release.
  - 104 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -27,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.9.6, quickjs-rusty v0.10.1 ([`830d2a6`](https://github.com/Icemic/quickjs-rusty/commit/830d2a642c26fd92c82237a0585a23a5bff81c74))
     - Add new extension functions for JavaScript interoperability ([`2560a66`](https://github.com/Icemic/quickjs-rusty/commit/2560a66131d9f1c6c858e6a20dff2522f916d591))
 </details>
 

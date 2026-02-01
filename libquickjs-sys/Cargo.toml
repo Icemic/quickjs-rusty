@@ -9,7 +9,7 @@ license = "MIT"
 name = "libquickjs-ng-sys"
 readme = "README.md"
 repository = "https://github.com/Icemic/quickjs-rusty"
-version = "0.9.6"
+version = "0.10.0"
 
 [build-dependencies]
 bindgen = "0.72.1"
