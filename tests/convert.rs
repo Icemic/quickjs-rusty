@@ -30,6 +30,17 @@ fn test_try_from_owned_js_value() {
     let value: String = js_value.try_into().unwrap();
     assert_eq!(value, "hello");
 
+    // test with rope string
+    let js_value: OwnedJsValue = context
+        .eval(
+            &format!("var x = `{}`; x + x", include_str!("fixtures/long_string.txt")),
+            false,
+        )
+        .unwrap();
+    assert!(js_value.is_string());
+    let value: String = js_value.try_into().unwrap();
+    assert!(value.starts_with("Lorem ipsum"));
+
     let js_value: OwnedJsValue = context.eval(r#"({"key": "value"})"#, false).unwrap();
     let value: HashMap<String, String> = js_value.try_into().unwrap();
     assert_eq!(value, HashMap::from([("key".into(), "value".into())]));

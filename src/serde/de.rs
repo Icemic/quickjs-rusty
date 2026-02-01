@@ -174,6 +174,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
             JsTag::Bool => visitor.visit_bool(current.to_bool()?),
             JsTag::Null => visitor.visit_unit(),
             JsTag::String => visitor.visit_string(current.to_string()?),
+            JsTag::RopeString => visitor.visit_string(current.to_string()?),
             JsTag::Float64 => visitor.visit_f64(current.to_float()?),
             JsTag::Object => {
                 if current.is_array() {

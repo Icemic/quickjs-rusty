@@ -251,7 +251,7 @@ impl OwnedJsValue {
     /// Check if this value is a Javascript string.
     #[inline]
     pub fn is_string(&self) -> bool {
-        self.tag() == JsTag::String
+        unsafe { q::JS_Ext_IsString(self.value) }
     }
 
     /// Check if this value is a bytecode compiled function.
@@ -292,7 +292,8 @@ impl OwnedJsValue {
 
     /// Convert this value into a string
     pub fn to_string(&self) -> Result<String, ValueError> {
-        self.check_tag(JsTag::String)?;
+        self.check_tag(JsTag::String)
+            .or_else(|_| self.check_tag(JsTag::RopeString))?;
         let ptr =
             unsafe { q::JS_ToCStringLen2(self.context, std::ptr::null_mut(), self.value, false) };
 
