@@ -34,7 +34,6 @@ fn compile_lib(code_dir: &Path) {
         [
             // extensions.c has included quickjs.c
             "extensions.c",
-            "./quickjs/cutils.c",
             "./quickjs/libregexp.c",
             "./quickjs/libunicode.c",
             "./quickjs/dtoa.c",
