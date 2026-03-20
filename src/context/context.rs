@@ -205,6 +205,35 @@ impl Context {
     }
 
     /// Execute the pending job in the event loop.
+    /// Update the QuickJS runtime's stack top reference to the current native
+    /// stack pointer.
+    ///
+    /// This should be called before any JS execution when entering from Rust,
+    /// so that QuickJS measures the JS stack depth from the current position
+    /// rather than from wherever the runtime was first created.
+    ///
+    /// This is especially important in debug builds where Rust/C frames are
+    /// significantly larger than in release builds.
+    pub fn update_stack_top(&self) {
+        unsafe {
+            q::JS_UpdateStackTop(self.runtime);
+        }
+    }
+
+    /// Set the maximum JS stack size (in bytes).
+    ///
+    /// The default is 1MB. In debug builds the QuickJS C interpreter frames
+    /// are unoptimized and consume more native stack per JS call, so a larger
+    /// limit (e.g. 4MB) may be required to run the same code that works fine
+    /// in release builds.
+    ///
+    /// Use `0` to disable the stack size limit entirely.
+    pub fn set_max_stack_size(&self, size: usize) {
+        unsafe {
+            q::JS_SetMaxStackSize(self.runtime, size);
+        }
+    }
+
     pub fn execute_pending_job(&self) -> Result<(), ExecutionError> {
         let mut pctx = Box::new(std::ptr::null_mut::<JSContext>());
         unsafe {
