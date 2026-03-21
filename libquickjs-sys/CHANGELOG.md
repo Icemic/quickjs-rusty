@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+Update quickjs-ng to latest master version.
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 47 days passed between releases.
+ - 0 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Update quickjs-ng ([`b0a597e`](https://github.com/Icemic/quickjs-rusty/commit/b0a597ea6c586456b92f8fcac27369aeba59695c))
+</details>
+
 ## 0.10.0 (2026-02-02)
 
 ### New Features
@@ -15,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-read-only-do-not-edit/>
 
- - 2 commits contributed to the release over the course of 25 calendar days.
+ - 3 commits contributed to the release over the course of 25 calendar days.
  - 44 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
@@ -27,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release libquickjs-ng-sys v0.10.0, quickjs-rusty v0.11.0, safety bump quickjs-rusty v0.11.0 ([`f901091`](https://github.com/Icemic/quickjs-rusty/commit/f9010911ea2f699d85cc535d6c6915064569da5c))
     - Add support for QuickJS rope strings ([`60d7ff0`](https://github.com/Icemic/quickjs-rusty/commit/60d7ff02a98912d09b7028b15e4f87b64b15f730))
     - Upgrade to latest quickjs-ng ([`588b485`](https://github.com/Icemic/quickjs-rusty/commit/588b485e988b85c6be40a3be5bfb16ad5e1cfb68))
 </details>

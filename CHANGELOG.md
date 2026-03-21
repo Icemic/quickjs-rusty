@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### New Features
+
+ - <csr-id-7e125eade90392e18621a8dec3789ca5cd5f1a06/> add methods to update stack top and set maximum stack size for QuickJS runtime
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 47 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Add methods to update stack top and set maximum stack size for QuickJS runtime ([`7e125ea`](https://github.com/Icemic/quickjs-rusty/commit/7e125eade90392e18621a8dec3789ca5cd5f1a06))
+</details>
+
 ## 0.11.0 (2026-02-02)
 
 ### New Features
