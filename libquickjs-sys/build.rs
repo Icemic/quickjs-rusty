@@ -72,14 +72,21 @@ fn compile_lib(code_dir: &Path) {
 }
 
 fn do_bindgen() {
+    let target = env::var("TARGET").unwrap();
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let builder = bindgen::Builder::default()
+    let mut builder = bindgen::Builder::default()
         .header("embed/extensions.h")
         .allowlist_item("js_.+")
         .allowlist_item("JS.+")
         .clang_arg("-std=c11")
         .clang_arg(format!("-I{}", "embed/quickjs"));
+
+    // gnullvm is a special target that uses the gnu toolchain, but it is not detected
+    // as such by bindgen, so we need to add the target manually
+    if target == "x86_64-pc-windows-gnullvm" {
+        builder = builder.clang_arg("--target=x86_64-pc-windows-gnu");
+    }
 
     // detect if we are cross-compiling for android using cargo-ndk
     let builder = if is_cargo_ndk() {
