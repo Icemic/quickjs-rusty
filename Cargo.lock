@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "libquickjs-ng-sys"
-version = "0.13.0"
+version = "0.13.1"
 dependencies = [
  "bindgen",
  "cc",
