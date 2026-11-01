@@ -1,8 +1,7 @@
 use std::ffi::c_void;
 use std::time::{Duration, SystemTime};
 
-use libquickjs_ng_sys::JSRuntime;
-use quickjs_rusty::Context;
+use quickjs_rusty::{Context, JSContext};
 
 const TIMEOUT_MS: u64 = 500;
 
@@ -40,7 +39,7 @@ pub fn main() {
 }
 
 extern "C" fn interrupt_handler(
-    _rt: *mut JSRuntime,
+    _ctx: *mut JSContext,
     opaque: *mut std::ffi::c_void,
 ) -> ::std::os::raw::c_int {
     let ts: SystemTime = unsafe { std::ptr::read(opaque as *const SystemTime) };

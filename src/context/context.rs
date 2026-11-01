@@ -500,6 +500,7 @@ impl Context {
                 self.context,
                 ".\0".as_ptr() as *const c_char,
                 filename_c.as_ptr(),
+                q::JS_Ext_NewSpecialValue(q::JS_TAG_UNDEFINED, 0),
             )
         };
 
