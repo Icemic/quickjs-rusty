@@ -5,18 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.13.1 (2026-09-15)
+## 0.14.0 (2026-11-02)
 
-### Bug Fixes
+### New Features
 
- - <csr-id-44fe533761dca6598f1a879d47e6723946539f0f/> configure bindgen for the Windows gnullvm target
+ - <csr-id-0faa88947f7e8bb92bc9a8ea5d487bc204e4c4de/> update quickjs-ng to v0.18.0
 
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 39 days passed between releases.
+ - 48 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -27,6 +27,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Update quickjs-ng to v0.18.0 ([`0faa889`](https://github.com/Icemic/quickjs-rusty/commit/0faa88947f7e8bb92bc9a8ea5d487bc204e4c4de))
+</details>
+
+## 0.13.1 (2026-09-15)
+
+### Bug Fixes
+
+ - <csr-id-44fe533761dca6598f1a879d47e6723946539f0f/> configure bindgen for the Windows gnullvm target
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 40 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release libquickjs-ng-sys v0.13.1 ([`566550a`](https://github.com/Icemic/quickjs-rusty/commit/566550a81ede02fc33c4d889a4f5da8a2f453b10))
     - Configure bindgen for the Windows gnullvm target ([`44fe533`](https://github.com/Icemic/quickjs-rusty/commit/44fe533761dca6598f1a879d47e6723946539f0f))
 </details>
 
@@ -36,16 +62,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Upgrade quickjs-ng to latest.
 
-### Chore
-
- - <csr-id-00d800363c0346d7fc108432f9ffec260bf3a5be/> update libquickjs-sys changelog
-
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 3 commits contributed to the release.
- - 29 days passed between releases.
+ - 30 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -95,7 +117,7 @@ Upgrade quickjs-ng to v0.15.0.
 <csr-read-only-do-not-edit/>
 
  - 4 commits contributed to the release over the course of 7 calendar days.
- - 64 days passed between releases.
+ - 65 days passed between releases.
  - 0 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -148,7 +170,7 @@ Update quickjs-ng to latest master version.
 <csr-read-only-do-not-edit/>
 
  - 3 commits contributed to the release over the course of 25 calendar days.
- - 44 days passed between releases.
+ - 45 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -196,18 +218,12 @@ Update quickjs-ng to latest master version.
 <csr-id-21416c0a27edaa885853291fd0b6171bd0906fd9/>
 <csr-id-5bfd13dbe1b1bf48523201bf609c2a8f6e96de7a/>
 
-### Chore
-
- - <csr-id-4e72cb6991d8fa93315b13645bbe5da3f09275e8/> upgrade quickjs-ng
- - <csr-id-21416c0a27edaa885853291fd0b6171bd0906fd9/> update quickjs-ng
- - <csr-id-5bfd13dbe1b1bf48523201bf609c2a8f6e96de7a/> update dependencies
-
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 4 commits contributed to the release over the course of 4 calendar days.
- - 26 days passed between releases.
+ - 27 days passed between releases.
  - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -235,7 +251,7 @@ Update quickjs-ng to latest master version.
 <csr-read-only-do-not-edit/>
 
  - 2 commits contributed to the release.
- - 23 days passed between releases.
+ - 24 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -261,6 +277,7 @@ Update quickjs-ng to latest master version.
 <csr-read-only-do-not-edit/>
 
  - 2 commits contributed to the release.
+ - 1 day passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -315,7 +332,7 @@ Upgrade quickjs-ng to latest master version.
 <csr-read-only-do-not-edit/>
 
  - 3 commits contributed to the release.
- - 36 days passed between releases.
+ - 37 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -342,7 +359,7 @@ Upgrade quickjs-ng to latest master version.
 <csr-read-only-do-not-edit/>
 
  - 3 commits contributed to the release.
- - 41 days passed between releases.
+ - 42 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -392,16 +409,12 @@ Upgrade quickjs-ng to latest master version.
 
  - <csr-id-6afb0cc790f133c6fd143569d9a1be3712bb3f63/> makes BigInt conversion conform to the specification
 
-### Refactor
-
- - <csr-id-13c4d141f6c2ae0f067ff789cded4c038f8e1acc/> Remove patch operation; Remove unnecessary source code copy to simplify build process
-
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 4 commits contributed to the release.
- - 13 days passed between releases.
+ - 14 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -451,16 +464,6 @@ Upgrade quickjs-ng to latest master version.
 <csr-id-3f65492ed4852921c880770871f5d84d16766418/>
 <csr-id-a1a7927ad2b88700746d2a80911df4ed540490fd/>
 
-### Chore
-
- - <csr-id-65bf6cb7a8176c67ef1669465a52cc8694e3be88/> rename old CHANGELOG.md
- - <csr-id-657d42ccc888b183e33f47c237a34cdeee305137/> update edition in Cargo.toml to 2021
- - <csr-id-9dad3a324624a1822476a0b44a57c86c836625a8/> fix lint of build.rs
-
-### Chore
-
- - <csr-id-a1a7927ad2b88700746d2a80911df4ed540490fd/> add new changelog files
-
 ### New Features
 
  - <csr-id-9ab8235979cf218ac9c70cbd1b6104642fdf126a/> specify clang as the compiler in build script
@@ -471,10 +474,6 @@ Upgrade quickjs-ng to latest master version.
 
  - <csr-id-75eb98624cf92a78bdb9bb4ba82bda0e0fafebb5/> handle JS value tag retrieval based on NAN boxing configuration
  - <csr-id-db5d12422434ef0382e6ea0f12e1d9b40720ff47/> copy appropriate bindings file based on target architecture
-
-### Refactor
-
- - <csr-id-3f65492ed4852921c880770871f5d84d16766418/> refactors quickjs c wrapper
 
 ### Commit Statistics
 
@@ -510,10 +509,6 @@ Upgrade quickjs-ng to latest master version.
 
 <csr-id-e89081e8eee4c188ecc06336a42b30e5b0a74f2a/>
 
-### Chore
-
- - <csr-id-e89081e8eee4c188ecc06336a42b30e5b0a74f2a/> Release
-
 ### Bug Fixes
 
  - <csr-id-2c87faf416b501a97fae17bd94133d216a71ccc3/> wrong type in static-functions.c
@@ -523,7 +518,7 @@ Upgrade quickjs-ng to latest master version.
 <csr-read-only-do-not-edit/>
 
  - 2 commits contributed to the release.
- - 17 days passed between releases.
+ - 18 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -547,13 +542,6 @@ Upgrade quickjs-ng to latest master version.
 <csr-id-e9f0d239b6798fa86e99e0f0d238e800f8b4993d/>
 <csr-id-094faba594805610d838619cfe9066fd2b876c0d/>
 
-### Chore
-
- - <csr-id-80b6c93ef819b303cd328f02f781eaa1efa91bd9/> bump to 0.6.0
- - <csr-id-e636641a365add28ccb3f6b824ba56d186ae8f0d/> rename to quickjs-rusty
- - <csr-id-efa4b7375e53bb746021eaceab246a34cc27879f/> Release
- - <csr-id-23231eef7264900761eebd3232675a16b5a26800/> fix release tag
-
 ### New Features
 
  - <csr-id-0a0ed4669ef68d96136873426f1645ea04f37ebb/> upgrade quickjs-ng to v0.5.0
@@ -566,19 +554,12 @@ Upgrade quickjs-ng to latest master version.
  - <csr-id-13605d0109fe46745bd79f041afd982e0673a624/> stupid typo bug, wasting my 3 hours...
  - <csr-id-2ad33b777e2cda59d3ac5a2525c5133bc906ae82/> remove unused symbols
 
-### Other
-
- - <csr-id-e9f0d239b6798fa86e99e0f0d238e800f8b4993d/> rename crate name, modify readme, add changelogs
-
-### Refactor
-
- - <csr-id-094faba594805610d838619cfe9066fd2b876c0d/> replace original quickjs to quickjspp, regenerate bindings and something else
-
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 20 commits contributed to the release over the course of 474 calendar days.
+ - 1045 days passed between releases.
  - 12 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -636,23 +617,6 @@ Upgrade quickjs-ng to latest master version.
    quickjs.
    
    In Rust, values are represented with the num-bignum::BigInt type.
-
-### Other
-
- - <csr-id-ff6e5a5bc1f000fe8c477410ada1a9c8fc8b6510/> Upgrade quickjs to 2020-09-06 release
- - <csr-id-7dc5d352e8e907c040648b689e6588a1273abcbd/> fix handling path on windows
- - <csr-id-6c144258b6415d97bb44bad6e4defd735c39f2af/> Ignore some more warnings during native compilation
- - <csr-id-f01400a5523359801b95874037050e8634d150c4/> Don't build quickjs-libc.c
- - <csr-id-ebf71e465392bf93fde1662299ef0deda6e93a3b/> Hardcode -O2 optimization level
- - <csr-id-83cd850782efc081b2aa55dd7bb8f52d951f2d72/> use cc to build quickjs directly
- - <csr-id-d705b7f85f226b8bd4ae3b6706fffdbc5b2cda40/> use cc to determine the proper compiler
-   This allows us to build quickjs for the following targets:
-   * `x86_64-unknown-linux-musl`
-   * `x86_64-pc-windows-gnu` (through cross-compilation)
- - <csr-id-306835e393d7e49f36efbca0a727b96fdb2601c1/> prepare v0.3.0
- - <csr-id-ef0e6399ca24f68c32649e3f660f989f6a269adf/> Bump libquickjs-sys to 0.3.0
- - <csr-id-a89c6fd9300114afb6cf91cbf274224adc7ae88c/> Upgrade quickjs to release  2019-08-10
- - <csr-id-d5d77f8f278b815204a6deaef9b3aec28fa28e9f/> Update embedded quickjs to 2018-07-28
 
 ### Commit Statistics
 

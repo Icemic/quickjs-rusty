@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.15.0 (2026-11-02)
+
+### New Features
+
+ - <csr-id-0faa88947f7e8bb92bc9a8ea5d487bc204e4c4de/> update quickjs-ng to v0.18.0
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 1 commit contributed to the release.
+ - 88 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Update quickjs-ng to v0.18.0 ([`0faa889`](https://github.com/Icemic/quickjs-rusty/commit/0faa88947f7e8bb92bc9a8ea5d487bc204e4c4de))
+</details>
+
 ## 0.14.0 (2026-08-06)
 
 ### Bug Fixes
@@ -16,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 29 days passed between releases.
+ - 30 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -73,7 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release over the course of 7 calendar days.
- - 64 days passed between releases.
+ - 65 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -123,7 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 2 commits contributed to the release over the course of 25 calendar days.
- - 41 days passed between releases.
+ - 42 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -174,6 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
+ - 1 day passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -223,7 +249,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 32 days passed between releases.
+ - 33 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -275,7 +301,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 19 days passed between releases.
+ - 20 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -306,7 +332,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 5 commits contributed to the release.
- - 24 days passed between releases.
+ - 25 days passed between releases.
  - 4 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -360,7 +386,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 36 days passed between releases.
+ - 37 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -387,7 +413,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 3 commits contributed to the release.
- - 41 days passed between releases.
+ - 42 days passed between releases.
  - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -439,7 +465,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 13 days passed between releases.
+ - 14 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -498,10 +524,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - <csr-id-901faa948c3c3a9cc4bfb94046af2d11d620efe3/> lint
  - <csr-id-73a49a6f0ba3a4d7a9e46bbf14f37a0fb59c067a/> enhance safety documentation for OwnedJsValue and implement Send/Sync traits
  - <csr-id-8e38cdff8886a28c8fb89679e0b2f0d7e7c5934a/> OwnedJsValue should not be Send+Sync
-
-### Refactor
-
- - <csr-id-3f65492ed4852921c880770871f5d84d16766418/> refactors quickjs c wrapper
 
 ### Commit Statistics
 
@@ -569,7 +591,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 2 days passed between releases.
+ - 3 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -586,10 +608,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v0.6.1 (2024-06-30)
 
 <csr-id-68d328b982f4c5297a13877d68dc0e423a1de055/>
-
-### Chore
-
- - <csr-id-68d328b982f4c5297a13877d68dc0e423a1de055/> clippy fix
 
 ### Bug Fixes
 
@@ -621,10 +639,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-id-e636641a365add28ccb3f6b824ba56d186ae8f0d/>
 
-### Chore
-
- - <csr-id-e636641a365add28ccb3f6b824ba56d186ae8f0d/> rename to quickjs-rusty
-
 ### New Features
 
  - <csr-id-0a0ed4669ef68d96136873426f1645ea04f37ebb/> upgrade quickjs-ng to v0.5.0
@@ -640,7 +654,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 7 commits contributed to the release over the course of 31 calendar days.
- - 31 days passed between releases.
+ - 32 days passed between releases.
  - 5 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -667,7 +681,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 2 commits contributed to the release.
- - 6 days passed between releases.
+ - 7 days passed between releases.
  - 0 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -709,14 +723,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <csr-id-7e922b5323bc68e82fb988c444a86a90d2065533/>
 <csr-id-487663c0dcb542130ad256d0c61c751418d6638d/>
-
-### Other
-
- - <csr-id-7e922b5323bc68e82fb988c444a86a90d2065533/> removes dependence on old ser impl
-
-### Refactor
-
- - <csr-id-487663c0dcb542130ad256d0c61c751418d6638d/> removes bindings::convert
 
 ### Commit Statistics
 
@@ -766,7 +772,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 1 commit contributed to the release.
- - 105 days passed between releases.
+ - 106 days passed between releases.
  - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -822,7 +828,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 3 commits contributed to the release.
- - 6 days passed between releases.
+ - 7 days passed between releases.
  - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -878,7 +884,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 3 commits contributed to the release over the course of 2 calendar days.
- - 2 days passed between releases.
+ - 3 days passed between releases.
  - 3 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -947,7 +953,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-read-only-do-not-edit/>
 
  - 2 commits contributed to the release.
- - 32 days passed between releases.
+ - 33 days passed between releases.
  - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -975,15 +981,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - <csr-id-983242f4d0b0acbc1ea42216267f811369231bbe/> module loader exception handling
  - <csr-id-5378ff78e18c7e587d79fa449afd53352191a32b/> module loader thread safe problem
 
-### Refactor
-
- - <csr-id-86f229fd49a527b6608aaad5e38dc2208f89a363/> decoupling some methods or structs with ContextWrapper
-
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 4 commits contributed to the release.
+ - 1 day passed between releases.
  - 4 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -1013,19 +1016,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  - <csr-id-e7534e804fb010ae09e13eed313a6271bef1c907/> bindings
 
-### Other
-
- - <csr-id-e9f0d239b6798fa86e99e0f0d238e800f8b4993d/> rename crate name, modify readme, add changelogs
-
-### Test
-
- - <csr-id-d82c8526909e6574807f602bba19faac26b85d9f/> add bool type of callback return test case
-
 ### Commit Statistics
 
 <csr-read-only-do-not-edit/>
 
  - 5 commits contributed to the release over the course of 111 calendar days.
+ - 681 days passed between releases.
  - 4 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -1051,15 +1047,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <csr-id-10a53ad3afb5586d58cc97913419434daebf71ab/>
 <csr-id-8f4b124b00c46dce5ba12eb05d615cae5448ead8/>
 
-### Chore
-
- - <csr-id-870d45fb3db02791a4810b5e8a17a8b0c768cf7c/> Add _NonExhaustive variant to Value
-   BREAKING CHANGE : the new variant ensures that we can add new value types
-   without a semver break in the future.
- - <csr-id-4307fd83a8681a8ce5f84695cbca4e02d8d3795b/> Remove outdated TODOs
- - <csr-id-142af5003ae4f984f0537535a2713f7f14cdfbce/> Deny warnings and missing docs for tests using cfg_attr
- - <csr-id-10a53ad3afb5586d58cc97913419434daebf71ab/> Remove redundant #[cfg] attributes
-
 ### Documentation
 
  - <csr-id-4a4c2ff04f2d1687002bda911a55dd06b0d5aaf8/> Update Windows info in crate docs
@@ -1082,10 +1069,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    in treating nanoseconds as milliseconds instead.
    
    Fixed by switching to millisecond helper functions in chrono.
-
-### Other
-
- - <csr-id-8f4b124b00c46dce5ba12eb05d615cae5448ead8/> handle panics and propagate any errors to JS as an exception
 
 ### Commit Statistics
 
